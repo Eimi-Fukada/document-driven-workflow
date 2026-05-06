@@ -1,0 +1,72 @@
+# Document Driven Workflow
+
+这是一套面向 Codex 和 Claude Code 的文档驱动产品交付工作流。
+
+核心目标：用“产品文档 + UI 图 + 验收标准”作为人与 AI 的协作接口，由 AI 完成实现计划、代码、测试、修复和部署准备。
+
+## 快速开始
+
+检查仓库结构和规则：
+
+```bash
+npm run check
+```
+
+构建本地 AI 技能：
+
+```bash
+npm run build
+```
+
+安装到 Codex 和 Claude Code：
+
+```bash
+npm run setup:all
+```
+
+只安装到 Codex：
+
+```bash
+npm run setup:codex
+```
+
+只安装到 Claude Code：
+
+```bash
+npm run setup:claude
+```
+
+## 强制开发门禁
+
+进入研发前必须对某个功能文档包执行开发门禁：
+
+```bash
+npm run gate:dev -- -FeaturePath docs/features/example-feature
+```
+
+只有当功能文档包满足下面条件时，门禁才会通过：
+
+- 需求状态是 `Ready`
+- 未确认问题数量是 `0`
+- 阻塞问题数量是 `0`
+- 关键假设已被接受
+- 用户已批准进入实现
+- 实现计划已批准
+- PRD、UI Spec、技术契约、验收标准、需求体检、实现计划都存在
+- 功能文档中没有 `TODO`、`TBD`、`待确认`、`未确认`、`待补充`
+
+如果门禁失败，不能进入代码实现阶段。
+
+## 推荐流程
+
+```text
+需求包 -> 需求体检 -> 开发门禁 -> 实现计划 -> 实现 -> 测试 -> 验证报告 -> 上线判断
+```
+
+详细规则见：
+
+- `docs/workflow/WORKFLOW.md`
+- `docs/workflow/GATES.md`
+- `AGENTS.md`
+- `CLAUDE.md`
+

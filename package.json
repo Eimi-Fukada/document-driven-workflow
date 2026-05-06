@@ -1,0 +1,17 @@
+{
+  "name": "document-driven-workflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Document-driven product delivery workflow for Codex and Claude Code.",
+  "scripts": {
+    "build": "node scripts/build-skills.mjs",
+    "check": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+    "gate:dev": "powershell -ExecutionPolicy Bypass -File scripts/gate-dev.ps1",
+    "setup": "node scripts/setup.mjs",
+    "setup:all": "node scripts/setup.mjs --host all",
+    "setup:claude": "node scripts/setup.mjs --host claude",
+    "setup:codex": "node scripts/setup.mjs --host codex",
+    "test": "npm run build && npm run check"
+  }
+}
+

@@ -6,12 +6,13 @@
   "scripts": {
     "build": "node scripts/build-skills.mjs",
     "check": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+    "feature:new": "node scripts/new-feature.mjs",
     "gate:dev": "powershell -ExecutionPolicy Bypass -File scripts/gate-dev.ps1",
     "setup": "node scripts/setup.mjs",
     "setup:all": "node scripts/setup.mjs --host all",
     "setup:claude": "node scripts/setup.mjs --host claude",
     "setup:codex": "node scripts/setup.mjs --host codex",
-    "test": "npm run build && npm run check"
+    "test:gates": "powershell -ExecutionPolicy Bypass -File scripts/test-gates.ps1",
+    "test": "npm run build && npm run check && npm run test:gates"
   }
 }
-

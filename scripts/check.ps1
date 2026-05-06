@@ -21,6 +21,8 @@ $required = @(
     "docs/workflow/templates/verification-report.md",
     "scripts/check.ps1",
     "scripts/gate-dev.ps1",
+    "scripts/new-feature.mjs",
+    "scripts/test-gates.ps1",
     "scripts/build-skills.mjs",
     "scripts/setup.mjs",
     "scripts/file-utils.mjs",
@@ -56,7 +58,9 @@ $contentChecks = @(
     @{ Name = "AGENTS.md mentions gate:dev"; Pass = $agents -match "gate:dev" },
     @{ Name = "CLAUDE.md mentions gate:dev"; Pass = $claude -match "gate:dev" },
     @{ Name = "Skill mentions gate:dev"; Pass = $skill -match "gate:dev" },
+    @{ Name = "package.json exposes feature:new"; Pass = $package -match '"feature:new"' },
     @{ Name = "package.json exposes gate:dev"; Pass = $package -match '"gate:dev"' },
+    @{ Name = "package.json exposes test:gates"; Pass = $package -match '"test:gates"' },
     @{ Name = "package.json exposes setup:codex"; Pass = $package -match '"setup:codex"' },
     @{ Name = "package.json exposes setup:claude"; Pass = $package -match '"setup:claude"' }
 )

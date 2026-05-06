@@ -57,6 +57,41 @@ npm run gate:dev -- -FeaturePath docs/features/example-feature
 
 如果门禁失败，不能进入代码实现阶段。
 
+## 创建功能文档包
+
+创建一个新的功能文档包：
+
+```bash
+npm run feature:new -- login-phone
+```
+
+生成目录：
+
+```text
+docs/features/login-phone/
+  01-prd.md
+  02-ui-spec.md
+  03-technical-contract.md
+  04-acceptance-criteria.md
+  05-readiness-review.md
+  06-implementation-plan.md
+```
+
+新生成的功能包默认是草稿状态，必须填写并通过开发门禁后，才能进入代码实现。
+
+## 门禁回归测试
+
+验证门禁没有失效：
+
+```bash
+npm run test:gates
+```
+
+这个命令会自动检查：
+
+- 不完整功能包必须失败。
+- Ready 功能包必须通过。
+
 ## 推荐流程
 
 ```text
@@ -69,4 +104,3 @@ npm run gate:dev -- -FeaturePath docs/features/example-feature
 - `docs/workflow/GATES.md`
 - `AGENTS.md`
 - `CLAUDE.md`
-

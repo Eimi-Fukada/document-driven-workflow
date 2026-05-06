@@ -3,8 +3,19 @@
 ## 基本信息
 
 - 功能名称：
-- 技术栈：
+- Stack Preset: unset
+- Project Mode: greenfield
+- Exception Reason: none
+- Legacy Baseline: none
+- Compatibility Contract: none
 - 关联需求 ID：
+
+允许的 Stack Preset：
+
+- `next-fullstack`
+- `flutter-fastapi`
+- `flutter-express`
+- `legacy-existing`
 
 ## 架构选择
 
@@ -14,6 +25,13 @@
 - 缓存：
 - 文件存储：
 - 部署平台：
+
+## 技术栈边界
+
+- 是否使用 Next.js App Router：yes / no / not-applicable
+- 是否使用 Next.js Pages Router：no
+- 是否涉及技术升级：no / yes-with-ADR
+- ADR：
 
 ## API 契约
 
@@ -66,4 +84,3 @@
 - 启动命令：
 - 迁移命令：
 - 回滚方式：
-

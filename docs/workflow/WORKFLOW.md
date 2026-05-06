@@ -58,6 +58,8 @@ docs/
 
 如果需求涉及登录、支付、权限、文件上传、第三方 API、数据迁移、通知、订阅、计费或部署架构，必须补充技术边界。
 
+技术栈必须从 `docs/workflow/STACK_POLICY.md` 的标准 Stack Preset 中选择。Next.js 新项目只支持 App Router，不支持 Pages Router。
+
 ## 5. 需求 ID 规则
 
 每个需求必须有稳定 ID：

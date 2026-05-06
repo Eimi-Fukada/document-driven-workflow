@@ -73,6 +73,10 @@ docs/features/<feature-id>/
 - Implementation Plan 存在。
 - 验收标准中至少包含一个 `REQ-` 和一个 `AC-`。
 - 功能文档中不能包含 `TODO`、`TBD`、`待确认`、`未确认`、`待补充`。
+- Technical Contract 必须声明合法 Stack Preset。
+- `next-fullstack` 必须使用 App Router，不能使用 Pages Router。
+- `flutter-express` 必须填写 Exception Reason。
+- `legacy-existing` 必须存在 Legacy Baseline 和 Compatibility Contract。
 
 ## 4. 门禁失败时怎么办
 
@@ -95,4 +99,3 @@ docs/features/<feature-id>/
 - 关键假设
 - 未确认问题
 - 不可用于开发
-

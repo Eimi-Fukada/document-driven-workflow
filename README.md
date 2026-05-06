@@ -62,7 +62,7 @@ npm run gate:dev -- -FeaturePath docs/features/example-feature
 创建一个新的功能文档包：
 
 ```bash
-npm run feature:new -- login-phone
+npm run feature:new -- login-phone --stack next-fullstack
 ```
 
 生成目录：
@@ -78,6 +78,15 @@ docs/features/login-phone/
 ```
 
 新生成的功能包默认是草稿状态，必须填写并通过开发门禁后，才能进入代码实现。
+
+允许的 Stack Preset：
+
+- `next-fullstack`
+- `flutter-fastapi`
+- `flutter-express`
+- `legacy-existing`
+
+Next.js 新项目只支持 App Router，不支持 Pages Router。老项目使用 `legacy-existing`，并先补齐 `docs/legacy/BASELINE.md` 和 `docs/legacy/COMPATIBILITY_CONTRACT.md`。
 
 ## 门禁回归测试
 

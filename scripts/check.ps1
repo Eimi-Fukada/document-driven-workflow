@@ -11,6 +11,11 @@ $required = @(
     "setup.ps1",
     "docs/workflow/WORKFLOW.md",
     "docs/workflow/GATES.md",
+    "docs/workflow/STACK_POLICY.md",
+    "docs/workflow/LEGACY_ADOPTION.md",
+    "docs/workflow/presets/next-fullstack.md",
+    "docs/workflow/presets/flutter-fastapi.md",
+    "docs/workflow/presets/flutter-express.md",
     "docs/workflow/templates/prd.md",
     "docs/workflow/templates/ui-spec.md",
     "docs/workflow/templates/technical-contract.md",
@@ -19,6 +24,9 @@ $required = @(
     "docs/workflow/templates/implementation-plan.md",
     "docs/workflow/templates/change-request.md",
     "docs/workflow/templates/verification-report.md",
+    "docs/workflow/templates/legacy-baseline.md",
+    "docs/workflow/templates/compatibility-contract.md",
+    "docs/workflow/templates/modernization-plan.md",
     "scripts/check.ps1",
     "scripts/gate-dev.ps1",
     "scripts/new-feature.mjs",
@@ -47,6 +55,7 @@ function ReadText($relativePath) {
 
 $workflow = ReadText "docs/workflow/WORKFLOW.md"
 $gates = ReadText "docs/workflow/GATES.md"
+$stackPolicy = ReadText "docs/workflow/STACK_POLICY.md"
 $agents = ReadText "AGENTS.md"
 $claude = ReadText "CLAUDE.md"
 $skill = ReadText "skills/document-driven-workflow/SKILL.md"
@@ -55,6 +64,8 @@ $package = ReadText "package.json"
 $contentChecks = @(
     @{ Name = "WORKFLOW.md mentions gate:dev"; Pass = $workflow -match "gate:dev" },
     @{ Name = "GATES.md defines Readiness Ready"; Pass = $gates -match "Readiness: Ready" },
+    @{ Name = "STACK_POLICY.md bans Pages Router"; Pass = $stackPolicy -match "Pages Router" -and $stackPolicy -match "App Router" },
+    @{ Name = "STACK_POLICY.md defines allowed presets"; Pass = $stackPolicy -match "next-fullstack" -and $stackPolicy -match "flutter-fastapi" -and $stackPolicy -match "legacy-existing" },
     @{ Name = "AGENTS.md mentions gate:dev"; Pass = $agents -match "gate:dev" },
     @{ Name = "CLAUDE.md mentions gate:dev"; Pass = $claude -match "gate:dev" },
     @{ Name = "Skill mentions gate:dev"; Pass = $skill -match "gate:dev" },

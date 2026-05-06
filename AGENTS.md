@@ -9,6 +9,8 @@
 - 没有明确验收标准时，不直接进入实现；先补齐或列出假设。
 - 修改已有功能时，必须通过 `docs/changes/CR-xxxx.md` 描述变更，不靠零散对话覆盖旧需求。
 - 读代码、改代码、跑测试由 AI 完成；面向用户的沟通尽量使用文档、问题清单、计划和验证报告。
+- 新项目必须使用标准 Stack Preset；Next.js 项目只支持 App Router，不使用 Pages Router。
+- 老项目使用 `legacy-existing`，先建立 baseline 和兼容契约，再接入新增或修改功能。
 
 ## 默认交付顺序
 

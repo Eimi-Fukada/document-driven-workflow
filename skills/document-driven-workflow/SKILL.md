@@ -19,6 +19,13 @@ npm run gate:dev -- -FeaturePath docs/features/<feature-id>
 
 如果开发门禁失败，不能进入代码实现。
 
+技术栈也属于门禁范围：
+
+- 新项目必须使用 `next-fullstack`、`flutter-fastapi` 或 `flutter-express`。
+- Next.js 只支持 App Router。
+- 不允许把 Pages Router 作为新项目方案。
+- 老项目使用 `legacy-existing`，必须先建立 baseline 和兼容契约。
+
 失败时只能停留在文档阶段，输出：
 
 - 缺失文件
@@ -75,4 +82,3 @@ npm run gate:dev -- -FeaturePath docs/features/<feature-id>
 - 未验证项
 - 剩余风险
 - 是否达到上线要求
-

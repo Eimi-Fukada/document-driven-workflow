@@ -2,10 +2,13 @@ param()
 
 $ErrorActionPreference = "Stop"
 
-$root = Split-Path -Parent $PSScriptRoot
+$root = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
 $featuresRoot = Join-Path $root "docs\features"
+$epicsRoot = Join-Path $root "docs\epics"
 $failFeature = Join-Path $featuresRoot "__tmp_gate_fail"
 $passFeature = Join-Path $featuresRoot "__tmp_gate_pass"
+$failEpic = Join-Path $epicsRoot "__tmp_epic_fail"
+$passEpic = Join-Path $epicsRoot "__tmp_epic_pass"
 
 function RemoveIfExists($path) {
     if (Test-Path $path) {
@@ -18,7 +21,14 @@ function WriteUtf8($path, $lines) {
 }
 
 function RunGate($featurePath) {
-    $output = & powershell -ExecutionPolicy Bypass -File (Join-Path $root "scripts\gate-dev.ps1") -FeaturePath $featurePath 2>&1
+    $output = & powershell -ExecutionPolicy Bypass -File (Join-Path $root "scripts\workflow\feature\gate-feature.ps1") -FeaturePath $featurePath 2>&1
+    $code = $LASTEXITCODE
+    $output | ForEach-Object { Write-Host $_ }
+    return $code
+}
+
+function RunEpicGate($epicPath) {
+    $output = & powershell -ExecutionPolicy Bypass -File (Join-Path $root "scripts\workflow\epic\gate-epic.ps1") -EpicPath $epicPath 2>&1
     $code = $LASTEXITCODE
     $output | ForEach-Object { Write-Host $_ }
     return $code
@@ -26,10 +36,37 @@ function RunGate($featurePath) {
 
 RemoveIfExists $failFeature
 RemoveIfExists $passFeature
+RemoveIfExists $failEpic
+RemoveIfExists $passEpic
 
 try {
+    New-Item -ItemType Directory -Force -Path $failEpic | Out-Null
+    Copy-Item -LiteralPath (Join-Path $root "docs\workflow\templates\epic\source.md") -Destination (Join-Path $failEpic "00-source.md")
+
+    $failEpicCode = RunEpicGate "docs/epics/__tmp_epic_fail"
+    if ($failEpicCode -eq 0) {
+        Write-Host "Gate regression failed: incomplete epic package passed." -ForegroundColor Red
+        exit 1
+    }
+
+    New-Item -ItemType Directory -Force -Path $passEpic | Out-Null
+    WriteUtf8 (Join-Path $passEpic "00-source.md") @("# Source", "", "Original product iteration material preserved here with enough detail for breakdown.")
+    WriteUtf8 (Join-Path $passEpic "01-epic-brief.md") @("# Epic Brief", "", "- 状态：Ready for Breakdown", "", "Goal is clear.")
+    WriteUtf8 (Join-Path $passEpic "02-requirement-inventory.md") @("# Requirement Inventory", "", "| Epic Req ID | 标题 | 模块 | 风险 | 建议 Feature | 状态 |", "| --- | --- | --- | --- | --- | --- |", "| EREQ-001 | Demo | UI | Low | demo-feature | Ready |")
+    WriteUtf8 (Join-Path $passEpic "03-scope-breakdown.md") @("# Scope Breakdown", "", "| Feature ID | 来源需求 | 目标 | 风险 | 依赖 |", "| --- | --- | --- | --- | --- |", "| demo-feature | EREQ-001 | Demo | Low | none |")
+    WriteUtf8 (Join-Path $passEpic "04-risk-map.md") @("# Risk Map", "", "| 风险 ID | 需求 | 风险等级 | 风险原因 | 缓解方式 |", "| --- | --- | --- | --- | --- |", "| RISK-001 | EREQ-001 | Low | UI only | Smoke test |")
+    WriteUtf8 (Join-Path $passEpic "05-release-plan.md") @("# Release Plan", "", "## Batch 1", "", "- demo-feature")
+    WriteUtf8 (Join-Path $passEpic "06-acceptance-map.md") @("# Acceptance Map", "", "| Epic Req ID | Feature ID | Feature 验收文件 | 验证状态 |", "| --- | --- | --- | --- |", "| EREQ-001 | demo-feature | docs/features/demo-feature/04-acceptance-criteria.md | Ready |")
+    WriteUtf8 (Join-Path $passEpic "07-progress-board.md") @("# Progress Board", "", "| Feature ID | 批次 | 状态 | Gate | Verification |", "| --- | --- | --- | --- | --- |", "| demo-feature | Batch 1 | Ready | Pending | Pending |")
+
+    $passEpicCode = RunEpicGate "docs/epics/__tmp_epic_pass"
+    if ($passEpicCode -ne 0) {
+        Write-Host "Gate regression failed: ready epic package did not pass." -ForegroundColor Red
+        exit 1
+    }
+
     New-Item -ItemType Directory -Force -Path $failFeature | Out-Null
-    Copy-Item -LiteralPath (Join-Path $root "docs\workflow\templates\prd.md") -Destination (Join-Path $failFeature "01-prd.md")
+    Copy-Item -LiteralPath (Join-Path $root "docs\workflow\templates\feature\prd.md") -Destination (Join-Path $failFeature "01-prd.md")
 
     $failCode = RunGate "docs/features/__tmp_gate_fail"
     if ($failCode -eq 0) {
@@ -117,4 +154,8 @@ finally {
     RemoveIfExists $failFeature
     RemoveIfExists $passFeature
     RemoveIfExists (Join-Path $featuresRoot "__tmp_gate_pages_router")
+    RemoveIfExists $failEpic
+    RemoveIfExists $passEpic
 }
+
+exit 0

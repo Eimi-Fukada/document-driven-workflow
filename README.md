@@ -4,6 +4,14 @@
 
 核心目标：用“产品文档 + UI 图 + 验收标准”作为人与 AI 的协作接口，由 AI 完成实现计划、代码、测试、修复和部署准备。
 
+## 先读说明书
+
+第一次使用或推广这套工作流时，先读：
+
+- `docs/workflow/USER_GUIDE.md`
+
+这份说明书解释 Epic、Feature、Gate、Legacy、ADR、Verification 的分工，也说明什么时候不用 Epic、什么时候可以轻量使用 Feature。
+
 ## 快速开始
 
 检查仓库结构和规则：
@@ -88,6 +96,23 @@ docs/features/login-phone/
 
 Next.js 新项目只支持 App Router，不支持 Pages Router。老项目使用 `legacy-existing`，并先补齐 `docs/legacy/BASELINE.md` 和 `docs/legacy/COMPATIBILITY_CONTRACT.md`。
 
+## 创建产品迭代 Epic
+
+一次产品迭代包含多个功能模块时，先创建 Epic：
+
+```bash
+npm run epic:new -- ai-fooler-upgrade
+```
+
+Epic 用于保存原始产品材料、拆分需求、标记风险、规划发布批次。Epic 通过门禁后，再拆成多个 feature：
+
+```bash
+npm run gate:epic -- -EpicPath docs/epics/ai-fooler-upgrade
+npm run feature:new -- drag-upload-hint --stack legacy-existing --epic ai-fooler-upgrade
+```
+
+Epic 门禁通过只代表可以拆 feature，不代表可以写代码。代码实现仍然必须通过 feature 级开发门禁。
+
 ## 门禁回归测试
 
 验证门禁没有失效：
@@ -100,6 +125,8 @@ npm run test:gates
 
 - 不完整功能包必须失败。
 - Ready 功能包必须通过。
+- 不完整 Epic 必须失败。
+- Ready Epic 必须通过。
 
 ## 推荐流程
 
@@ -109,7 +136,17 @@ npm run test:gates
 
 详细规则见：
 
+- `docs/workflow/USER_GUIDE.md`
 - `docs/workflow/WORKFLOW.md`
+- `docs/workflow/EPIC_WORKFLOW.md`
 - `docs/workflow/GATES.md`
 - `AGENTS.md`
 - `CLAUDE.md`
+
+模板按职责分组：
+
+- `docs/workflow/templates/feature`
+- `docs/workflow/templates/epic`
+- `docs/workflow/templates/legacy`
+- `docs/workflow/templates/change`
+- `docs/workflow/templates/decision`

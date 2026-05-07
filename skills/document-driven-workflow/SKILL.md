@@ -1,84 +1,68 @@
 ---
 name: "document-driven-workflow"
-description: "Use when turning product documents, UI specs, and acceptance criteria into implementation plans, code, tests, verification reports, and deployment readiness with a mandatory pre-development gate."
+description: "Use when a project should be driven by product documents, UI specs, acceptance criteria, Epic/Feature breakdown, readiness gates, legacy adoption, or AI-managed implementation handoff."
 ---
 
 # Document Driven Workflow
 
-本技能用于执行文档驱动产品交付。
+Use this skill to connect a target project to a document-driven AI delivery workflow, then operate that workflow.
 
-用户用产品文档、UI 图和验收标准表达需求；AI 负责需求体检、实现计划、代码实现、测试、修复和部署准备。
+## Core Rule
 
-## 强制开发门禁
+Do not treat this as a project template. This is an AI workflow skill.
 
-进入代码实现前必须运行：
+The skill should help the agent:
 
-```bash
-npm run gate:dev -- -FeaturePath docs/features/<feature-id>
-```
+1. Inspect the target project.
+2. Decide whether the request is Level 0-4.
+3. Add the minimum workflow files, scripts, and commands needed by that project.
+4. Create Epic or Feature document packages.
+5. Run readiness gates before implementation.
+6. Keep project-specific facts inside the target project, not in this skill.
 
-如果开发门禁失败，不能进入代码实现。
+## What To Read
 
-技术栈也属于门禁范围：
+- For role separation and complexity levels, read `references/USER_GUIDE.md`.
+- For normal feature delivery, read `references/WORKFLOW.md`.
+- For product iterations, read `references/EPIC_WORKFLOW.md`.
+- For old projects, read `references/LEGACY_ADOPTION.md`.
+- For stack choices, read `references/STACK_POLICY.md`.
+- For gate rules, read `references/GATES.md`.
 
-- 新项目必须使用 `next-fullstack`、`flutter-fastapi` 或 `flutter-express`。
-- Next.js 只支持 App Router。
-- 不允许把 Pages Router 作为新项目方案。
-- 老项目使用 `legacy-existing`，必须先建立 baseline 和兼容契约。
+## Target Project Adoption
 
-失败时只能停留在文档阶段，输出：
+When asked to apply this workflow to a project:
 
-- 缺失文件
-- 未确认问题
-- 阻塞问题
-- 未批准假设
-- 需要补充的下一份文档
+1. Read the target project's existing docs and scripts first.
+2. Preserve existing project docs; treat them as evidence, not clutter.
+3. Copy only the workflow assets the project needs:
+   - `references/*.md` to `docs/workflow/`
+   - `templates/` to `docs/workflow/templates/`
+   - needed gate/generator scripts to the project scripts directory
+4. Add project-local commands without overwriting existing build/dev/test commands.
+5. For old projects, create `docs/legacy/BASELINE.md` and `docs/legacy/COMPATIBILITY_CONTRACT.md` before any feature work.
 
-## 交互闸门
+## Epic vs Feature
 
-在生成实现计划或写代码前，必须先完成：
+If the input is a product iteration with multiple modules, create an Epic first.
 
-1. 复述产品目标、功能范围和非目标。
-2. 检查 PRD、UI Spec、Technical Contract、Acceptance Criteria 是否齐全。
-3. 判断需求状态：`Ready`、`Ready with Assumptions` 或 `Not Ready`。
-4. 如果仍有不确定需求，一次只问一个问题。
-5. 所有阻塞问题清零后，输出 Readiness Review。
-6. 用户批准后，再输出 Implementation Plan。
-7. Implementation Plan 批准并通过 `gate:dev` 后，才能实现代码。
+If the input is a single independently developable unit, create a Feature.
 
-确认后再输出实现计划。
+Never use one large Feature to hide a multi-module Epic.
 
-## 文档入口
+## Implementation Gate
 
-优先读取：
+Before code changes, the target project's feature gate must pass.
 
-- `AGENTS.md`
-- `CLAUDE.md`
-- `docs/workflow/WORKFLOW.md`
-- `docs/workflow/GATES.md`
-- `docs/workflow/templates/`
-- `docs/features/<feature-id>/`
+If the gate fails, stay in documentation mode and report what is missing or unresolved.
 
-## 功能文档包
+## Bundled Resources
 
-每个功能目录应包含：
+- `templates/feature/`
+- `templates/epic/`
+- `templates/legacy/`
+- `templates/change/`
+- `templates/decision/`
+- `scripts/`
+- `references/`
 
-```text
-01-prd.md
-02-ui-spec.md
-03-technical-contract.md
-04-acceptance-criteria.md
-05-readiness-review.md
-06-implementation-plan.md
-```
-
-## 结束条件
-
-一个功能只有在验证报告完成后才算交付结束。验证报告必须说明：
-
-- 执行过的命令
-- 通过的测试
-- 失败后修复的内容
-- 未验证项
-- 剩余风险
-- 是否达到上线要求

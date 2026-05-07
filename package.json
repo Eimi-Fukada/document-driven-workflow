@@ -4,15 +4,17 @@
   "private": true,
   "description": "Document-driven product delivery workflow for Codex and Claude Code.",
   "scripts": {
-    "build": "node scripts/build-skills.mjs",
-    "check": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-    "feature:new": "node scripts/new-feature.mjs",
-    "gate:dev": "powershell -ExecutionPolicy Bypass -File scripts/gate-dev.ps1",
-    "setup": "node scripts/setup.mjs",
-    "setup:all": "node scripts/setup.mjs --host all",
-    "setup:claude": "node scripts/setup.mjs --host claude",
-    "setup:codex": "node scripts/setup.mjs --host codex",
-    "test:gates": "powershell -ExecutionPolicy Bypass -File scripts/test-gates.ps1",
+    "build": "node scripts/build/build-skills.mjs",
+    "check": "powershell -ExecutionPolicy Bypass -File scripts/quality/check.ps1",
+    "epic:new": "node scripts/workflow/epic/new-epic.mjs",
+    "feature:new": "node scripts/workflow/feature/new-feature.mjs",
+    "gate:epic": "powershell -ExecutionPolicy Bypass -File scripts/workflow/epic/gate-epic.ps1",
+    "gate:dev": "powershell -ExecutionPolicy Bypass -File scripts/workflow/feature/gate-feature.ps1",
+    "setup": "node scripts/install/setup.mjs",
+    "setup:all": "node scripts/install/setup.mjs --host all",
+    "setup:claude": "node scripts/install/setup.mjs --host claude",
+    "setup:codex": "node scripts/install/setup.mjs --host codex",
+    "test:gates": "powershell -ExecutionPolicy Bypass -File scripts/workflow/test/test-gates.ps1",
     "test": "npm run build && npm run check && npm run test:gates"
   }
 }

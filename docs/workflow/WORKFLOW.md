@@ -2,6 +2,8 @@
 
 本文定义一套面向 AI 协作的产品交付模式：用户用“产品文档 + UI 图 + 验收标准”描述需求，AI 负责完成技术实现、测试、修复和部署准备。
 
+第一次使用前先读 `docs/workflow/USER_GUIDE.md`。该说明书定义 Epic、Feature、Gate、Legacy、ADR、Verification 的分工，以及不同复杂度下应使用的流程层级。
+
 ## 1. 目标
 
 这套工作流要解决四个问题：
@@ -10,6 +12,8 @@
 - 让实现、测试、验收都能追溯到同一个需求 ID。
 - 让后续新增和修改有固定入口，避免旧功能被意外破坏。
 - 让用户不必用代码表达需求，但仍能掌握产品边界、风险和上线状态。
+
+这套工作流不是要求所有需求都使用全部文档层级。复杂度分级和使用决策见 `docs/workflow/USER_GUIDE.md`。
 
 ## 2. 角色分工
 
@@ -59,6 +63,8 @@ docs/
 如果需求涉及登录、支付、权限、文件上传、第三方 API、数据迁移、通知、订阅、计费或部署架构，必须补充技术边界。
 
 技术栈必须从 `docs/workflow/STACK_POLICY.md` 的标准 Stack Preset 中选择。Next.js 新项目只支持 App Router，不支持 Pages Router。
+
+如果输入是一份跨多个模块的产品迭代文档，应先进入 `docs/workflow/EPIC_WORKFLOW.md` 定义的 Epic 流程，拆分后再创建 feature 文档包。
 
 ## 5. 需求 ID 规则
 

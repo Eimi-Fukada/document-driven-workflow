@@ -4,7 +4,8 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(__dirname, "..", "..", "..");
+const gateCommand = process.env.WORKFLOW_GATE_COMMAND || "npm run gate:dev";
 
 const args = process.argv.slice(2);
 const featureId = args[0];
@@ -23,6 +24,7 @@ function parseOption(name, fallback) {
 }
 
 const stackPreset = parseOption("stack", "next-fullstack");
+const epicId = parseOption("epic", "none");
 const validStacks = new Set(["next-fullstack", "flutter-fastapi", "flutter-express", "legacy-existing"]);
 
 if (!featureId) {
@@ -42,13 +44,18 @@ if (!validStacks.has(stackPreset)) {
   process.exit(1);
 }
 
+if (epicId !== "none" && !/^[a-z0-9][a-z0-9-]*$/.test(epicId)) {
+  console.error("Invalid epic id. Use lowercase letters, numbers, and hyphens only.");
+  process.exit(1);
+}
+
 const featureDir = path.join(repoRoot, "docs", "features", featureId);
 if (existsSync(featureDir)) {
   console.error(`Feature already exists: docs/features/${featureId}`);
   process.exit(1);
 }
 
-const templateDir = path.join(repoRoot, "docs", "workflow", "templates");
+const templateDir = path.join(repoRoot, "docs", "workflow", "templates", "feature");
 const files = [
   ["prd.md", "01-prd.md"],
   ["ui-spec.md", "02-ui-spec.md"],
@@ -87,9 +94,22 @@ await import("fs").then(({ writeFileSync }) =>
   writeFileSync(technicalContractPath, technicalContract, "utf8"),
 );
 
+if (epicId !== "none") {
+  const prdPath = path.join(featureDir, "01-prd.md");
+  let prd = await import("fs").then(({ readFileSync }) => readFileSync(prdPath, "utf8"));
+  prd = prd.replace(
+    "## 基本信息",
+    `## 基本信息\n\n- Epic ID: ${epicId}\n- Epic Path: docs/epics/${epicId}`,
+  );
+  await import("fs").then(({ writeFileSync }) => writeFileSync(prdPath, prd, "utf8"));
+}
+
 console.log(`Created feature document package: docs/features/${featureId}`);
 console.log(`Stack preset: ${stackPreset}`);
+if (epicId !== "none") {
+  console.log(`Epic: ${epicId}`);
+}
 console.log("");
 console.log("Next step:");
 console.log(`1. Fill docs/features/${featureId}/01-prd.md through 06-implementation-plan.md`);
-console.log(`2. Run: npm run gate:dev -- -FeaturePath docs/features/${featureId}`);
+console.log(`2. Run: ${gateCommand} -- -FeaturePath docs/features/${featureId}`);

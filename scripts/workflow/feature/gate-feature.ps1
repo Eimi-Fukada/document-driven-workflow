@@ -4,11 +4,12 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$root = Split-Path -Parent $PSScriptRoot
+$root = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
+$gateCommand = if ($env:WORKFLOW_GATE_COMMAND) { $env:WORKFLOW_GATE_COMMAND } else { "npm run gate:dev" }
 
 if ([string]::IsNullOrWhiteSpace($FeaturePath)) {
     Write-Host "Development gate failed: missing -FeaturePath." -ForegroundColor Red
-    Write-Host "Usage: npm run gate:dev -- -FeaturePath docs/features/<feature-id>"
+    Write-Host "Usage: $gateCommand -- -FeaturePath docs/features/<feature-id>"
     exit 1
 }
 
@@ -148,7 +149,7 @@ if ($failures.Count -gt 0) {
     $failures | ForEach-Object { Write-Host " - $_" -ForegroundColor Red }
     Write-Host ""
     Write-Host "Next step: fix the feature documents, then rerun:" -ForegroundColor Yellow
-    Write-Host "npm run gate:dev -- -FeaturePath $FeaturePath"
+    Write-Host "$gateCommand -- -FeaturePath $FeaturePath"
     exit 1
 }
 

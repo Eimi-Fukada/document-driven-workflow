@@ -1,8 +1,8 @@
 import { existsSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { buildSkills } from "./build-skills.mjs";
-import { copyDirectoryRecursive, ensureDir, resetTarget } from "./file-utils.mjs";
+import { buildSkills } from "../build/build-skills.mjs";
+import { copyDirectoryRecursive, ensureDir, resetTarget } from "../shared/file-utils.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,7 +30,7 @@ if (!validHosts.has(host)) {
   process.exit(1);
 }
 
-const repoRoot = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(__dirname, "..", "..");
 const skillSource = path.join(repoRoot, "dist", "skills", "document-driven-workflow");
 
 buildSkills({ quiet: true });

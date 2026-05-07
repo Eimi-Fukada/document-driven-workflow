@@ -188,7 +188,7 @@ npm run gate:epic -- -EpicPath docs/epics/ai-fooler-upgrade
 
 ## 6.1 Epic Hydrate 草稿补全
 
-用途：降低 Epic 使用成本。用户只需要先把原始产品材料放进 `00-source.md`，AI 再补全其他 Epic 文档草稿。
+用途：降低 Epic 使用成本。用户只需要先把原始产品材料放进 `00-source.md`，命令会调用 Codex CLI 补全其他 Epic 文档草稿。
 
 命令：
 
@@ -211,7 +211,8 @@ npm run epic:hydrate -- docs/epics/ai-fooler-upgrade
 规则：
 
 - Hydrate 生成的是草稿，不是批准结果。
-- AI 可以补全结构化内容，但不能替用户批准。
+- 命令默认调用 `codex exec` 自动补全结构化内容，但不能替用户批准。
+- 只想生成骨架、不调用 AI 时，使用 `--agent none`。
 - `HYDRATION.md` 中只要仍是 `Review Status: Draft` 或 `User Approval: Pending`，`gate:epic` 必须失败。
 - AI 推断出来的内容必须标记为假设，不能伪装成用户明确给出的需求。
 
@@ -288,7 +289,7 @@ npm run gate:dev -- -FeaturePath docs/features/login-phone
 
 ## 8.1 Feature Hydrate 草稿补全
 
-用途：降低 Feature 使用成本。用户可以只提供一段原始需求，AI 自动整理成 PRD、UI Spec、技术契约、验收标准、体检和实现计划草稿。
+用途：降低 Feature 使用成本。用户可以只提供一段原始需求，命令会调用 Codex CLI 自动整理成 PRD、UI Spec、技术契约、验收标准、体检和实现计划草稿。
 
 命令：
 
@@ -311,6 +312,8 @@ npm run feature:hydrate -- docs/features/login-phone
 规则：
 
 - Hydrate 生成的是可审查草稿。
+- 命令默认调用 `codex exec` 自动补全文档。
+- 只想生成骨架、不调用 AI 时，使用 `--agent none`。
 - 未审查草稿不能进入研发。
 - `HYDRATION.md` 中只要仍是 `Review Status: Draft` 或 `User Approval: Pending`，`gate:dev` 必须失败。
 - AI 不能因为文档看起来完整就自动批准进入实现。

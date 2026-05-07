@@ -42,6 +42,7 @@ $required = @(
     "docs/workflow/templates/epic/retrospective.md",
     "scripts/build/build-skills.mjs",
     "scripts/install/setup.mjs",
+    "scripts/shared/agent-runner.mjs",
     "scripts/shared/file-utils.mjs",
     "scripts/workflow/epic/gate-epic.ps1",
     "scripts/workflow/epic/hydrate-epic.mjs",

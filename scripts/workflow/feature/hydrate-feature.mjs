@@ -1,6 +1,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { parseAgentOption, runAgent } from "../../shared/agent-runner.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,6 +10,7 @@ const repoRoot = path.resolve(__dirname, "..", "..", "..");
 const args = process.argv.slice(2);
 const featureArg = args[0];
 const force = args.includes("--force");
+const agent = parseAgentOption(args);
 
 if (!featureArg) {
   console.error("Missing feature path.");
@@ -90,5 +92,27 @@ console.log(`Feature hydration scaffold ready: ${path.relative(repoRoot, feature
 console.log(`Created files: ${created}`);
 console.log(`Skipped existing files: ${skipped}`);
 console.log("");
-console.log("Next AI step:");
-console.log("Read the raw material and complete the Feature draft documents for user review.");
+console.log(`Running hydrate agent: ${agent}`);
+
+const relativeFeaturePath = path.relative(repoRoot, featurePath).replaceAll("\\", "/");
+const relativeSourcePath = path.relative(repoRoot, sourcePath).replaceAll("\\", "/");
+const prompt = `Use document-driven-workflow.
+
+Task: hydrate the Feature document package at ${relativeFeaturePath}.
+
+Instructions:
+- Read ${relativeSourcePath}.
+- Complete ${relativeFeaturePath}/01-prd.md through ${relativeFeaturePath}/06-implementation-plan.md as reviewable Feature draft documents.
+- Do not modify ${relativeSourcePath} if it is 00-source.md.
+- Do not mark anything as Approved.
+- Keep HYDRATION.md with Review Status: Draft and User Approval: Pending.
+- Keep Readiness as Not Ready unless the user has explicitly reviewed and approved the draft.
+- Preserve the user's original product meaning.
+- Mark inferred items explicitly as assumptions.
+- Remove unresolved template placeholders from the completed draft documents when the source supports a concrete answer.
+- If source material is insufficient for a field, write a concise assumption or a review question instead of inventing facts.
+- Do not implement code.
+
+Finish by summarizing which Feature files were hydrated and what the user must review.`;
+
+runAgent({ agent, cwd: repoRoot, prompt });

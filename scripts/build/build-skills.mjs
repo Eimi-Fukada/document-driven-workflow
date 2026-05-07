@@ -59,6 +59,10 @@ export function buildSkills({ quiet = false } = {}) {
     path.join(repoRoot, "scripts", "workflow"),
     path.join(target, "scripts", "workflow"),
   );
+  copyDirectoryRecursive(
+    path.join(repoRoot, "scripts", "shared"),
+    path.join(target, "scripts", "shared"),
+  );
 
   if (!quiet) {
     console.log(`Built skill: ${target}`);

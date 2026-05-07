@@ -10,6 +10,7 @@ $passFeature = Join-Path $featuresRoot "__tmp_gate_pass"
 $failEpic = Join-Path $epicsRoot "__tmp_epic_fail"
 $passEpic = Join-Path $epicsRoot "__tmp_epic_pass"
 $hydratedEpic = Join-Path $epicsRoot "__tmp_epic_hydrated"
+$localizedStatusEpic = Join-Path $epicsRoot "__tmp_epic_localized_status"
 $hydratedFeature = Join-Path $featuresRoot "__tmp_feature_hydrated"
 
 function RemoveIfExists($path) {
@@ -41,6 +42,7 @@ RemoveIfExists $passFeature
 RemoveIfExists $failEpic
 RemoveIfExists $passEpic
 RemoveIfExists $hydratedEpic
+RemoveIfExists $localizedStatusEpic
 RemoveIfExists $hydratedFeature
 
 try {
@@ -55,7 +57,7 @@ try {
 
     New-Item -ItemType Directory -Force -Path $passEpic | Out-Null
     WriteUtf8 (Join-Path $passEpic "00-source.md") @("# Source", "", "Original product iteration material preserved here with enough detail for breakdown.")
-    WriteUtf8 (Join-Path $passEpic "01-epic-brief.md") @("# Epic Brief", "", "- 状态：Ready for Breakdown", "", "Goal is clear.")
+    WriteUtf8 (Join-Path $passEpic "01-epic-brief.md") @("# Epic Brief", "", "- 状态：Ready for Breakdown", "- Epic Status: Ready for Breakdown", "", "Goal is clear.")
     WriteUtf8 (Join-Path $passEpic "02-requirement-inventory.md") @("# Requirement Inventory", "", "| Epic Req ID | 标题 | 模块 | 风险 | 建议 Feature | 状态 |", "| --- | --- | --- | --- | --- | --- |", "| EREQ-001 | Demo | UI | Low | demo-feature | Ready |")
     WriteUtf8 (Join-Path $passEpic "03-scope-breakdown.md") @("# Scope Breakdown", "", "| Feature ID | 来源需求 | 目标 | 风险 | 依赖 |", "| --- | --- | --- | --- | --- |", "| demo-feature | EREQ-001 | Demo | Low | none |")
     WriteUtf8 (Join-Path $passEpic "04-risk-map.md") @("# Risk Map", "", "| 风险 ID | 需求 | 风险等级 | 风险原因 | 缓解方式 |", "| --- | --- | --- | --- | --- |", "| RISK-001 | EREQ-001 | Low | UI only | Smoke test |")
@@ -71,8 +73,8 @@ try {
 
     New-Item -ItemType Directory -Force -Path $hydratedEpic | Out-Null
     WriteUtf8 (Join-Path $hydratedEpic "00-source.md") @("# Source", "", "Original product iteration material preserved here with enough detail for hydrate regression testing. It includes multiple modules, risk, UI changes, and release sequencing.")
-    & node (Join-Path $root "scripts\workflow\epic\hydrate-epic.mjs") "docs/epics/__tmp_epic_hydrated" | Out-Host
-    WriteUtf8 (Join-Path $hydratedEpic "01-epic-brief.md") @("# Epic Brief", "", "- 鐘舵€侊細Ready for Breakdown", "", "Goal is clear.")
+    & node (Join-Path $root "scripts\workflow\epic\hydrate-epic.mjs") "docs/epics/__tmp_epic_hydrated" --agent none | Out-Host
+    WriteUtf8 (Join-Path $hydratedEpic "01-epic-brief.md") @("# Epic Brief", "", "- 状态：Ready for Breakdown", "- Epic Status: Ready for Breakdown", "", "Goal is clear.")
     WriteUtf8 (Join-Path $hydratedEpic "02-requirement-inventory.md") @("# Requirement Inventory", "", "| Epic Req ID | 鏍囬 | 妯″潡 | 椋庨櫓 | 寤鸿 Feature | 鐘舵€?|", "| --- | --- | --- | --- | --- | --- |", "| EREQ-001 | Demo | UI | Low | demo-feature | Ready |")
     WriteUtf8 (Join-Path $hydratedEpic "03-scope-breakdown.md") @("# Scope Breakdown", "", "| Feature ID | 鏉ユ簮闇€姹?| 鐩爣 | 椋庨櫓 | 渚濊禆 |", "| --- | --- | --- | --- | --- |", "| demo-feature | EREQ-001 | Demo | Low | none |")
     WriteUtf8 (Join-Path $hydratedEpic "04-risk-map.md") @("# Risk Map", "", "| 椋庨櫓 ID | 闇€姹?| 椋庨櫓绛夌骇 | 椋庨櫓鍘熷洜 | 缂撹В鏂瑰紡 |", "| --- | --- | --- | --- | --- |", "| RISK-001 | EREQ-001 | Low | UI only | Smoke test |")
@@ -82,6 +84,21 @@ try {
     $hydratedEpicCode = RunEpicGate "docs/epics/__tmp_epic_hydrated"
     if ($hydratedEpicCode -eq 0) {
         Write-Host "Gate regression failed: hydrated draft epic package passed before review." -ForegroundColor Red
+        exit 1
+    }
+
+    New-Item -ItemType Directory -Force -Path $localizedStatusEpic | Out-Null
+    WriteUtf8 (Join-Path $localizedStatusEpic "00-source.md") @("# Source", "", "Original product iteration material preserved here with enough detail for localized status regression testing.")
+    WriteUtf8 (Join-Path $localizedStatusEpic "01-epic-brief.md") @("# Epic Brief", "", "- 状态：Ready for Breakdown", "", "Goal is clear.")
+    WriteUtf8 (Join-Path $localizedStatusEpic "02-requirement-inventory.md") @("# Requirement Inventory", "", "| Epic Req ID | 标题 | 模块 | 风险 | 建议 Feature | 状态 |", "| --- | --- | --- | --- | --- | --- |", "| EREQ-001 | Demo | UI | Low | demo-feature | Ready |")
+    WriteUtf8 (Join-Path $localizedStatusEpic "03-scope-breakdown.md") @("# Scope Breakdown", "", "| Feature ID | 来源需求 | 目标 | 风险 | 依赖 |", "| --- | --- | --- | --- | --- |", "| demo-feature | EREQ-001 | Demo | Low | none |")
+    WriteUtf8 (Join-Path $localizedStatusEpic "04-risk-map.md") @("# Risk Map", "", "| 风险 ID | 需求 | 风险等级 | 风险原因 | 缓解方式 |", "| --- | --- | --- | --- | --- |", "| RISK-001 | EREQ-001 | Low | UI only | Smoke test |")
+    WriteUtf8 (Join-Path $localizedStatusEpic "05-release-plan.md") @("# Release Plan", "", "## Batch 1", "", "- demo-feature")
+    WriteUtf8 (Join-Path $localizedStatusEpic "06-acceptance-map.md") @("# Acceptance Map", "", "| Epic Req ID | Feature ID | Feature 验收文件 | 验证状态 |", "| --- | --- | --- | --- |", "| EREQ-001 | demo-feature | docs/features/demo-feature/04-acceptance-criteria.md | Ready |")
+    WriteUtf8 (Join-Path $localizedStatusEpic "07-progress-board.md") @("# Progress Board", "", "| Feature ID | 批次 | 状态 | Gate | Verification |", "| --- | --- | --- | --- | --- |", "| demo-feature | Batch 1 | Ready | Pending | Pending |")
+    $localizedStatusCode = RunEpicGate "docs/epics/__tmp_epic_localized_status"
+    if ($localizedStatusCode -eq 0) {
+        Write-Host "Gate regression failed: localized-only epic status passed without ASCII machine field." -ForegroundColor Red
         exit 1
     }
 
@@ -132,7 +149,7 @@ try {
 
     New-Item -ItemType Directory -Force -Path $hydratedFeature | Out-Null
     WriteUtf8 (Join-Path $hydratedFeature "00-source.md") @("# Source", "", "Feature source material with enough detail for hydrate regression testing. It includes user goal, UI behavior, API boundary, and acceptance direction.")
-    & node (Join-Path $root "scripts\workflow\feature\hydrate-feature.mjs") "docs/features/__tmp_feature_hydrated" | Out-Host
+    & node (Join-Path $root "scripts\workflow\feature\hydrate-feature.mjs") "docs/features/__tmp_feature_hydrated" --agent none | Out-Host
     WriteUtf8 (Join-Path $hydratedFeature "01-prd.md") @("# PRD", "", "REQ-DEMO-001 Demo ready requirement")
     WriteUtf8 (Join-Path $hydratedFeature "02-ui-spec.md") @("# UI Spec", "", "UI-DEMO-001 Demo UI")
     WriteUtf8 (Join-Path $hydratedFeature "03-technical-contract.md") @(
@@ -215,6 +232,7 @@ finally {
     RemoveIfExists $failEpic
     RemoveIfExists $passEpic
     RemoveIfExists $hydratedEpic
+    RemoveIfExists $localizedStatusEpic
 }
 
 exit 0

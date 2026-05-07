@@ -56,12 +56,12 @@ Never use one large Feature to hide a multi-module Epic.
 
 Users may provide only raw source material first.
 
-When `00-source.md` exists, run or emulate the hydrate flow:
+When `00-source.md` exists, run the hydrate flow:
 
 - Epic: `npm run epic:hydrate -- docs/epics/<epic-id>`
 - Feature: `npm run feature:hydrate -- docs/features/<feature-id>`
 
-Then complete the generated draft documents for user review.
+The hydrate command should call Codex CLI to complete the generated draft documents for user review. Use `--agent none` only when scaffolding or testing without AI generation.
 
 Never mark hydrated documents as approved yourself. The user must review before gates can pass.
 

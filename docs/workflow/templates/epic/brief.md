@@ -6,6 +6,7 @@
 - Epic 名称：
 - 创建日期：
 - 状态：Draft / Ready for Breakdown / In Progress / Released
+- Epic Status: Draft / Ready for Breakdown / In Progress / Released
 
 ## 背景
 
@@ -26,4 +27,3 @@
 ## 约束
 
 - 
-

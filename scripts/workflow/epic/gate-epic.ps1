@@ -69,8 +69,9 @@ if ($failures.Count -eq 0) {
         $failures += "Epic source must preserve original product material or source path."
     }
 
-    if ($brief -notmatch "状态：Ready for Breakdown|状态：In Progress|状态：Released") {
-        $failures += "Epic brief status must be Ready for Breakdown, In Progress, or Released."
+    $statusMatch = [regex]::Match($brief, "(?m)^- Epic Status:\s*(Ready for Breakdown|In Progress|Released)\s*$")
+    if (-not $statusMatch.Success) {
+        $failures += "Epic brief must declare ASCII machine field '- Epic Status: Ready for Breakdown|In Progress|Released'."
     }
 
     if ($inventory -notmatch "EREQ-") {

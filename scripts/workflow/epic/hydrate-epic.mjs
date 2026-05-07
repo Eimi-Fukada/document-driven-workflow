@@ -1,6 +1,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { parseAgentOption, runAgent } from "../../shared/agent-runner.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,6 +10,7 @@ const repoRoot = path.resolve(__dirname, "..", "..", "..");
 const args = process.argv.slice(2);
 const epicArg = args[0];
 const force = args.includes("--force");
+const agent = parseAgentOption(args);
 
 if (!epicArg) {
   console.error("Missing epic path.");
@@ -88,5 +90,25 @@ console.log(`Epic hydration scaffold ready: ${path.relative(repoRoot, epicPath)}
 console.log(`Created files: ${created}`);
 console.log(`Skipped existing files: ${skipped}`);
 console.log("");
-console.log("Next AI step:");
-console.log("Read 00-source.md and complete the Epic draft documents for user review.");
+console.log(`Running hydrate agent: ${agent}`);
+
+const relativeEpicPath = path.relative(repoRoot, epicPath).replaceAll("\\", "/");
+const prompt = `Use document-driven-workflow.
+
+Task: hydrate the Epic document package at ${relativeEpicPath}.
+
+Instructions:
+- Read ${relativeEpicPath}/00-source.md.
+- Complete ${relativeEpicPath}/01-epic-brief.md through ${relativeEpicPath}/07-progress-board.md as reviewable Epic draft documents.
+- Do not modify ${relativeEpicPath}/00-source.md.
+- Do not mark anything as Approved.
+- Keep HYDRATION.md with Review Status: Draft and User Approval: Pending.
+- Preserve the user's original product meaning.
+- Mark inferred items explicitly as assumptions.
+- Remove unresolved template placeholders from the completed draft documents when the source supports a concrete answer.
+- If source material is insufficient for a field, write a concise assumption or a review question instead of inventing facts.
+- Do not implement code.
+
+Finish by summarizing which Epic files were hydrated and what the user must review.`;
+
+runAgent({ agent, cwd: repoRoot, prompt });

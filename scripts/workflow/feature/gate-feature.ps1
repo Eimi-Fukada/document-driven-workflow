@@ -52,6 +52,17 @@ if ($failures.Count -eq 0) {
     $acceptance = Get-Content -LiteralPath $acceptancePath -Raw -Encoding utf8
     $technical = Get-Content -LiteralPath $technicalPath -Raw -Encoding utf8
 
+    $hydrationPath = Join-Path $featureFullPath "HYDRATION.md"
+    if (Test-Path $hydrationPath) {
+        $hydration = Get-Content -LiteralPath $hydrationPath -Raw -Encoding utf8
+        if ($hydration -match "(?m)^- Review Status:\s*Draft\s*$") {
+            $failures += "Feature hydration draft has not been reviewed."
+        }
+        if ($hydration -match "(?m)^- User Approval:\s*Pending\s*$") {
+            $failures += "Feature hydration draft is pending user approval."
+        }
+    }
+
     $requiredGateLines = @(
         "- Readiness: Ready",
         "- Unresolved Questions: 0",
@@ -131,7 +142,7 @@ if ($failures.Count -eq 0) {
     $pendingConfirmation = -join ([char[]](0x5F85, 0x786E, 0x8BA4))
     $unconfirmed = -join ([char[]](0x672A, 0x786E, 0x8BA4))
     $pendingSupplement = -join ([char[]](0x5F85, 0x8865, 0x5145))
-    $blockedPatterns = @("TODO", "TBD", $pendingConfirmation, $unconfirmed, $pendingSupplement)
+    $blockedPatterns = @("TODO", "TBD", "Review Status: Draft", "User Approval: Pending", "Hydration Status: Draft", $pendingConfirmation, $unconfirmed, $pendingSupplement)
     foreach ($file in $requiredFiles) {
         $full = Join-Path $featureFullPath $file
         $content = Get-Content -LiteralPath $full -Raw -Encoding utf8

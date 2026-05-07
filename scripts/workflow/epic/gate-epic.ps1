@@ -54,6 +54,17 @@ if ($failures.Count -eq 0) {
     $release = Get-Content -LiteralPath (Join-Path $epicFullPath "05-release-plan.md") -Raw -Encoding utf8
     $acceptance = Get-Content -LiteralPath (Join-Path $epicFullPath "06-acceptance-map.md") -Raw -Encoding utf8
 
+    $hydrationPath = Join-Path $epicFullPath "HYDRATION.md"
+    if (Test-Path $hydrationPath) {
+        $hydration = Get-Content -LiteralPath $hydrationPath -Raw -Encoding utf8
+        if ($hydration -match "(?m)^- Review Status:\s*Draft\s*$") {
+            $failures += "Epic hydration draft has not been reviewed."
+        }
+        if ($hydration -match "(?m)^- User Approval:\s*Pending\s*$") {
+            $failures += "Epic hydration draft is pending user approval."
+        }
+    }
+
     if ($source -notmatch "原始内容" -and $source.Trim().Length -lt 80) {
         $failures += "Epic source must preserve original product material or source path."
     }
@@ -85,7 +96,7 @@ if ($failures.Count -eq 0) {
     $pendingConfirmation = -join ([char[]](0x5F85, 0x786E, 0x8BA4))
     $unconfirmed = -join ([char[]](0x672A, 0x786E, 0x8BA4))
     $pendingSupplement = -join ([char[]](0x5F85, 0x8865, 0x5145))
-    $blockedPatterns = @("TODO", "TBD", $pendingConfirmation, $unconfirmed, $pendingSupplement)
+    $blockedPatterns = @("TODO", "TBD", "Review Status: Draft", "User Approval: Pending", "Hydration Status: Draft", $pendingConfirmation, $unconfirmed, $pendingSupplement)
 
     foreach ($file in $requiredFiles) {
         $content = Get-Content -LiteralPath (Join-Path $epicFullPath $file) -Raw -Encoding utf8

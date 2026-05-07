@@ -186,6 +186,35 @@ npm run gate:epic -- -EpicPath docs/epics/ai-fooler-upgrade
 - 不代表可以直接写代码。
 - 每个 Feature 仍必须通过 `gate:dev`。
 
+## 6.1 Epic Hydrate 草稿补全
+
+用途：降低 Epic 使用成本。用户只需要先把原始产品材料放进 `00-source.md`，AI 再补全其他 Epic 文档草稿。
+
+命令：
+
+```bash
+npm run epic:hydrate -- docs/epics/ai-fooler-upgrade
+```
+
+推荐使用方式：
+
+```text
+1. npm run epic:new -- ai-fooler-upgrade
+2. 用户把原始需求、会议记录、UI 说明或产品草稿放进 00-source.md
+3. npm run epic:hydrate -- docs/epics/ai-fooler-upgrade
+4. AI 阅读 00-source.md，补全 01-epic-brief.md 到 07-progress-board.md
+5. 用户审查和修改
+6. 用户批准后，AI 才能把 Review Status / User Approval 改成通过状态
+7. 运行 gate:epic
+```
+
+规则：
+
+- Hydrate 生成的是草稿，不是批准结果。
+- AI 可以补全结构化内容，但不能替用户批准。
+- `HYDRATION.md` 中只要仍是 `Review Status: Draft` 或 `User Approval: Pending`，`gate:epic` 必须失败。
+- AI 推断出来的内容必须标记为假设，不能伪装成用户明确给出的需求。
+
 ## 7. 创建 Feature
 
 用途：创建一个可以独立开发和验收的功能文档包。
@@ -256,6 +285,35 @@ npm run gate:dev -- -FeaturePath docs/features/login-phone
 - AI 必须停留在文档阶段。
 - 只能输出缺失项、阻塞项、未确认项和下一步补文档建议。
 - 不能开始代码实现。
+
+## 8.1 Feature Hydrate 草稿补全
+
+用途：降低 Feature 使用成本。用户可以只提供一段原始需求，AI 自动整理成 PRD、UI Spec、技术契约、验收标准、体检和实现计划草稿。
+
+命令：
+
+```bash
+npm run feature:hydrate -- docs/features/login-phone
+```
+
+推荐使用方式：
+
+```text
+1. npm run feature:new -- login-phone --stack next-fullstack
+2. 用户把原始需求放进 00-source.md 或 01-prd.md
+3. npm run feature:hydrate -- docs/features/login-phone
+4. AI 阅读原始材料，补全 01-prd.md 到 06-implementation-plan.md
+5. 用户审查和修改
+6. 用户批准后，AI 才能把 Readiness / User Approval / Implementation Plan Status 改成通过状态
+7. 运行 gate:dev
+```
+
+规则：
+
+- Hydrate 生成的是可审查草稿。
+- 未审查草稿不能进入研发。
+- `HYDRATION.md` 中只要仍是 `Review Status: Draft` 或 `User Approval: Pending`，`gate:dev` 必须失败。
+- AI 不能因为文档看起来完整就自动批准进入实现。
 
 ## 9. Legacy Baseline
 
@@ -501,4 +559,3 @@ Change Request
 -> 回归测试
 -> Verification Report
 ```
-

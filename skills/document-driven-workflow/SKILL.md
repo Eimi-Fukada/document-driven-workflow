@@ -16,9 +16,10 @@ The skill should help the agent:
 1. Inspect the target project.
 2. Decide whether the request is Level 0-4.
 3. Add the minimum workflow files, scripts, and commands needed by that project.
-4. Create Epic or Feature document packages.
-5. Run readiness gates before implementation.
-6. Keep project-specific facts inside the target project, not in this skill.
+4. Hydrate Epic or Feature draft documents from raw product material.
+5. Create Epic or Feature document packages.
+6. Run readiness gates before implementation.
+7. Keep project-specific facts inside the target project, not in this skill.
 
 ## What To Read
 
@@ -50,6 +51,19 @@ If the input is a product iteration with multiple modules, create an Epic first.
 If the input is a single independently developable unit, create a Feature.
 
 Never use one large Feature to hide a multi-module Epic.
+
+## Hydration Rule
+
+Users may provide only raw source material first.
+
+When `00-source.md` exists, run or emulate the hydrate flow:
+
+- Epic: `npm run epic:hydrate -- docs/epics/<epic-id>`
+- Feature: `npm run feature:hydrate -- docs/features/<feature-id>`
+
+Then complete the generated draft documents for user review.
+
+Never mark hydrated documents as approved yourself. The user must review before gates can pass.
 
 ## Implementation Gate
 

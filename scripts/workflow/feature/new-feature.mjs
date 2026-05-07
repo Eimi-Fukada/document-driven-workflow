@@ -87,8 +87,8 @@ technicalContract = technicalContract
   .replace("- Project Mode: greenfield", `- Project Mode: ${projectMode}`)
   .replace("- Legacy Baseline: none", `- Legacy Baseline: ${legacyBaseline}`)
   .replace("- Compatibility Contract: none", `- Compatibility Contract: ${compatibilityContract}`)
-  .replace("- 是否使用 Next.js App Router：yes / no / not-applicable", `- 是否使用 Next.js App Router：${usesAppRouter}`)
-  .replace("- 是否使用 Next.js Pages Router：no", "- 是否使用 Next.js Pages Router：no");
+  .replace(/^- Next\.js App Router:.*$/m, `- Next.js App Router: ${usesAppRouter}`)
+  .replace(/^- Next\.js Pages Router:.*$/m, "- Next.js Pages Router: no");
 
 await import("fs").then(({ writeFileSync }) =>
   writeFileSync(technicalContractPath, technicalContract, "utf8"),

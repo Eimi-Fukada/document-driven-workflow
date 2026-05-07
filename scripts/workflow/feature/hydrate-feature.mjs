@@ -70,6 +70,20 @@ const marker = `# Feature Hydration Notes
 - Review Status: Draft
 - User Approval: Pending
 
+## Allowed Values
+
+- Hydration Status: Draft / Reviewed
+- Review Status: Draft / Reviewed
+- User Approval: Pending / Approved
+
+Common approved state after user review:
+
+\`\`\`text
+- Hydration Status: Reviewed
+- Review Status: Reviewed
+- User Approval: Approved
+\`\`\`
+
 ## AI Instructions
 
 Read the raw feature material from \`${path.basename(sourcePath)}\`, then complete \`01-prd.md\` through \`06-implementation-plan.md\`.

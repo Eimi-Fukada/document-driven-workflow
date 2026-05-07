@@ -1,4 +1,4 @@
-# ADR 模板
+﻿# ADR 模板
 
 ## 基本信息
 
@@ -6,6 +6,13 @@
 - 标题：
 - 日期：
 - 状态：Proposed / Accepted / Superseded
+
+## 状态字段允许值 / Allowed Status Values
+
+- 状态：Proposed / Accepted / Superseded
+- Proposed：待审查的决策提案。
+- Accepted：已经采纳，后续实现应遵守。
+- Superseded：已被新的 ADR 替代。
 
 ## 背景
 

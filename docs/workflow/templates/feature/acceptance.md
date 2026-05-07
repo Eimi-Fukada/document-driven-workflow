@@ -1,4 +1,4 @@
-# 验收标准模板
+﻿# 验收标准模板
 
 ## 基本信息
 
@@ -6,6 +6,15 @@
 - 关联 PRD：
 - 关联 UI Spec：
 - 状态：Draft / Ready / Verified
+
+## 状态字段允许值 / Allowed Status Values
+
+- 状态：Draft / Ready / Verified
+- 验收矩阵状态：Draft / Ready / Verified / Failed
+- Draft：验收标准草稿，尚未审查。
+- Ready：验收标准已确认，可用于测试。
+- Verified：验收已通过。
+- Failed：验收失败或未达到要求。
 
 ## 验收矩阵
 

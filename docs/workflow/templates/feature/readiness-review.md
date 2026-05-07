@@ -1,4 +1,4 @@
-# Readiness Review 模板
+﻿# Readiness Review 模板
 
 ## 基本信息
 
@@ -6,6 +6,30 @@
 - 关联需求：
 - 创建日期：
 - 状态：Draft / Ready / Blocked
+
+## 状态字段允许值 / Allowed Status Values
+
+- 状态：Draft / Ready / Blocked
+- Readiness：Not Ready / Ready
+- Unresolved Questions：0 或正整数
+- Blocking Issues：0 或正整数
+- Assumptions Accepted：no / yes
+- User Approval：Pending / Approved
+- Implementation Plan Status：Draft / Approved
+- Draft：体检草稿，尚未确认。
+- Ready：需求允许进入研发。
+- Blocked：存在阻塞问题。
+
+通过开发门禁的常用组合：
+
+```text
+- Readiness: Ready
+- Unresolved Questions: 0
+- Blocking Issues: 0
+- Assumptions Accepted: yes
+- User Approval: Approved
+- Implementation Plan Status: Approved
+```
 
 ## 机器可读门禁字段
 

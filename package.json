@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node scripts/build/build-skills.mjs",
     "check": "powershell -ExecutionPolicy Bypass -File scripts/quality/check.ps1",
+    "epic:features": "node scripts/workflow/epic/create-features.mjs",
     "epic:hydrate": "node scripts/workflow/epic/hydrate-epic.mjs",
     "epic:new": "node scripts/workflow/epic/new-epic.mjs",
     "feature:hydrate": "node scripts/workflow/feature/hydrate-feature.mjs",

@@ -28,8 +28,8 @@
 
 ## 技术栈边界
 
-- 是否使用 Next.js App Router：yes / no / not-applicable
-- 是否使用 Next.js Pages Router：no
+- Next.js App Router: yes / no / not-applicable
+- Next.js Pages Router: no
 - 是否涉及技术升级：no / yes-with-ADR
 - ADR：
 

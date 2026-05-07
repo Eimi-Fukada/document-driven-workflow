@@ -12,6 +12,8 @@ $passEpic = Join-Path $epicsRoot "__tmp_epic_pass"
 $hydratedEpic = Join-Path $epicsRoot "__tmp_epic_hydrated"
 $localizedStatusEpic = Join-Path $epicsRoot "__tmp_epic_localized_status"
 $hydratedFeature = Join-Path $featuresRoot "__tmp_feature_hydrated"
+$epicFeatureOne = Join-Path $featuresRoot "tmp-epic-feature-one"
+$epicFeatureTwo = Join-Path $featuresRoot "tmp-epic-feature-two"
 
 function RemoveIfExists($path) {
     if (Test-Path $path) {
@@ -44,6 +46,8 @@ RemoveIfExists $passEpic
 RemoveIfExists $hydratedEpic
 RemoveIfExists $localizedStatusEpic
 RemoveIfExists $hydratedFeature
+RemoveIfExists $epicFeatureOne
+RemoveIfExists $epicFeatureTwo
 
 try {
     New-Item -ItemType Directory -Force -Path $failEpic | Out-Null
@@ -102,6 +106,24 @@ try {
         exit 1
     }
 
+    & node (Join-Path $root "scripts\workflow\epic\create-features.mjs") "docs/epics/__tmp_epic_pass" --features tmp-epic-feature-one,tmp-epic-feature-two --stack next-fullstack --agent none | Out-Host
+    foreach ($generatedFeature in @("tmp-epic-feature-one", "tmp-epic-feature-two")) {
+        $generatedPath = Join-Path $featuresRoot $generatedFeature
+        $expectedFiles = @("00-source.md", "01-prd.md", "02-ui-spec.md", "03-technical-contract.md", "04-acceptance-criteria.md", "05-readiness-review.md", "06-implementation-plan.md", "HYDRATION.md")
+        foreach ($expectedFile in $expectedFiles) {
+            if (-not (Test-Path (Join-Path $generatedPath $expectedFile))) {
+                Write-Host "Gate regression failed: epic:features did not create $generatedFeature/$expectedFile." -ForegroundColor Red
+                exit 1
+            }
+        }
+
+        $generatedCode = RunGate "docs/features/$generatedFeature"
+        if ($generatedCode -eq 0) {
+            Write-Host "Gate regression failed: generated epic Feature draft passed before review." -ForegroundColor Red
+            exit 1
+        }
+    }
+
     New-Item -ItemType Directory -Force -Path $failFeature | Out-Null
     Copy-Item -LiteralPath (Join-Path $root "docs\workflow\templates\feature\prd.md") -Destination (Join-Path $failFeature "01-prd.md")
 
@@ -123,8 +145,8 @@ try {
         "- Legacy Baseline: none",
         "- Compatibility Contract: none",
         "",
-        "- 是否使用 Next.js App Router：yes",
-        "- 是否使用 Next.js Pages Router：no",
+        "- Next.js App Router: yes",
+        "- Next.js Pages Router: no",
         "",
         "API-DEMO-001 Demo API"
     )
@@ -161,8 +183,8 @@ try {
         "- Legacy Baseline: none",
         "- Compatibility Contract: none",
         "",
-        "- 鏄惁浣跨敤 Next.js App Router锛歽es",
-        "- 鏄惁浣跨敤 Next.js Pages Router锛歯o",
+        "- Next.js App Router: yes",
+        "- Next.js Pages Router: no",
         "",
         "API-DEMO-001 Demo API"
     )
@@ -198,8 +220,8 @@ try {
         "- Legacy Baseline: none",
         "- Compatibility Contract: none",
         "",
-        "- 是否使用 Next.js App Router：no",
-        "- 是否使用 Next.js Pages Router：yes",
+        "- Next.js App Router: no",
+        "- Next.js Pages Router: yes",
         "",
         "API-DEMO-001 Demo API"
     )
@@ -233,6 +255,8 @@ finally {
     RemoveIfExists $passEpic
     RemoveIfExists $hydratedEpic
     RemoveIfExists $localizedStatusEpic
+    RemoveIfExists $epicFeatureOne
+    RemoveIfExists $epicFeatureTwo
 }
 
 exit 0

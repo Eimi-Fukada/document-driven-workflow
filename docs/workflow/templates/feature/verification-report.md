@@ -1,4 +1,4 @@
-# 验证报告模板
+﻿# 验证报告模板
 
 ## 基本信息
 
@@ -7,6 +7,15 @@
 - 验证日期：
 - 验证人：
 - 状态：Passed / Failed / Partial
+
+## 状态字段允许值 / Allowed Status Values
+
+- 状态：Passed / Failed / Partial
+- 需求追踪结果：Passed / Failed / Partial / Not Tested
+- Passed：验证通过。
+- Failed：验证失败。
+- Partial：部分验证通过，仍有未验证项或剩余风险。
+- Not Tested：尚未验证。
 
 ## 需求追踪矩阵
 

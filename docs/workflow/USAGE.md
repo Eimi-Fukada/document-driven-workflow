@@ -214,6 +214,7 @@ npm run epic:hydrate -- docs/epics/ai-fooler-upgrade
 - 命令默认调用 `codex exec` 自动补全结构化内容，但不能替用户批准。
 - 只想生成骨架、不调用 AI 时，使用 `--agent none`。
 - `HYDRATION.md` 中只要仍是 `Review Status: Draft` 或 `User Approval: Pending`，`gate:epic` 必须失败。
+- `HYDRATION.md` 会列出允许值。用户审查通过后，通常改成 `Hydration Status: Reviewed`、`Review Status: Reviewed`、`User Approval: Approved`。
 - AI 推断出来的内容必须标记为假设，不能伪装成用户明确给出的需求。
 
 ## 7. 创建 Feature
@@ -256,6 +257,46 @@ docs/features/login-phone/
 - 新 Next.js 项目只支持 App Router。
 - Pages Router 不能作为新项目方案。
 - 老项目使用 `legacy-existing`，并先补齐 Legacy Baseline 和 Compatibility Contract。
+
+## 7.1 从 Epic 批量生成 Feature 草稿
+
+用途：Epic 已经拆分清楚后，一次性创建多个 Feature packages，并让 Codex CLI 基于 Epic 内容补全每个 Feature 的 PRD、UI Spec、技术契约、验收标准、体检和实现计划草稿。
+
+命令：
+
+```bash
+npm run epic:features -- docs/epics/ai-fooler-upgrade --features download-button-progress-percent,login-qr-replacement,daily-free-quota-adjustment,per-tool-task-state-store --stack legacy-existing
+```
+
+也可以把 Feature ID 作为位置参数：
+
+```bash
+npm run epic:features -- docs/epics/ai-fooler-upgrade download-button-progress-percent login-qr-replacement --stack legacy-existing
+```
+
+命令会创建或补齐：
+
+```text
+docs/features/<feature-id>/
+  00-source.md
+  01-prd.md
+  02-ui-spec.md
+  03-technical-contract.md
+  04-acceptance-criteria.md
+  05-readiness-review.md
+  06-implementation-plan.md
+  HYDRATION.md
+```
+
+规则：
+
+- 默认调用 `codex exec` 自动补全文档。
+- 只想生成骨架、不调用 AI 时，使用 `--agent none`。
+- 不修改 Epic 文档。
+- 每个 Feature 都保持 `Review Status: Draft` 和 `User Approval: Pending`。
+- 每个 `HYDRATION.md` 都会列出允许值。用户审查通过后，通常改成 `Hydration Status: Reviewed`、`Review Status: Reviewed`、`User Approval: Approved`。
+- 用户审查前，`gate:dev` 必须失败。
+- 每个 Feature 后续仍要独立审查、独立过 `gate:dev`、独立验证。
 
 ## 8. Feature 门禁
 
@@ -316,6 +357,7 @@ npm run feature:hydrate -- docs/features/login-phone
 - 只想生成骨架、不调用 AI 时，使用 `--agent none`。
 - 未审查草稿不能进入研发。
 - `HYDRATION.md` 中只要仍是 `Review Status: Draft` 或 `User Approval: Pending`，`gate:dev` 必须失败。
+- `HYDRATION.md` 会列出允许值。用户审查通过后，通常改成 `Hydration Status: Reviewed`、`Review Status: Reviewed`、`User Approval: Approved`。
 - AI 不能因为文档看起来完整就自动批准进入实现。
 
 ## 9. Legacy Baseline

@@ -68,6 +68,20 @@ const marker = `# Epic Hydration Notes
 - Review Status: Draft
 - User Approval: Pending
 
+## Allowed Values
+
+- Hydration Status: Draft / Reviewed
+- Review Status: Draft / Reviewed
+- User Approval: Pending / Approved
+
+Common approved state after user review:
+
+\`\`\`text
+- Hydration Status: Reviewed
+- Review Status: Reviewed
+- User Approval: Approved
+\`\`\`
+
 ## AI Instructions
 
 Read \`00-source.md\`, then complete the Epic documents from \`01-epic-brief.md\` to \`07-progress-board.md\`.

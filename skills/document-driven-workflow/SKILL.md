@@ -60,6 +60,7 @@ When `00-source.md` exists, run the hydrate flow:
 
 - Epic: `npm run epic:hydrate -- docs/epics/<epic-id>`
 - Feature: `npm run feature:hydrate -- docs/features/<feature-id>`
+- Epic to Features: `npm run epic:features -- docs/epics/<epic-id> --features feature-a,feature-b --stack <preset>`
 
 The hydrate command should call Codex CLI to complete the generated draft documents for user review. Use `--agent none` only when scaffolding or testing without AI generation.
 

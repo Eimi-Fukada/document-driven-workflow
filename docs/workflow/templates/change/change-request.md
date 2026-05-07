@@ -1,4 +1,4 @@
-# Change Request 模板
+﻿# Change Request 模板
 
 ## 基本信息
 
@@ -6,6 +6,15 @@
 - 标题：
 - 创建日期：
 - 状态：Draft / Accepted / Implemented / Verified / Released
+
+## 状态字段允许值 / Allowed Status Values
+
+- 状态：Draft / Accepted / Implemented / Verified / Released
+- Draft：变更请求草稿，尚未批准。
+- Accepted：用户已批准该变更可以进入后续文档和计划。
+- Implemented：代码实现已完成。
+- Verified：验证报告已确认通过。
+- Released：已上线或已发布。
 
 ## 当前行为
 

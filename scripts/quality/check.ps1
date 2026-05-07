@@ -44,6 +44,7 @@ $required = @(
     "scripts/install/setup.mjs",
     "scripts/shared/agent-runner.mjs",
     "scripts/shared/file-utils.mjs",
+    "scripts/workflow/epic/create-features.mjs",
     "scripts/workflow/epic/gate-epic.ps1",
     "scripts/workflow/epic/hydrate-epic.mjs",
     "scripts/workflow/epic/new-epic.mjs",
@@ -82,6 +83,23 @@ $claude = ReadText "CLAUDE.md"
 $skill = ReadText "skills/document-driven-workflow/SKILL.md"
 $package = ReadText "package.json"
 $buildScript = ReadText "scripts/build/build-skills.mjs"
+$epicHydrateScript = ReadText "scripts/workflow/epic/hydrate-epic.mjs"
+$featureHydrateScript = ReadText "scripts/workflow/feature/hydrate-feature.mjs"
+$epicFeaturesScript = ReadText "scripts/workflow/epic/create-features.mjs"
+$templateStatusDocs = @()
+$templateStatusDocs += ReadText "docs/workflow/templates/change/change-request.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/decision/adr.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/epic/brief.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/epic/acceptance-map.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/epic/progress-board.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/epic/requirement-inventory.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/feature/acceptance.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/feature/implementation-plan.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/feature/prd.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/feature/readiness-review.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/feature/verification-report.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/legacy/modernization-plan.md"
+$progressBoardTemplate = ReadText "docs/workflow/templates/epic/progress-board.md"
 
 $contentChecks = @(
     @{ Name = "WORKFLOW.md mentions gate:dev"; Pass = $workflow -match "gate:dev" },
@@ -89,6 +107,10 @@ $contentChecks = @(
     @{ Name = "USER_GUIDE.md defines complexity levels"; Pass = $userGuide -match "Level 0" -and $userGuide -match "Level 4" },
     @{ Name = "USAGE.md documents commands"; Pass = $usage -match "npm run build" -and $usage -match "npm run gate:dev" -and $usage -match "npm run gate:epic" },
     @{ Name = "USAGE.md documents hydrate flow"; Pass = $usage -match "epic:hydrate" -and $usage -match "feature:hydrate" -and $usage -match "HYDRATION.md" },
+    @{ Name = "USAGE.md documents hydration allowed values"; Pass = $usage -match "Hydration Status: Reviewed" -and $usage -match "Review Status: Reviewed" -and $usage -match "User Approval: Approved" },
+    @{ Name = "Templates document editable status values"; Pass = -not ($templateStatusDocs | Where-Object { $_ -notmatch "Allowed Status Values" }) },
+    @{ Name = "Progress board uses ASCII Epic Status"; Pass = $progressBoardTemplate -match "Epic Status:" },
+    @{ Name = "USAGE.md documents epic features flow"; Pass = $usage -match "epic:features" -and $usage -match "Feature packages" },
     @{ Name = "USAGE.md documents legacy and change flow"; Pass = $usage -match "Legacy Baseline" -and $usage -match "Compatibility Contract" -and $usage -match "Change Request" },
     @{ Name = "EPIC_WORKFLOW.md mentions gate:epic"; Pass = $epicWorkflow -match "gate:epic" },
     @{ Name = "GATES.md defines Readiness Ready"; Pass = $gates -match "Readiness: Ready" },
@@ -101,7 +123,9 @@ $contentChecks = @(
     @{ Name = "Build script generates skill references"; Pass = $buildScript -match "references" -and $buildScript -match "USAGE.md" -and $buildScript -match "workflow" },
     @{ Name = "Build script generates skill templates"; Pass = $buildScript -match "templates" -and $buildScript -match "copyDirectoryRecursive" },
     @{ Name = "Build script generates workflow scripts"; Pass = $buildScript -match "scripts" -and $buildScript -match "workflow" },
+    @{ Name = "Hydrate scripts document allowed values"; Pass = $epicHydrateScript -match "Allowed Values" -and $featureHydrateScript -match "Allowed Values" -and $epicFeaturesScript -match "Allowed Values" },
     @{ Name = "package.json exposes epic:new"; Pass = $package -match '"epic:new"' },
+    @{ Name = "package.json exposes epic:features"; Pass = $package -match '"epic:features"' },
     @{ Name = "package.json exposes epic:hydrate"; Pass = $package -match '"epic:hydrate"' },
     @{ Name = "package.json exposes gate:epic"; Pass = $package -match '"gate:epic"' },
     @{ Name = "package.json exposes feature:new"; Pass = $package -match '"feature:new"' },

@@ -97,10 +97,10 @@ if ($failures.Count -eq 0) {
         }
 
         if ($stackPreset -eq "next-fullstack") {
-            if ($technical -notmatch "(?m)^- 是否使用 Next\.js App Router：yes\s*$") {
+            if ($technical -notmatch "(?m)^- Next\.js App Router:\s*yes\s*$") {
                 $failures += "next-fullstack must use Next.js App Router."
             }
-            if ($technical -notmatch "(?m)^- 是否使用 Next\.js Pages Router：no\s*$") {
+            if ($technical -notmatch "(?m)^- Next\.js Pages Router:\s*no\s*$") {
                 $failures += "next-fullstack must not use Next.js Pages Router."
             }
         }

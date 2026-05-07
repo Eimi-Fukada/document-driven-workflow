@@ -10,6 +10,7 @@ const repoRoot = path.resolve(__dirname, "..", "..");
 const skillName = "document-driven-workflow";
 const referenceFiles = [
   "USER_GUIDE.md",
+  "USAGE.md",
   "WORKFLOW.md",
   "EPIC_WORKFLOW.md",
   "GATES.md",

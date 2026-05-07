@@ -137,6 +137,7 @@ npm run test:gates
 详细规则见：
 
 - `docs/workflow/USER_GUIDE.md`
+- `docs/workflow/USAGE.md`
 - `docs/workflow/WORKFLOW.md`
 - `docs/workflow/EPIC_WORKFLOW.md`
 - `docs/workflow/GATES.md`

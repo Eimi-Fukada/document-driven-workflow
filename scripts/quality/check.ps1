@@ -11,6 +11,7 @@ $required = @(
     "setup.ps1",
     "docs/workflow/WORKFLOW.md",
     "docs/workflow/USER_GUIDE.md",
+    "docs/workflow/USAGE.md",
     "docs/workflow/GATES.md",
     "docs/workflow/EPIC_WORKFLOW.md",
     "docs/workflow/STACK_POLICY.md",
@@ -69,6 +70,7 @@ function ReadText($relativePath) {
 
 $workflow = ReadText "docs/workflow/WORKFLOW.md"
 $userGuide = ReadText "docs/workflow/USER_GUIDE.md"
+$usage = ReadText "docs/workflow/USAGE.md"
 $gates = ReadText "docs/workflow/GATES.md"
 $epicWorkflow = ReadText "docs/workflow/EPIC_WORKFLOW.md"
 $stackPolicy = ReadText "docs/workflow/STACK_POLICY.md"
@@ -82,6 +84,8 @@ $contentChecks = @(
     @{ Name = "WORKFLOW.md mentions gate:dev"; Pass = $workflow -match "gate:dev" },
     @{ Name = "USER_GUIDE.md defines Epic Feature Gate roles"; Pass = $userGuide -match "Epic" -and $userGuide -match "Feature" -and $userGuide -match "Gate" },
     @{ Name = "USER_GUIDE.md defines complexity levels"; Pass = $userGuide -match "Level 0" -and $userGuide -match "Level 4" },
+    @{ Name = "USAGE.md documents commands"; Pass = $usage -match "npm run build" -and $usage -match "npm run gate:dev" -and $usage -match "npm run gate:epic" },
+    @{ Name = "USAGE.md documents legacy and change flow"; Pass = $usage -match "Legacy Baseline" -and $usage -match "Compatibility Contract" -and $usage -match "Change Request" },
     @{ Name = "EPIC_WORKFLOW.md mentions gate:epic"; Pass = $epicWorkflow -match "gate:epic" },
     @{ Name = "GATES.md defines Readiness Ready"; Pass = $gates -match "Readiness: Ready" },
     @{ Name = "STACK_POLICY.md bans Pages Router"; Pass = $stackPolicy -match "Pages Router" -and $stackPolicy -match "App Router" },
@@ -90,7 +94,7 @@ $contentChecks = @(
     @{ Name = "CLAUDE.md mentions gate:dev"; Pass = $claude -match "gate:dev" },
     @{ Name = "Skill mentions feature gate"; Pass = $skill -match "feature gate" -or $skill -match "gate" },
     @{ Name = "Skill describes target project adoption"; Pass = $skill -match "Target Project Adoption" -and $skill -match "templates/feature" },
-    @{ Name = "Build script generates skill references"; Pass = $buildScript -match "references" -and $buildScript -match "docs" -and $buildScript -match "workflow" },
+    @{ Name = "Build script generates skill references"; Pass = $buildScript -match "references" -and $buildScript -match "USAGE.md" -and $buildScript -match "workflow" },
     @{ Name = "Build script generates skill templates"; Pass = $buildScript -match "templates" -and $buildScript -match "copyDirectoryRecursive" },
     @{ Name = "Build script generates workflow scripts"; Pass = $buildScript -match "scripts" -and $buildScript -match "workflow" },
     @{ Name = "package.json exposes epic:new"; Pass = $package -match '"epic:new"' },

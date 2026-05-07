@@ -23,6 +23,7 @@ The skill should help the agent:
 ## What To Read
 
 - For role separation and complexity levels, read `references/USER_GUIDE.md`.
+- For command and feature usage, read `references/USAGE.md`.
 - For normal feature delivery, read `references/WORKFLOW.md`.
 - For product iterations, read `references/EPIC_WORKFLOW.md`.
 - For old projects, read `references/LEGACY_ADOPTION.md`.
@@ -65,4 +66,3 @@ If the gate fails, stay in documentation mode and report what is missing or unre
 - `templates/decision/`
 - `scripts/`
 - `references/`
-

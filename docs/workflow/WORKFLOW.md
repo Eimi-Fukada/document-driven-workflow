@@ -41,8 +41,9 @@ docs/
   02-ui-spec.md
   03-technical-contract.md
   04-acceptance-criteria.md
-  05-implementation-plan.md
-  06-verification-report.md
+  05-readiness-review.md
+  06-implementation-plan.md
+  07-verification-report.md
   decisions/
     ADR-0001-example.md
   changes/
@@ -118,11 +119,13 @@ AI 在进入实现前，需要判断需求状态。
 
 ## 8. 强制开发门禁
 
-实现计划确认后，进入代码实现前必须运行开发门禁：
+实现计划确认后，进入代码实现前必须运行开发门禁。本仓库维护时可使用：
 
 ```bash
 npm run gate:dev -- -FeaturePath docs/features/<feature-id>
 ```
+
+目标项目不要求配置该 npm 命令；使用 document-driven-workflow Skill 时，由 AI 调用 Skill 内置门禁或执行等价文档检查。
 
 门禁检查的不是代码质量，而是需求是否已经允许进入研发。只要仍存在未确认问题、阻塞问题、未批准假设或未批准实现计划，就不能开始代码实现。
 

@@ -25,6 +25,8 @@ npm run check
 npm run gate:dev -- -FeaturePath docs/features/<feature-id>
 ```
 
+目标项目不要求配置该 npm 命令；使用 document-driven-workflow Skill 时，由 Skill 内置门禁检查目标项目文档。
+
 构建并安装技能：
 
 ```bash

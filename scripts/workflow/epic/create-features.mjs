@@ -2,31 +2,19 @@ import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { parseAgentOption, runAgent } from "../../shared/agent-runner.mjs";
+import { createWorkflowContext, isWorkflowOptionWithValue, parseOption as parseSharedOption } from "../../shared/workflow-context.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..", "..", "..");
 
 const args = process.argv.slice(2);
 const epicArg = args[0];
 const force = args.includes("--force");
 const agent = parseAgentOption(args);
-
-function parseOption(name, fallback) {
-  for (let i = 1; i < args.length; i += 1) {
-    const arg = args[i];
-    if (arg === `--${name}`) {
-      return args[i + 1] || fallback;
-    }
-    if (arg.startsWith(`--${name}=`)) {
-      return arg.split("=")[1] || fallback;
-    }
-  }
-  return fallback;
-}
+const workflow = createWorkflowContext(args);
 
 function parseFeatureIds() {
-  const fromOption = parseOption("features", "");
+  const fromOption = parseSharedOption(args, "features", "", { startIndex: 1 });
   const optionIds = fromOption
     .split(",")
     .map((item) => item.trim())
@@ -36,7 +24,7 @@ function parseFeatureIds() {
   for (let i = 1; i < args.length; i += 1) {
     const arg = args[i];
     if (arg.startsWith("--")) {
-      if (["--features", "--stack", "--agent"].includes(arg)) {
+      if (isWorkflowOptionWithValue(arg)) {
         i += 1;
       }
       continue;
@@ -47,7 +35,7 @@ function parseFeatureIds() {
   return [...optionIds, ...positional];
 }
 
-const stackPreset = parseOption("stack", "next-fullstack");
+const stackPreset = parseSharedOption(args, "stack", "next-fullstack", { startIndex: 1 });
 const validStacks = new Set(["next-fullstack", "flutter-fastapi", "flutter-express", "legacy-existing"]);
 
 if (!epicArg) {
@@ -76,11 +64,11 @@ for (const featureId of featureIds) {
   }
 }
 
-const epicPath = path.isAbsolute(epicArg) ? epicArg : path.join(repoRoot, epicArg);
+const epicPath = workflow.resolveTarget(epicArg);
 const epicId = path.basename(epicPath);
 
 if (!existsSync(epicPath)) {
-  console.error(`Epic path not found: ${path.relative(repoRoot, epicPath)}`);
+  console.error(`Epic path not found: ${workflow.relativeToTarget(epicPath)}`);
   process.exit(1);
 }
 
@@ -98,19 +86,19 @@ const requiredEpicFiles = [
 for (const file of requiredEpicFiles) {
   const full = path.join(epicPath, file);
   if (!existsSync(full)) {
-    console.error(`Missing Epic file: ${path.relative(repoRoot, full)}`);
+    console.error(`Missing Epic file: ${workflow.relativeToTarget(full)}`);
     process.exit(1);
   }
 }
 
-const templateDir = path.join(repoRoot, "docs", "workflow", "templates", "feature");
+const templateDir = path.join(workflow.templateRoot, "feature");
 const templateFiles = [
-  ["prd.md", "01-prd.md"],
-  ["ui-spec.md", "02-ui-spec.md"],
-  ["technical-contract.md", "03-technical-contract.md"],
-  ["acceptance.md", "04-acceptance-criteria.md"],
-  ["readiness-review.md", "05-readiness-review.md"],
-  ["implementation-plan.md", "06-implementation-plan.md"],
+  "01-prd.md",
+  "02-ui-spec.md",
+  "03-technical-contract.md",
+  "04-acceptance-criteria.md",
+  "05-readiness-review.md",
+  "06-implementation-plan.md",
 ];
 
 function applyTechnicalPreset(featureDir) {
@@ -159,7 +147,7 @@ Common approved state after user review:
 ## Source
 
 - Epic ID: ${epicId}
-- Epic Path: ${path.relative(repoRoot, epicPath).replaceAll("\\", "/")}
+- Epic Path: ${workflow.relativeToTarget(epicPath)}
 - Feature ID: ${featureId}
 
 ## AI Instructions
@@ -187,7 +175,7 @@ let skipped = 0;
 const featurePaths = [];
 
 for (const featureId of featureIds) {
-  const featureDir = path.join(repoRoot, "docs", "features", featureId);
+  const featureDir = path.join(workflow.targetRoot, "docs", "features", featureId);
   mkdirSync(featureDir, { recursive: true });
   featurePaths.push(featureDir);
 
@@ -198,7 +186,7 @@ for (const featureId of featureIds) {
       `# Feature Source
 
 - Epic ID: ${epicId}
-- Epic Path: ${path.relative(repoRoot, epicPath).replaceAll("\\", "/")}
+- Epic Path: ${workflow.relativeToTarget(epicPath)}
 - Feature ID: ${featureId}
 
 This Feature must be derived from the Epic package. Preserve Epic scope, risks, dependencies, and acceptance mapping.
@@ -207,14 +195,14 @@ This Feature must be derived from the Epic package. Preserve Epic scope, risks, 
     );
   }
 
-  for (const [template, target] of templateFiles) {
-    const targetPath = path.join(featureDir, target);
+  for (const file of templateFiles) {
+    const targetPath = path.join(featureDir, file);
     if (existsSync(targetPath) && !force) {
       skipped += 1;
       continue;
     }
 
-    cpSync(path.join(templateDir, template), targetPath);
+    cpSync(path.join(templateDir, file), targetPath);
     created += 1;
   }
 
@@ -222,7 +210,53 @@ This Feature must be derived from the Epic package. Preserve Epic scope, risks, 
   writeHydrationMarker(featureDir, featureId);
 }
 
-console.log(`Feature packages prepared from Epic: ${path.relative(repoRoot, epicPath)}`);
+function writeAgentPlan(featureIdsToPlan) {
+  const planPath = path.join(epicPath, "09-agent-plan.md");
+  if (existsSync(planPath) && !force) {
+    return;
+  }
+
+  const rows = featureIdsToPlan
+    .map((featureId, index) => `| ${featureId} | Agent ${index + 1} | Parallel if dependencies are clear | docs/features/${featureId} and files approved by 06-implementation-plan.md | Auth/payment/deployment/data migration unless explicitly approved | Run Feature gate, project tests, and update 07-verification-report.md | Review file overlap before merge |`)
+    .join("\n");
+
+  writeFileSync(
+    planPath,
+    `# Agent Plan
+
+- Epic ID: ${epicId}
+- Agent Plan Status: Draft
+
+<!--
+Allowed Status Values
+
+- Agent Plan Status: Draft / Reviewed / Approved
+- Review Status: Draft / Reviewed
+- User Approval: Pending / Approved
+-->
+
+## Parallelization Rule
+
+Only run multiple agents when Feature boundaries, dependencies, allowed files, forbidden files, and verification commands are clear.
+
+## Assignment Matrix
+
+| Feature ID | Suggested Agent | Parallelization | Allowed Scope | Forbidden Scope | Verification | Merge Risk |
+| --- | --- | --- | --- | --- | --- | --- |
+${rows}
+
+## User Review
+
+- Review Status: Draft
+- User Approval: Pending
+`,
+    "utf8",
+  );
+}
+
+writeAgentPlan(featureIds);
+
+console.log(`Feature packages prepared from Epic: ${workflow.relativeToTarget(epicPath)}`);
 console.log(`Feature count: ${featureIds.length}`);
 console.log(`Created files: ${created}`);
 console.log(`Skipped existing files: ${skipped}`);
@@ -230,8 +264,8 @@ console.log(`Stack preset: ${stackPreset}`);
 console.log("");
 console.log(`Running Epic-to-Feature agent: ${agent}`);
 
-const relativeEpicPath = path.relative(repoRoot, epicPath).replaceAll("\\", "/");
-const relativeFeaturePaths = featurePaths.map((featurePath) => path.relative(repoRoot, featurePath).replaceAll("\\", "/"));
+const relativeEpicPath = workflow.relativeToTarget(epicPath);
+const relativeFeaturePaths = featurePaths.map((featurePath) => workflow.relativeToTarget(featurePath));
 const prompt = `Use document-driven-workflow.
 
 Task: generate Feature draft documents from Epic ${relativeEpicPath}.
@@ -256,4 +290,4 @@ Instructions:
 
 Finish by summarizing every Feature package generated and what the user must review.`;
 
-runAgent({ agent, cwd: repoRoot, prompt });
+runAgent({ agent, cwd: workflow.targetRoot, prompt });

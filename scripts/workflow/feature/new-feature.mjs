@@ -1,14 +1,15 @@
 import { cpSync, existsSync, mkdirSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createWorkflowContext } from "../../shared/workflow-context.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..", "..", "..");
 const gateCommand = process.env.WORKFLOW_GATE_COMMAND || "npm run gate:dev";
 
 const args = process.argv.slice(2);
 const featureId = args[0];
+const workflow = createWorkflowContext(args);
 
 function parseOption(name, fallback) {
   for (let i = 1; i < args.length; i += 1) {
@@ -49,26 +50,26 @@ if (epicId !== "none" && !/^[a-z0-9][a-z0-9-]*$/.test(epicId)) {
   process.exit(1);
 }
 
-const featureDir = path.join(repoRoot, "docs", "features", featureId);
+const featureDir = path.join(workflow.targetRoot, "docs", "features", featureId);
 if (existsSync(featureDir)) {
   console.error(`Feature already exists: docs/features/${featureId}`);
   process.exit(1);
 }
 
-const templateDir = path.join(repoRoot, "docs", "workflow", "templates", "feature");
+const templateDir = path.join(workflow.templateRoot, "feature");
 const files = [
-  ["prd.md", "01-prd.md"],
-  ["ui-spec.md", "02-ui-spec.md"],
-  ["technical-contract.md", "03-technical-contract.md"],
-  ["acceptance.md", "04-acceptance-criteria.md"],
-  ["readiness-review.md", "05-readiness-review.md"],
-  ["implementation-plan.md", "06-implementation-plan.md"],
+  "01-prd.md",
+  "02-ui-spec.md",
+  "03-technical-contract.md",
+  "04-acceptance-criteria.md",
+  "05-readiness-review.md",
+  "06-implementation-plan.md",
 ];
 
 mkdirSync(featureDir, { recursive: true });
 
-for (const [template, target] of files) {
-  cpSync(path.join(templateDir, template), path.join(featureDir, target));
+for (const file of files) {
+  cpSync(path.join(templateDir, file), path.join(featureDir, file));
 }
 
 const technicalContractPath = path.join(featureDir, "03-technical-contract.md");

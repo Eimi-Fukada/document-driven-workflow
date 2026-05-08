@@ -17,7 +17,7 @@
 1. 阅读需求包：PRD、UI 说明、验收标准、相关变更请求。
 2. 输出需求体检：清楚项、缺失项、冲突项、风险项、默认假设。
 3. 达到可开发状态后，生成或更新实现计划。
-4. 运行开发门禁：`npm run gate:dev -- -FeaturePath docs/features/<feature-id>`。
+4. 运行开发门禁。本仓库可用 `npm run gate:dev -- -FeaturePath docs/features/<feature-id>`；目标项目由 Skill 内置门禁执行。
 5. 门禁通过后按计划实现，保持改动范围和文档边界一致。
 6. 运行验证：类型检查、lint、单元测试、接口测试、Playwright、冒烟测试。
 7. 修复失败项。
@@ -30,6 +30,8 @@
 ```bash
 npm run gate:dev -- -FeaturePath docs/features/<feature-id>
 ```
+
+目标项目不要求配置上述 npm 命令；使用 document-driven-workflow Skill 时，由 AI 调用 Skill 内置门禁或执行等价文档检查。
 
 如果仍存在未确认问题、阻塞问题、未批准假设、未批准实现计划，不能开始代码实现。
 
@@ -44,6 +46,6 @@ npm run gate:dev -- -FeaturePath docs/features/<feature-id>
 
 ## 输出要求
 
-- 重要实现前先给出 `docs/05-implementation-plan.md` 或功能级实现计划。
-- 完成后更新 `docs/06-verification-report.md` 或功能级验证报告。
+- 重要实现前先给出 `docs/features/<feature-id>/06-implementation-plan.md` 或同等功能级实现计划。
+- 完成后更新 `docs/features/<feature-id>/07-verification-report.md` 或同等功能级验证报告。
 - 报告中必须包含：执行过的命令、测试结果、未验证项、剩余风险。

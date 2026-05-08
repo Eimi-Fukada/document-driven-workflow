@@ -1,10 +1,16 @@
 param(
-    [string]$EpicPath = ""
+    [string]$EpicPath = "",
+    [string]$TargetRoot = ""
 )
 
 $ErrorActionPreference = "Stop"
 
-$root = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
+$packageRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
+$root = if ([string]::IsNullOrWhiteSpace($TargetRoot)) {
+    (Get-Location).Path
+} else {
+    (Resolve-Path $TargetRoot).Path
+}
 $epicGateCommand = if ($env:WORKFLOW_EPIC_GATE_COMMAND) { $env:WORKFLOW_EPIC_GATE_COMMAND } else { "npm run gate:epic" }
 
 if ([string]::IsNullOrWhiteSpace($EpicPath)) {

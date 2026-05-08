@@ -28,11 +28,13 @@ npm run check
 
 开发门禁检查某个功能是否允许进入代码实现阶段。
 
-执行命令：
+本仓库维护命令：
 
 ```bash
 npm run gate:dev -- -FeaturePath docs/features/<feature-id>
 ```
+
+目标项目不要求配置该 npm 命令。使用 document-driven-workflow Skill 时，由 AI 调用 Skill 内置门禁或执行等价文档检查。
 
 只有开发门禁通过，AI 才能开始实现代码。
 

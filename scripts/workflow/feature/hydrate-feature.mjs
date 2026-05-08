@@ -2,15 +2,16 @@ import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { parseAgentOption, runAgent } from "../../shared/agent-runner.mjs";
+import { createWorkflowContext } from "../../shared/workflow-context.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..", "..", "..");
 
 const args = process.argv.slice(2);
 const featureArg = args[0];
 const force = args.includes("--force");
 const agent = parseAgentOption(args);
+const workflow = createWorkflowContext(args);
 
 if (!featureArg) {
   console.error("Missing feature path.");
@@ -18,7 +19,7 @@ if (!featureArg) {
   process.exit(1);
 }
 
-const featurePath = path.isAbsolute(featureArg) ? featureArg : path.join(repoRoot, featureArg);
+const featurePath = workflow.resolveTarget(featureArg);
 const sourceCandidates = [
   path.join(featurePath, "00-source.md"),
   path.join(featurePath, "01-prd.md"),
@@ -26,7 +27,7 @@ const sourceCandidates = [
 
 const sourcePath = sourceCandidates.find((candidate) => existsSync(candidate));
 if (!sourcePath) {
-  console.error(`Missing source file: ${path.relative(repoRoot, path.join(featurePath, "00-source.md"))}`);
+  console.error(`Missing source file: ${workflow.relativeToTarget(path.join(featurePath, "00-source.md"))}`);
   console.error("Put raw feature material in 00-source.md or 01-prd.md before hydration.");
   process.exit(1);
 }
@@ -37,14 +38,14 @@ if (source.length < 50) {
   process.exit(1);
 }
 
-const templateDir = path.join(repoRoot, "docs", "workflow", "templates", "feature");
+const templateDir = path.join(workflow.templateRoot, "feature");
 const files = [
-  ["prd.md", "01-prd.md"],
-  ["ui-spec.md", "02-ui-spec.md"],
-  ["technical-contract.md", "03-technical-contract.md"],
-  ["acceptance.md", "04-acceptance-criteria.md"],
-  ["readiness-review.md", "05-readiness-review.md"],
-  ["implementation-plan.md", "06-implementation-plan.md"],
+  "01-prd.md",
+  "02-ui-spec.md",
+  "03-technical-contract.md",
+  "04-acceptance-criteria.md",
+  "05-readiness-review.md",
+  "06-implementation-plan.md",
 ];
 
 mkdirSync(featurePath, { recursive: true });
@@ -52,14 +53,14 @@ mkdirSync(featurePath, { recursive: true });
 let created = 0;
 let skipped = 0;
 
-for (const [template, target] of files) {
-  const targetPath = path.join(featurePath, target);
+for (const file of files) {
+  const targetPath = path.join(featurePath, file);
   if (existsSync(targetPath) && !force) {
     skipped += 1;
     continue;
   }
 
-  cpSync(path.join(templateDir, template), targetPath);
+  cpSync(path.join(templateDir, file), targetPath);
   created += 1;
 }
 
@@ -104,14 +105,14 @@ if (!existsSync(markerPath) || force) {
   writeFileSync(markerPath, marker, "utf8");
 }
 
-console.log(`Feature hydration scaffold ready: ${path.relative(repoRoot, featurePath)}`);
+console.log(`Feature hydration scaffold ready: ${workflow.relativeToTarget(featurePath)}`);
 console.log(`Created files: ${created}`);
 console.log(`Skipped existing files: ${skipped}`);
 console.log("");
 console.log(`Running hydrate agent: ${agent}`);
 
-const relativeFeaturePath = path.relative(repoRoot, featurePath).replaceAll("\\", "/");
-const relativeSourcePath = path.relative(repoRoot, sourcePath).replaceAll("\\", "/");
+const relativeFeaturePath = workflow.relativeToTarget(featurePath);
+const relativeSourcePath = workflow.relativeToTarget(sourcePath);
 const prompt = `Use document-driven-workflow.
 
 Task: hydrate the Feature document package at ${relativeFeaturePath}.
@@ -131,4 +132,4 @@ Instructions:
 
 Finish by summarizing which Feature files were hydrated and what the user must review.`;
 
-runAgent({ agent, cwd: repoRoot, prompt });
+runAgent({ agent, cwd: workflow.targetRoot, prompt });

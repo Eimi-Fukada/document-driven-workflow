@@ -36,7 +36,10 @@ docs/epics/<epic-id>/
   06-acceptance-map.md
   07-progress-board.md
   08-retrospective.md
+  09-agent-plan.md
 ```
+
+`09-agent-plan.md` 只在需要多 Agent 并行开发时使用，不是 Epic 门禁的必需文件。
 
 ## 3. Epic 和 Feature 的关系
 
@@ -59,25 +62,22 @@ Feature 负责：
 - Implementation Plan。
 - Verification Report。
 
-## 4. 推荐命令
+## 4. 推荐入口
 
-创建 Epic：
+目标项目中推荐使用自然语言入口：
 
-```bash
-npm run epic:new -- ai-fooler-upgrade
+```text
+使用 document-driven-workflow，处理这个需求文档。
 ```
 
-检查 Epic 是否可进入 feature 拆分：
-
-```bash
-npm run gate:epic -- -EpicPath docs/epics/ai-fooler-upgrade
+```text
+我已经填好 docs/epics/<epic-id>/00-source.md，继续生成 Epic 和 Features。
 ```
 
-创建关联 feature：
+AI 应使用 Skill 内置模板、生成器和门禁操作目标项目，不要求目标项目配置 workflow npm scripts。
 
-```bash
-npm run feature:new -- drag-upload-hint --stack legacy-existing --epic ai-fooler-upgrade
-```
+本仓库维护时仍可使用 `npm run epic:new`、`npm run gate:epic`、`npm run epic:features` 做回归验证。
+
 
 ## 5. Epic 门禁
 

@@ -26,7 +26,7 @@ npm run check
 
 - 必要文档存在。
 - 必要模板存在。
-- `package.json` 暴露关键命令。
+- 本仓库 `package.json` 暴露维护、打包和回归测试命令。
 - Skill 能指向目标项目接入、Epic、Feature、Gate、Stack Policy。
 
 ## 2. 打包 Skill
@@ -46,6 +46,7 @@ npm run build
 - `docs/workflow/presets/`
 - `docs/workflow/templates/`
 - `scripts/workflow/`
+- `scripts/shared/`
 
 输出目录：
 
@@ -99,7 +100,9 @@ npm run setup:all
 ```text
 使用 document-driven-workflow skill，把文档驱动工作流接入当前项目。
 先阅读项目现有文档和脚本，不要覆盖已有文档。
-只添加必要的 docs/workflow、模板、门禁脚本和 package.json 命令。
+不要为了工作流修改 package.json。
+不要默认复制 workflow 脚本到项目里。
+只在项目中沉淀 docs/epics、docs/features、docs/legacy、docs/changes、docs/decisions 等项目文档产物。
 如果是老项目，先建立 legacy baseline 和 compatibility contract。
 ```
 
@@ -107,25 +110,47 @@ AI 应该做的事：
 
 - 阅读目标项目现有 `README`、`AGENTS.md`、`CLAUDE.md`、`docs/`、`package.json`。
 - 判断项目是新项目还是老项目。
-- 复制必要工作流文档到目标项目 `docs/workflow/`。
-- 复制必要模板到目标项目 `docs/workflow/templates/`。
-- 复制必要脚本到目标项目 `scripts/workflow/`。
-- 给目标项目增加高层命令，例如 `feature:new`、`epic:new`、`gate:dev`、`gate:epic`、`test:gates`。
-- 保留目标项目原有 `build`、`dev`、`test`、`lint` 等命令。
+- 使用 Skill 内置模板和脚本生成目标项目文档。
+- 不默认复制 `scripts/workflow/` 到目标项目。
+- 不默认给目标项目增加 `feature:new`、`epic:new`、`gate:dev`、`gate:epic` 等命令。
+- 保留目标项目原有 `package.json`、`build`、`dev`、`test`、`lint` 等命令。
+- 目标项目只保存项目事实和交付产物，例如 `docs/epics/`、`docs/features/`、`docs/legacy/`、`docs/changes/`、`docs/decisions/`。
 
 当前边界：
 
 - 目标项目接入由 AI 根据 Skill 执行，不是一个固定的一键脚手架。
 - 这样做是为了避免覆盖老项目已有结构。
 
+目标项目中的推荐交互入口：
+
+```text
+使用 document-driven-workflow，处理这个需求文档。
+```
+
+```text
+我已经填好 docs/epics/<epic-id>/00-source.md，继续生成 Epic 和 Features。
+```
+
+```text
+我已审核通过，运行门禁并开始执行。
+```
+
+如果 AI 需要直接调用 Skill 内置脚本，应使用 `--target <project-root>` 指向目标项目，而不是要求目标项目安装工作流命令。
+
 ## 5. 创建 Epic
 
 用途：处理一次跨多个模块的产品迭代。
 
-命令：
+本仓库维护命令：
 
 ```bash
 npm run epic:new -- ai-fooler-upgrade
+```
+
+目标项目中由 AI 使用 Skill 内置脚本生成，用户通常只需要说：
+
+```text
+使用 document-driven-workflow，为这份需求创建 Epic。
 ```
 
 生成目录：
@@ -160,11 +185,13 @@ docs/epics/ai-fooler-upgrade/
 
 用途：判断 Epic 是否已经可以拆成多个 Feature。
 
-命令：
+本仓库维护命令：
 
 ```bash
 npm run gate:epic -- -EpicPath docs/epics/ai-fooler-upgrade
 ```
+
+目标项目中由 AI 通过 Skill 内置门禁检查，不要求目标项目配置 `gate:epic` 命令。
 
 门禁检查：
 
@@ -190,7 +217,7 @@ npm run gate:epic -- -EpicPath docs/epics/ai-fooler-upgrade
 
 用途：降低 Epic 使用成本。用户只需要先把原始产品材料放进 `00-source.md`，命令会调用 Codex CLI 补全其他 Epic 文档草稿。
 
-命令：
+本仓库维护命令：
 
 ```bash
 npm run epic:hydrate -- docs/epics/ai-fooler-upgrade
@@ -199,13 +226,13 @@ npm run epic:hydrate -- docs/epics/ai-fooler-upgrade
 推荐使用方式：
 
 ```text
-1. npm run epic:new -- ai-fooler-upgrade
+1. AI 使用 Skill 创建 docs/epics/<epic-id>/00-source.md
 2. 用户把原始需求、会议记录、UI 说明或产品草稿放进 00-source.md
-3. npm run epic:hydrate -- docs/epics/ai-fooler-upgrade
+3. 用户说：我已经填好 00-source.md，继续生成 Epic
 4. AI 阅读 00-source.md，补全 01-epic-brief.md 到 07-progress-board.md
 5. 用户审查和修改
 6. 用户批准后，AI 才能把 Review Status / User Approval 改成通过状态
-7. 运行 gate:epic
+7. AI 运行 Epic 门禁
 ```
 
 规则：
@@ -221,7 +248,7 @@ npm run epic:hydrate -- docs/epics/ai-fooler-upgrade
 
 用途：创建一个可以独立开发和验收的功能文档包。
 
-命令：
+本仓库维护命令：
 
 ```bash
 npm run feature:new -- login-phone --stack next-fullstack
@@ -231,6 +258,12 @@ npm run feature:new -- login-phone --stack next-fullstack
 
 ```bash
 npm run feature:new -- drag-upload-hint --stack legacy-existing --epic ai-fooler-upgrade
+```
+
+目标项目中由 AI 使用 Skill 内置脚本生成，用户通常只需要说：
+
+```text
+使用 document-driven-workflow，为这个明确功能创建 Feature。
 ```
 
 生成目录：
@@ -244,6 +277,8 @@ docs/features/login-phone/
   05-readiness-review.md
   06-implementation-plan.md
 ```
+
+`feature:new` 只生成开发前门禁需要的 `01` 到 `06` 文档。`07-verification-report.md` 是实现和测试完成后的验证产物，按第 13 节模板创建或更新。
 
 允许的 Stack Preset：
 
@@ -262,7 +297,7 @@ docs/features/login-phone/
 
 用途：Epic 已经拆分清楚后，一次性创建多个 Feature packages，并让 Codex CLI 基于 Epic 内容补全每个 Feature 的 PRD、UI Spec、技术契约、验收标准、体检和实现计划草稿。
 
-命令：
+本仓库维护命令：
 
 ```bash
 npm run epic:features -- docs/epics/ai-fooler-upgrade --features download-button-progress-percent,login-qr-replacement,daily-free-quota-adjustment,per-tool-task-state-store --stack legacy-existing
@@ -286,7 +321,12 @@ docs/features/<feature-id>/
   05-readiness-review.md
   06-implementation-plan.md
   HYDRATION.md
+  09-agent-plan.md
 ```
+
+`epic:features` 生成的是待审查 Feature 草稿，不会生成 `07-verification-report.md`。验证报告必须在实现、测试和修复完成后再创建或更新。
+
+当生成多个 Feature 时，Epic 目录会额外生成 `09-agent-plan.md`，用于多 Agent 并行开发前的分工审查。
 
 规则：
 
@@ -302,11 +342,13 @@ docs/features/<feature-id>/
 
 用途：强制阻止不清楚的需求进入研发阶段。
 
-命令：
+本仓库维护命令：
 
 ```bash
 npm run gate:dev -- -FeaturePath docs/features/login-phone
 ```
+
+目标项目中由 AI 通过 Skill 内置门禁检查，不要求目标项目配置 `gate:dev` 命令。
 
 门禁检查：
 
@@ -332,7 +374,7 @@ npm run gate:dev -- -FeaturePath docs/features/login-phone
 
 用途：降低 Feature 使用成本。用户可以只提供一段原始需求，命令会调用 Codex CLI 自动整理成 PRD、UI Spec、技术契约、验收标准、体检和实现计划草稿。
 
-命令：
+本仓库维护命令：
 
 ```bash
 npm run feature:hydrate -- docs/features/login-phone
@@ -341,13 +383,13 @@ npm run feature:hydrate -- docs/features/login-phone
 推荐使用方式：
 
 ```text
-1. npm run feature:new -- login-phone --stack next-fullstack
+1. AI 使用 Skill 创建 docs/features/<feature-id>
 2. 用户把原始需求放进 00-source.md 或 01-prd.md
-3. npm run feature:hydrate -- docs/features/login-phone
+3. 用户说：继续补全这个 Feature
 4. AI 阅读原始材料，补全 01-prd.md 到 06-implementation-plan.md
 5. 用户审查和修改
 6. 用户批准后，AI 才能把 Readiness / User Approval / Implementation Plan Status 改成通过状态
-7. 运行 gate:dev
+7. AI 运行 Feature 门禁
 ```
 
 规则：
@@ -489,7 +531,7 @@ docs/decisions/ADR-0001.md
 模板：
 
 ```text
-docs/workflow/templates/feature/verification-report.md
+docs/workflow/templates/feature/07-verification-report.md
 ```
 
 目标项目建议路径：

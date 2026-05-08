@@ -1,10 +1,16 @@
 param(
-    [string]$FeaturePath = ""
+    [string]$FeaturePath = "",
+    [string]$TargetRoot = ""
 )
 
 $ErrorActionPreference = "Stop"
 
-$root = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
+$packageRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
+$root = if ([string]::IsNullOrWhiteSpace($TargetRoot)) {
+    (Get-Location).Path
+} else {
+    (Resolve-Path $TargetRoot).Path
+}
 $gateCommand = if ($env:WORKFLOW_GATE_COMMAND) { $env:WORKFLOW_GATE_COMMAND } else { "npm run gate:dev" }
 
 if ([string]::IsNullOrWhiteSpace($FeaturePath)) {

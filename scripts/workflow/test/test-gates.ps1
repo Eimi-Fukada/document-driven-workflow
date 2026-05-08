@@ -26,14 +26,14 @@ function WriteUtf8($path, $lines) {
 }
 
 function RunGate($featurePath) {
-    $output = & powershell -ExecutionPolicy Bypass -File (Join-Path $root "scripts\workflow\feature\gate-feature.ps1") -FeaturePath $featurePath 2>&1
+    $output = & powershell -ExecutionPolicy Bypass -File (Join-Path $root "scripts\workflow\feature\gate-feature.ps1") -FeaturePath $featurePath -TargetRoot $root 2>&1
     $code = $LASTEXITCODE
     $output | ForEach-Object { Write-Host $_ }
     return $code
 }
 
 function RunEpicGate($epicPath) {
-    $output = & powershell -ExecutionPolicy Bypass -File (Join-Path $root "scripts\workflow\epic\gate-epic.ps1") -EpicPath $epicPath 2>&1
+    $output = & powershell -ExecutionPolicy Bypass -File (Join-Path $root "scripts\workflow\epic\gate-epic.ps1") -EpicPath $epicPath -TargetRoot $root 2>&1
     $code = $LASTEXITCODE
     $output | ForEach-Object { Write-Host $_ }
     return $code
@@ -51,7 +51,7 @@ RemoveIfExists $epicFeatureTwo
 
 try {
     New-Item -ItemType Directory -Force -Path $failEpic | Out-Null
-    Copy-Item -LiteralPath (Join-Path $root "docs\workflow\templates\epic\source.md") -Destination (Join-Path $failEpic "00-source.md")
+    Copy-Item -LiteralPath (Join-Path $root "docs\workflow\templates\epic\00-source.md") -Destination (Join-Path $failEpic "00-source.md")
 
     $failEpicCode = RunEpicGate "docs/epics/__tmp_epic_fail"
     if ($failEpicCode -eq 0) {
@@ -77,7 +77,7 @@ try {
 
     New-Item -ItemType Directory -Force -Path $hydratedEpic | Out-Null
     WriteUtf8 (Join-Path $hydratedEpic "00-source.md") @("# Source", "", "Original product iteration material preserved here with enough detail for hydrate regression testing. It includes multiple modules, risk, UI changes, and release sequencing.")
-    & node (Join-Path $root "scripts\workflow\epic\hydrate-epic.mjs") "docs/epics/__tmp_epic_hydrated" --agent none | Out-Host
+    & node (Join-Path $root "scripts\workflow\epic\hydrate-epic.mjs") "docs/epics/__tmp_epic_hydrated" --target $root --agent none | Out-Host
     WriteUtf8 (Join-Path $hydratedEpic "01-epic-brief.md") @("# Epic Brief", "", "- 状态：Ready for Breakdown", "- Epic Status: Ready for Breakdown", "", "Goal is clear.")
     WriteUtf8 (Join-Path $hydratedEpic "02-requirement-inventory.md") @("# Requirement Inventory", "", "| Epic Req ID | 鏍囬 | 妯″潡 | 椋庨櫓 | 寤鸿 Feature | 鐘舵€?|", "| --- | --- | --- | --- | --- | --- |", "| EREQ-001 | Demo | UI | Low | demo-feature | Ready |")
     WriteUtf8 (Join-Path $hydratedEpic "03-scope-breakdown.md") @("# Scope Breakdown", "", "| Feature ID | 鏉ユ簮闇€姹?| 鐩爣 | 椋庨櫓 | 渚濊禆 |", "| --- | --- | --- | --- | --- |", "| demo-feature | EREQ-001 | Demo | Low | none |")
@@ -106,7 +106,7 @@ try {
         exit 1
     }
 
-    & node (Join-Path $root "scripts\workflow\epic\create-features.mjs") "docs/epics/__tmp_epic_pass" --features tmp-epic-feature-one,tmp-epic-feature-two --stack next-fullstack --agent none | Out-Host
+    & node (Join-Path $root "scripts\workflow\epic\create-features.mjs") "docs/epics/__tmp_epic_pass" --target $root --features tmp-epic-feature-one,tmp-epic-feature-two --stack next-fullstack --agent none | Out-Host
     foreach ($generatedFeature in @("tmp-epic-feature-one", "tmp-epic-feature-two")) {
         $generatedPath = Join-Path $featuresRoot $generatedFeature
         $expectedFiles = @("00-source.md", "01-prd.md", "02-ui-spec.md", "03-technical-contract.md", "04-acceptance-criteria.md", "05-readiness-review.md", "06-implementation-plan.md", "HYDRATION.md")
@@ -124,8 +124,13 @@ try {
         }
     }
 
+    if (-not (Test-Path (Join-Path $passEpic "09-agent-plan.md"))) {
+        Write-Host "Gate regression failed: epic:features did not create 09-agent-plan.md." -ForegroundColor Red
+        exit 1
+    }
+
     New-Item -ItemType Directory -Force -Path $failFeature | Out-Null
-    Copy-Item -LiteralPath (Join-Path $root "docs\workflow\templates\feature\prd.md") -Destination (Join-Path $failFeature "01-prd.md")
+    Copy-Item -LiteralPath (Join-Path $root "docs\workflow\templates\feature\01-prd.md") -Destination (Join-Path $failFeature "01-prd.md")
 
     $failCode = RunGate "docs/features/__tmp_gate_fail"
     if ($failCode -eq 0) {
@@ -171,7 +176,7 @@ try {
 
     New-Item -ItemType Directory -Force -Path $hydratedFeature | Out-Null
     WriteUtf8 (Join-Path $hydratedFeature "00-source.md") @("# Source", "", "Feature source material with enough detail for hydrate regression testing. It includes user goal, UI behavior, API boundary, and acceptance direction.")
-    & node (Join-Path $root "scripts\workflow\feature\hydrate-feature.mjs") "docs/features/__tmp_feature_hydrated" --agent none | Out-Host
+    & node (Join-Path $root "scripts\workflow\feature\hydrate-feature.mjs") "docs/features/__tmp_feature_hydrated" --target $root --agent none | Out-Host
     WriteUtf8 (Join-Path $hydratedFeature "01-prd.md") @("# PRD", "", "REQ-DEMO-001 Demo ready requirement")
     WriteUtf8 (Join-Path $hydratedFeature "02-ui-spec.md") @("# UI Spec", "", "UI-DEMO-001 Demo UI")
     WriteUtf8 (Join-Path $hydratedFeature "03-technical-contract.md") @(

@@ -46,11 +46,13 @@ npm run setup:claude
 
 ## 强制开发门禁
 
-进入研发前必须对某个功能文档包执行开发门禁：
+进入研发前必须对某个功能文档包执行开发门禁。本仓库维护时可运行：
 
 ```bash
 npm run gate:dev -- -FeaturePath docs/features/example-feature
 ```
+
+目标项目不需要配置该命令；使用已安装的 document-driven-workflow Skill 时，由 AI 调用 Skill 内置门禁检查目标项目文档。
 
 只有当功能文档包满足下面条件时，门禁才会通过：
 
@@ -67,10 +69,16 @@ npm run gate:dev -- -FeaturePath docs/features/example-feature
 
 ## 创建功能文档包
 
-创建一个新的功能文档包：
+本仓库维护命令：
 
 ```bash
 npm run feature:new -- login-phone --stack next-fullstack
+```
+
+目标项目中推荐直接让 AI 使用 Skill：
+
+```text
+使用 document-driven-workflow，为这个明确功能创建 Feature。
 ```
 
 生成目录：
@@ -98,18 +106,19 @@ Next.js 新项目只支持 App Router，不支持 Pages Router。老项目使用
 
 ## 创建产品迭代 Epic
 
-一次产品迭代包含多个功能模块时，先创建 Epic：
+一次产品迭代包含多个功能模块时，先创建 Epic。本仓库维护命令：
 
 ```bash
 npm run epic:new -- ai-fooler-upgrade
 ```
 
-Epic 用于保存原始产品材料、拆分需求、标记风险、规划发布批次。Epic 通过门禁后，再拆成多个 feature：
+目标项目中推荐直接让 AI 使用 Skill：
 
-```bash
-npm run gate:epic -- -EpicPath docs/epics/ai-fooler-upgrade
-npm run feature:new -- drag-upload-hint --stack legacy-existing --epic ai-fooler-upgrade
+```text
+使用 document-driven-workflow，处理这个需求文档。
 ```
+
+Epic 用于保存原始产品材料、拆分需求、标记风险、规划发布批次。Epic 通过门禁后，再拆成多个 Feature。
 
 Epic 门禁通过只代表可以拆 feature，不代表可以写代码。代码实现仍然必须通过 feature 级开发门禁。
 

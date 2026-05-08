@@ -19,31 +19,33 @@ $required = @(
     "docs/workflow/presets/next-fullstack.md",
     "docs/workflow/presets/flutter-fastapi.md",
     "docs/workflow/presets/flutter-express.md",
-    "docs/workflow/templates/feature/prd.md",
-    "docs/workflow/templates/feature/ui-spec.md",
-    "docs/workflow/templates/feature/technical-contract.md",
-    "docs/workflow/templates/feature/acceptance.md",
-    "docs/workflow/templates/feature/readiness-review.md",
-    "docs/workflow/templates/feature/implementation-plan.md",
-    "docs/workflow/templates/feature/verification-report.md",
+    "docs/workflow/templates/feature/01-prd.md",
+    "docs/workflow/templates/feature/02-ui-spec.md",
+    "docs/workflow/templates/feature/03-technical-contract.md",
+    "docs/workflow/templates/feature/04-acceptance-criteria.md",
+    "docs/workflow/templates/feature/05-readiness-review.md",
+    "docs/workflow/templates/feature/06-implementation-plan.md",
+    "docs/workflow/templates/feature/07-verification-report.md",
     "docs/workflow/templates/change/change-request.md",
     "docs/workflow/templates/decision/adr.md",
     "docs/workflow/templates/legacy/baseline.md",
     "docs/workflow/templates/legacy/compatibility-contract.md",
     "docs/workflow/templates/legacy/modernization-plan.md",
-    "docs/workflow/templates/epic/source.md",
-    "docs/workflow/templates/epic/brief.md",
-    "docs/workflow/templates/epic/requirement-inventory.md",
-    "docs/workflow/templates/epic/scope-breakdown.md",
-    "docs/workflow/templates/epic/risk-map.md",
-    "docs/workflow/templates/epic/release-plan.md",
-    "docs/workflow/templates/epic/acceptance-map.md",
-    "docs/workflow/templates/epic/progress-board.md",
-    "docs/workflow/templates/epic/retrospective.md",
+    "docs/workflow/templates/epic/00-source.md",
+    "docs/workflow/templates/epic/01-epic-brief.md",
+    "docs/workflow/templates/epic/02-requirement-inventory.md",
+    "docs/workflow/templates/epic/03-scope-breakdown.md",
+    "docs/workflow/templates/epic/04-risk-map.md",
+    "docs/workflow/templates/epic/05-release-plan.md",
+    "docs/workflow/templates/epic/06-acceptance-map.md",
+    "docs/workflow/templates/epic/07-progress-board.md",
+    "docs/workflow/templates/epic/08-retrospective.md",
+    "docs/workflow/templates/epic/09-agent-plan.md",
     "scripts/build/build-skills.mjs",
     "scripts/install/setup.mjs",
     "scripts/shared/agent-runner.mjs",
     "scripts/shared/file-utils.mjs",
+    "scripts/shared/workflow-context.mjs",
     "scripts/workflow/epic/create-features.mjs",
     "scripts/workflow/epic/gate-epic.ps1",
     "scripts/workflow/epic/hydrate-epic.mjs",
@@ -89,17 +91,18 @@ $epicFeaturesScript = ReadText "scripts/workflow/epic/create-features.mjs"
 $templateStatusDocs = @()
 $templateStatusDocs += ReadText "docs/workflow/templates/change/change-request.md"
 $templateStatusDocs += ReadText "docs/workflow/templates/decision/adr.md"
-$templateStatusDocs += ReadText "docs/workflow/templates/epic/brief.md"
-$templateStatusDocs += ReadText "docs/workflow/templates/epic/acceptance-map.md"
-$templateStatusDocs += ReadText "docs/workflow/templates/epic/progress-board.md"
-$templateStatusDocs += ReadText "docs/workflow/templates/epic/requirement-inventory.md"
-$templateStatusDocs += ReadText "docs/workflow/templates/feature/acceptance.md"
-$templateStatusDocs += ReadText "docs/workflow/templates/feature/implementation-plan.md"
-$templateStatusDocs += ReadText "docs/workflow/templates/feature/prd.md"
-$templateStatusDocs += ReadText "docs/workflow/templates/feature/readiness-review.md"
-$templateStatusDocs += ReadText "docs/workflow/templates/feature/verification-report.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/epic/01-epic-brief.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/epic/02-requirement-inventory.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/epic/06-acceptance-map.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/epic/07-progress-board.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/epic/09-agent-plan.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/feature/01-prd.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/feature/04-acceptance-criteria.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/feature/05-readiness-review.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/feature/06-implementation-plan.md"
+$templateStatusDocs += ReadText "docs/workflow/templates/feature/07-verification-report.md"
 $templateStatusDocs += ReadText "docs/workflow/templates/legacy/modernization-plan.md"
-$progressBoardTemplate = ReadText "docs/workflow/templates/epic/progress-board.md"
+$progressBoardTemplate = ReadText "docs/workflow/templates/epic/07-progress-board.md"
 
 $contentChecks = @(
     @{ Name = "WORKFLOW.md mentions gate:dev"; Pass = $workflow -match "gate:dev" },
@@ -111,6 +114,8 @@ $contentChecks = @(
     @{ Name = "Templates document editable status values"; Pass = -not ($templateStatusDocs | Where-Object { $_ -notmatch "Allowed Status Values" }) },
     @{ Name = "Progress board uses ASCII Epic Status"; Pass = $progressBoardTemplate -match "Epic Status:" },
     @{ Name = "USAGE.md documents epic features flow"; Pass = $usage -match "epic:features" -and $usage -match "Feature packages" },
+    @{ Name = "USAGE.md documents Skill-owned target execution"; Pass = $usage -match "--target <project-root>" },
+    @{ Name = "USAGE.md documents agent plan"; Pass = $usage -match "09-agent-plan.md" },
     @{ Name = "USAGE.md documents legacy and change flow"; Pass = $usage -match "Legacy Baseline" -and $usage -match "Compatibility Contract" -and $usage -match "Change Request" },
     @{ Name = "EPIC_WORKFLOW.md mentions gate:epic"; Pass = $epicWorkflow -match "gate:epic" },
     @{ Name = "GATES.md defines Readiness Ready"; Pass = $gates -match "Readiness: Ready" },

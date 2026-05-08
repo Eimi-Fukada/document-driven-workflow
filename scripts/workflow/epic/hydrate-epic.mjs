@@ -2,15 +2,16 @@ import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { parseAgentOption, runAgent } from "../../shared/agent-runner.mjs";
+import { createWorkflowContext } from "../../shared/workflow-context.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..", "..", "..");
 
 const args = process.argv.slice(2);
 const epicArg = args[0];
 const force = args.includes("--force");
 const agent = parseAgentOption(args);
+const workflow = createWorkflowContext(args);
 
 if (!epicArg) {
   console.error("Missing epic path.");
@@ -18,11 +19,11 @@ if (!epicArg) {
   process.exit(1);
 }
 
-const epicPath = path.isAbsolute(epicArg) ? epicArg : path.join(repoRoot, epicArg);
+const epicPath = workflow.resolveTarget(epicArg);
 const sourcePath = path.join(epicPath, "00-source.md");
 
 if (!existsSync(sourcePath)) {
-  console.error(`Missing source file: ${path.relative(repoRoot, sourcePath)}`);
+  console.error(`Missing source file: ${workflow.relativeToTarget(sourcePath)}`);
   console.error("Create the epic first and put raw product material in 00-source.md.");
   process.exit(1);
 }
@@ -33,16 +34,16 @@ if (source.length < 80) {
   process.exit(1);
 }
 
-const templateDir = path.join(repoRoot, "docs", "workflow", "templates", "epic");
+const templateDir = path.join(workflow.templateRoot, "epic");
 const files = [
-  ["brief.md", "01-epic-brief.md"],
-  ["requirement-inventory.md", "02-requirement-inventory.md"],
-  ["scope-breakdown.md", "03-scope-breakdown.md"],
-  ["risk-map.md", "04-risk-map.md"],
-  ["release-plan.md", "05-release-plan.md"],
-  ["acceptance-map.md", "06-acceptance-map.md"],
-  ["progress-board.md", "07-progress-board.md"],
-  ["retrospective.md", "08-retrospective.md"],
+  "01-epic-brief.md",
+  "02-requirement-inventory.md",
+  "03-scope-breakdown.md",
+  "04-risk-map.md",
+  "05-release-plan.md",
+  "06-acceptance-map.md",
+  "07-progress-board.md",
+  "08-retrospective.md",
 ];
 
 mkdirSync(epicPath, { recursive: true });
@@ -50,14 +51,14 @@ mkdirSync(epicPath, { recursive: true });
 let created = 0;
 let skipped = 0;
 
-for (const [template, target] of files) {
-  const targetPath = path.join(epicPath, target);
+for (const file of files) {
+  const targetPath = path.join(epicPath, file);
   if (existsSync(targetPath) && !force) {
     skipped += 1;
     continue;
   }
 
-  cpSync(path.join(templateDir, template), targetPath);
+  cpSync(path.join(templateDir, file), targetPath);
   created += 1;
 }
 
@@ -102,13 +103,13 @@ if (!existsSync(markerPath) || force) {
   writeFileSync(markerPath, marker, "utf8");
 }
 
-console.log(`Epic hydration scaffold ready: ${path.relative(repoRoot, epicPath)}`);
+console.log(`Epic hydration scaffold ready: ${workflow.relativeToTarget(epicPath)}`);
 console.log(`Created files: ${created}`);
 console.log(`Skipped existing files: ${skipped}`);
 console.log("");
 console.log(`Running hydrate agent: ${agent}`);
 
-const relativeEpicPath = path.relative(repoRoot, epicPath).replaceAll("\\", "/");
+const relativeEpicPath = workflow.relativeToTarget(epicPath);
 const prompt = `Use document-driven-workflow.
 
 Task: hydrate the Epic document package at ${relativeEpicPath}.
@@ -127,4 +128,4 @@ Instructions:
 
 Finish by summarizing which Epic files were hydrated and what the user must review.`;
 
-runAgent({ agent, cwd: repoRoot, prompt });
+runAgent({ agent, cwd: workflow.targetRoot, prompt });

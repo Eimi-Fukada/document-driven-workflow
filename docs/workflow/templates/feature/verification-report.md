@@ -8,7 +8,8 @@
 - 验证人：
 - 状态：Passed / Failed / Partial
 
-## 状态字段允许值 / Allowed Status Values
+<!--
+Allowed Status Values
 
 - 状态：Passed / Failed / Partial
 - 需求追踪结果：Passed / Failed / Partial / Not Tested
@@ -16,6 +17,7 @@
 - Failed：验证失败。
 - Partial：部分验证通过，仍有未验证项或剩余风险。
 - Not Tested：尚未验证。
+-->
 
 ## 需求追踪矩阵
 
@@ -68,4 +70,5 @@
 ## 结论
 
 是否达到上线要求：
+
 

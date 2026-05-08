@@ -140,7 +140,8 @@ function writeHydrationMarker(featureDir, featureId) {
 - Review Status: Draft
 - User Approval: Pending
 
-## Allowed Values
+<!--
+Allowed Status Values
 
 - Hydration Status: Draft / Reviewed
 - Review Status: Draft / Reviewed
@@ -153,6 +154,7 @@ Common approved state after user review:
 - Review Status: Reviewed
 - User Approval: Approved
 \`\`\`
+-->
 
 ## Source
 

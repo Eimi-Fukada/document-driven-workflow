@@ -7,7 +7,8 @@
 - 创建日期：
 - 状态：Draft / Ready / In Progress / Verified / Released
 
-## 状态字段允许值 / Allowed Status Values
+<!--
+Allowed Status Values
 
 - 状态：Draft / Ready / In Progress / Verified / Released
 - Draft：PRD 草稿，尚未审查。
@@ -15,6 +16,7 @@
 - In Progress：功能正在实现。
 - Verified：功能已验证。
 - Released：功能已发布。
+-->
 
 ## 背景
 
@@ -79,4 +81,5 @@
 - 产品风险：
 - 技术风险：
 - 上线风险：
+
 

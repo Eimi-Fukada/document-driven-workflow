@@ -7,7 +7,8 @@
 - 创建日期：
 - 状态：Draft / Ready / Blocked
 
-## 状态字段允许值 / Allowed Status Values
+<!--
+Allowed Status Values
 
 - 状态：Draft / Ready / Blocked
 - Readiness：Not Ready / Ready
@@ -30,6 +31,7 @@
 - User Approval: Approved
 - Implementation Plan Status: Approved
 ```
+-->
 
 ## 机器可读门禁字段
 
@@ -67,4 +69,5 @@
 ## 结论
 
 当前是否允许进入研发：
+
 

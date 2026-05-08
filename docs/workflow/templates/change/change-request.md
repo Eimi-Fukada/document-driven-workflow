@@ -7,7 +7,8 @@
 - 创建日期：
 - 状态：Draft / Accepted / Implemented / Verified / Released
 
-## 状态字段允许值 / Allowed Status Values
+<!--
+Allowed Status Values
 
 - 状态：Draft / Accepted / Implemented / Verified / Released
 - Draft：变更请求草稿，尚未批准。
@@ -15,6 +16,7 @@
 - Implemented：代码实现已完成。
 - Verified：验证报告已确认通过。
 - Released：已上线或已发布。
+-->
 
 ## 当前行为
 
@@ -65,4 +67,5 @@ Then
 ## 风险
 
 - 
+
 

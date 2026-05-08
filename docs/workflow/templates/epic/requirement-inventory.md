@@ -6,7 +6,8 @@
 | --- | --- | --- | --- | --- | --- |
 | EREQ-001 |  |  | Low / Medium / High |  | Draft |
 
-## 状态字段允许值 / Allowed Status Values
+<!--
+Allowed Status Values
 
 - 风险：Low / Medium / High
 - 状态：Draft / Ready / Deferred / Rejected
@@ -14,6 +15,7 @@
 - Ready：已确认，可进入 Feature 拆分。
 - Deferred：本轮暂不纳入。
 - Rejected：明确不做。
+-->
 
 ## 待拆分项
 
@@ -22,4 +24,5 @@
 ## 暂不纳入本轮
 
 - 
+
 

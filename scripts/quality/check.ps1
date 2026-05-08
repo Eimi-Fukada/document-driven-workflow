@@ -123,7 +123,7 @@ $contentChecks = @(
     @{ Name = "Build script generates skill references"; Pass = $buildScript -match "references" -and $buildScript -match "USAGE.md" -and $buildScript -match "workflow" },
     @{ Name = "Build script generates skill templates"; Pass = $buildScript -match "templates" -and $buildScript -match "copyDirectoryRecursive" },
     @{ Name = "Build script generates workflow scripts"; Pass = $buildScript -match "scripts" -and $buildScript -match "workflow" },
-    @{ Name = "Hydrate scripts document allowed values"; Pass = $epicHydrateScript -match "Allowed Values" -and $featureHydrateScript -match "Allowed Values" -and $epicFeaturesScript -match "Allowed Values" },
+    @{ Name = "Hydrate scripts document allowed values"; Pass = $epicHydrateScript -match "Allowed Status Values" -and $featureHydrateScript -match "Allowed Status Values" -and $epicFeaturesScript -match "Allowed Status Values" },
     @{ Name = "package.json exposes epic:new"; Pass = $package -match '"epic:new"' },
     @{ Name = "package.json exposes epic:features"; Pass = $package -match '"epic:features"' },
     @{ Name = "package.json exposes epic:hydrate"; Pass = $package -match '"epic:hydrate"' },

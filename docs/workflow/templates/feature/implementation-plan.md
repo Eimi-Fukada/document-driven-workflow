@@ -6,7 +6,8 @@
 - 关联需求：
 - 当前状态：Draft / Approved / Implementing / Done
 
-## 状态字段允许值 / Allowed Status Values
+<!--
+Allowed Status Values
 
 - 当前状态：Draft / Approved / Implementing / Done
 - 需求体检状态：Ready / Ready with Assumptions / Not Ready
@@ -17,6 +18,7 @@
 - Ready：需求清楚，可以进入实现。
 - Ready with Assumptions：存在已列明且被接受的假设。
 - Not Ready：仍有阻塞问题，不能实现。
+-->
 
 ## 目标
 
@@ -63,4 +65,5 @@
 - 数据迁移：
 - 部署命令：
 - 回滚方式：
+
 

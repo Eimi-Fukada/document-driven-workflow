@@ -12,7 +12,8 @@
 | --- | --- | --- | --- | --- |
 |  | Batch 1 | Draft | Pending | Pending |
 
-## 状态字段允许值 / Allowed Status Values
+<!--
+Allowed Status Values
 
 - Epic Status: Draft / Ready for Breakdown / In Progress / Released
 - Feature 状态：Draft / Ready / In Progress / Done / Blocked
@@ -26,6 +27,7 @@
 - In Progress：正在实现或验证。
 - Done：该 Feature 已完成。
 - Blocked：存在阻塞问题。
+-->
 
 ## 阻塞项
 
@@ -34,4 +36,5 @@
 ## 决策记录
 
 - 
+
 

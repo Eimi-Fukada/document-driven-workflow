@@ -7,7 +7,8 @@
 - 关联 UI Spec：
 - 状态：Draft / Ready / Verified
 
-## 状态字段允许值 / Allowed Status Values
+<!--
+Allowed Status Values
 
 - 状态：Draft / Ready / Verified
 - 验收矩阵状态：Draft / Ready / Verified / Failed
@@ -15,6 +16,7 @@
 - Ready：验收标准已确认，可用于测试。
 - Verified：验收已通过。
 - Failed：验收失败或未达到要求。
+-->
 
 ## 验收矩阵
 
@@ -52,4 +54,5 @@ Then 系统应该产生结果
 - 接口测试：
 - Playwright：
 - 冒烟测试：
+
 

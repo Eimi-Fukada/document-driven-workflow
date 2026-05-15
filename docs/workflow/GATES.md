@@ -1,103 +1,121 @@
-# 强制门禁
+# Gates
 
-本文定义文档驱动交付中的强制门禁。门禁不是提醒，而是进入下一阶段前必须通过的检查。
+本工作流使用硬门禁。gate 失败时，AI 必须停在文档阶段，报告缺失项或阻塞项，不能开始实现。
 
-## 1. 门禁层级
+## 单一状态来源
 
-### 结构门禁
-
-结构门禁检查仓库是否具备基本工作流能力。
-
-执行命令：
-
-```bash
-npm run check
-```
-
-检查内容：
-
-- 工作流文档存在。
-- AI 协作入口存在。
-- Codex 和 Claude Code 入口存在。
-- 模板存在。
-- 脚本存在。
-- 本地技能源文件存在。
-- 文档中明确写入开发门禁规则。
-
-### 开发门禁
-
-开发门禁检查某个功能是否允许进入代码实现阶段。
-
-本仓库维护命令：
-
-```bash
-npm run gate:dev -- -FeaturePath docs/features/<feature-id>
-```
-
-目标项目不要求配置该 npm 命令。使用 document-driven-workflow Skill 时，由 AI 调用 Skill 内置门禁或执行等价文档检查。
-
-只有开发门禁通过，AI 才能开始实现代码。
-
-## 2. 功能文档包结构
-
-每个功能建议放在独立目录：
+每个 Epic、Feature、Light Feature 都有一个机器可读控制文件：
 
 ```text
-docs/features/<feature-id>/
-  01-prd.md
-  02-ui-spec.md
-  03-technical-contract.md
-  04-acceptance-criteria.md
-  05-readiness-review.md
-  06-implementation-plan.md
+00-workflow.yaml
 ```
 
-## 3. 开发门禁通过条件
+所有批准和可开发状态都放在这里。其他 Markdown 文件只保存产品或交付内容。
 
-`05-readiness-review.md` 中必须包含：
+进入实现需要满足：
+
+```yaml
+approval: approved
+readiness: ready
+unresolved_questions: 0
+blocking_issues: 0
+assumptions_accepted: true
+```
+
+从已批准 Epic 生成的 Feature 可以使用：
+
+```yaml
+approval: inherited
+approval_source: docs/epics/<epic-id>
+```
+
+## Feature Gate
+
+本仓库命令：
+
+```bash
+npm run gate:dev -- docs/features/<feature-id>
+```
+
+目标项目不需要本地 npm scripts。安装 Skill 后，AI 使用内置 gate 脚本并传入 `--target <project-root>`。
+
+Standard 和 Strict Feature 必须包含：
 
 ```text
-- Readiness: Ready
-- Unresolved Questions: 0
-- Blocking Issues: 0
-- Assumptions Accepted: yes
-- User Approval: Approved
-- Implementation Plan Status: Approved
+00-workflow.yaml
+00-intake-review.md
+01-prd.md
+02-ui-spec.md
+03-technical-contract.md
+04-acceptance-criteria.md
+05-readiness-review.md
+06-implementation-plan.md
+08-context-pack.md
 ```
 
-同时必须满足：
+Light Feature 必须包含：
 
-- PRD 存在。
-- UI Spec 存在。
-- Technical Contract 存在。
-- Acceptance Criteria 存在。
-- Readiness Review 存在。
-- Implementation Plan 存在。
-- 验收标准中至少包含一个 `REQ-` 和一个 `AC-`。
-- 功能文档中不能包含 `TODO`、`TBD`、`待确认`、`未确认`、`待补充`。
-- Technical Contract 必须声明合法 Stack Preset。
-- `next-fullstack` 必须使用 App Router，不能使用 Pages Router。
-- `flutter-express` 必须填写 Exception Reason。
-- `legacy-existing` 必须存在 Legacy Baseline 和 Compatibility Contract。
+```text
+00-workflow.yaml
+01-light-feature.md
+```
 
-## 4. 门禁失败时怎么办
+gate 还会检查：
 
-如果门禁失败，AI 必须停在文档阶段，并输出：
+- 至少一个 `REQ-*` 需求引用
+- 至少一个 `AC-*` 验收项
+- Requirement Intake Review 中包含清楚项、缺失项、风险和用户问题
+- Context Pack 中包含 requirement IDs 和 test commands
+- 实现交接中包含 Scope Lock 和 execution discipline 字段
+- 可维护性规则：reuse threshold、1000-line file limit、Tailwind CSS preference for Next.js UI
+- 不包含未解决占位符，例如 `TODO`、`TBD`、`待确认`、`未确认`、`待补充`
+- `stack_preset` 合法
+- `next-fullstack` 使用 App Router，不能使用 Pages Router
+- `legacy-existing` 必须已有 Legacy Baseline 和 Compatibility Contract
+- Light Feature 不能使用 `legacy-existing`
 
-- 缺失文件。
-- 未确认问题。
-- 阻塞问题。
-- 需要用户确认的假设。
-- 建议下一步只补哪一份文档。
+## Epic Gate
 
-不能绕过门禁进入代码实现。
+本仓库命令：
 
-## 5. 允许的例外
+```bash
+npm run gate:epic -- docs/epics/<epic-id>
+```
 
-只有一种例外：用户明确要求“生成草案”或“做技术探索”，并且不进入正式研发。
+Epic 必须包含：
 
-这种情况下，输出必须显式标注：
+```text
+00-workflow.yaml
+00-source.md
+01-epic-brief.md
+02-requirement-inventory.md
+03-scope-breakdown.md
+04-risk-map.md
+05-release-plan.md
+06-acceptance-map.md
+07-progress-board.md
+```
 
-- 关键假设
-- 未确认问题
-- 不可用于开发
+Epic gate 表示 Epic 已经可以拆分为 Feature。它不授权代码实现。代码实现仍然要求每个 Feature 通过自己的 gate。
+
+## 批准
+
+用户对每个 Epic 或 Feature 只批准一次。批准只写入 `00-workflow.yaml`。
+
+```bash
+npm run workflow:approve -- docs/features/<feature-id> --user-approved
+```
+
+approve 命令没有 `--user-approved` 时会拒绝运行。
+
+## Gate Failure
+
+gate 失败时，AI 必须返回：
+
+- 缺失文件
+- 未解决问题
+- 阻塞问题
+- 仍需用户确认的假设
+- 下一步仅限文档阶段的动作
+
+AI 不能绕过 gate 去写实现代码。

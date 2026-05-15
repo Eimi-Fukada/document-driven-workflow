@@ -39,4 +39,3 @@ flutter test
 pytest
 docker build .
 ```
-

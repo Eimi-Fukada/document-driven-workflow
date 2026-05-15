@@ -1,42 +1,69 @@
-# 文档驱动交付工作流
+# Document Driven Workflow
 
-本文定义一套面向 AI 协作的产品交付模式：用户用“产品文档 + UI 图 + 验收标准”描述需求，AI 负责完成技术实现、测试、修复和部署准备。
+本仓库定义一套 AI 优先的文档驱动交付流程。用户提供产品文档、UI 参考和验收标准；AI 把这些输入转成实现计划、代码、测试、验证报告和部署准备。
 
-第一次使用前先读 `docs/workflow/USER_GUIDE.md`。该说明书定义 Epic、Feature、Gate、Legacy、ADR、Verification 的分工，以及不同复杂度下应使用的流程层级。
+## 核心模型
 
-## 1. 目标
+默认选择“足够安全的最轻流程”：
 
-这套工作流要解决四个问题：
+1. Direct：极小的文档或命令类工作。
+2. Light：低风险、单一范围的小改动。
+3. Standard：可以独立开发和测试的普通功能。
+4. Epic：跨多个模块或多个发布批次的产品迭代，需要先拆成多个 Feature。
+5. Strict：认证、支付、权限、数据库、任务状态、部署、迁移、老项目核心行为或其他高风险工作。
 
-- 减少反复口头修正，让需求先在文档里变清楚。
-- 让实现、测试、验收都能追溯到同一个需求 ID。
-- 让后续新增和修改有固定入口，避免旧功能被意外破坏。
-- 让用户不必用代码表达需求，但仍能掌握产品边界、风险和上线状态。
+选择路径前先读 `MODE_ROUTER.md`。
 
-这套工作流不是要求所有需求都使用全部文档层级。复杂度分级和使用决策见 `docs/workflow/USER_GUIDE.md`。
+## 状态模型
 
-## 2. 角色分工
-
-### 用户负责
-
-- 提供产品目标、业务规则、UI 图、验收标准。
-- 确认需求体检中的关键假设。
-- 确认实现计划是否符合产品目标和边界。
-- 根据验证报告判断是否可以上线。
-
-### AI 负责
-
-- 阅读文档和代码现状。
-- 发现需求缺口、冲突、风险和隐含边界。
-- 生成实现计划。
-- 完成代码实现、测试、修复和部署准备。
-- 输出验证报告和变更记录。
-
-## 3. 文档目录
+每个 Epic 或 Feature 只有一个工作流控制文件：
 
 ```text
-docs/
-  00-product-brief.md
+00-workflow.yaml
+```
+
+这里是唯一机器可读来源，包含：
+
+- approval
+- readiness
+- status
+- stack preset
+- unresolved question count
+- blocking issue count
+- assumption acceptance
+
+Markdown 文档负责描述产品意图、范围、计划和验证，不保存批准状态。
+
+## 文档包
+
+产品历史层：
+
+```text
+docs/product/
+  requirement-ledger.md
+  traceability.md
+  snapshots/
+```
+
+这一层记录原始需求来源、需求到交付的追溯关系，以及已批准范围的快照，避免后续迭代把原始产品意图覆盖掉。
+
+- Requirement Ledger：`docs/product/requirement-ledger.md`
+- Traceability Matrix：`docs/product/traceability.md`
+
+Light Feature：
+
+```text
+docs/features/<feature-id>/
+  00-workflow.yaml
+  01-light-feature.md
+```
+
+Standard 或 Strict Feature：
+
+```text
+docs/features/<feature-id>/
+  00-workflow.yaml
+  00-intake-review.md
   01-prd.md
   02-ui-spec.md
   03-technical-contract.md
@@ -44,180 +71,80 @@ docs/
   05-readiness-review.md
   06-implementation-plan.md
   07-verification-report.md
-  decisions/
-    ADR-0001-example.md
-  changes/
-    CR-0001-example.md
-  workflow/
-    WORKFLOW.md
-    templates/
+  08-context-pack.md
 ```
 
-## 4. 需求包
-
-一次功能开发至少需要以下三类输入：
-
-- 产品文档：目标用户、业务目标、功能范围、业务规则、非目标。
-- UI 图和 UI 说明：页面、状态、交互、响应式、错误、空数据、加载态。
-- 验收标准：可测试的成功条件、失败条件和边界条件。
-
-如果需求涉及登录、支付、权限、文件上传、第三方 API、数据迁移、通知、订阅、计费或部署架构，必须补充技术边界。
-
-技术栈必须从 `docs/workflow/STACK_POLICY.md` 的标准 Stack Preset 中选择。Next.js 新项目只支持 App Router，不支持 Pages Router。
-
-如果输入是一份跨多个模块的产品迭代文档，应先进入 `docs/workflow/EPIC_WORKFLOW.md` 定义的 Epic 流程，拆分后再创建 feature 文档包。
-
-## 5. 需求 ID 规则
-
-每个需求必须有稳定 ID：
+Epic：
 
 ```text
-REQ-<DOMAIN>-<NUMBER>
-UI-<DOMAIN>-<NUMBER>
-API-<DOMAIN>-<NUMBER>
-CR-<NUMBER>
-ADR-<NUMBER>
+docs/epics/<epic-id>/
+  00-workflow.yaml
+  00-source.md
+  01-epic-brief.md
+  02-requirement-inventory.md
+  03-scope-breakdown.md
+  04-risk-map.md
+  05-release-plan.md
+  06-acceptance-map.md
+  07-progress-board.md
+  08-retrospective.md
+  09-agent-plan.md
 ```
 
-示例：
+## 批准
 
-```text
-REQ-AUTH-001 手机号验证码登录
-UI-AUTH-001 登录页表单状态
-API-AUTH-001 发送验证码接口
-CR-0003 修改会员升级流程
-ADR-0001 选择 Next.js 作为首版技术栈
-```
+用户对每个 Epic 或 Feature 只批准一次。批准只写入 `00-workflow.yaml`。
 
-## 6. 可开发状态判断
+AI 可以生成草稿、补全文档、整理问题，但不能在 gate 通过前开始代码实现。
 
-AI 在进入实现前，需要判断需求状态。
+## Gates
 
-### Ready
-
-需求目标、业务规则、UI 状态、数据、权限、验收标准和边界都清楚，可以进入实现计划。
-
-### Ready with Assumptions
-
-存在少量不影响核心方向的缺口。AI 会列出假设，用户没有反对时按假设执行。
-
-### Not Ready
-
-存在会影响核心体验、数据安全、权限、支付、技术架构或上线风险的问题。需要先补充文档。
-
-## 7. 实现前体检
-
-每个功能进入开发前，AI 应输出一份需求体检，至少包含：
-
-- 已清楚的需求。
-- 缺失的信息。
-- 文档之间的冲突。
-- 对现有功能的影响。
-- 技术风险。
-- 默认假设。
-- 建议拆分的子任务。
-
-## 8. 强制开发门禁
-
-实现计划确认后，进入代码实现前必须运行开发门禁。本仓库维护时可使用：
+Feature 进入实现前：
 
 ```bash
-npm run gate:dev -- -FeaturePath docs/features/<feature-id>
+npm run gate:dev -- docs/features/<feature-id>
 ```
 
-目标项目不要求配置该 npm 命令；使用 document-driven-workflow Skill 时，由 AI 调用 Skill 内置门禁或执行等价文档检查。
+Epic 拆分为可执行 Feature 前：
 
-门禁检查的不是代码质量，而是需求是否已经允许进入研发。只要仍存在未确认问题、阻塞问题、未批准假设或未批准实现计划，就不能开始代码实现。
-
-门禁失败时，AI 必须停在文档阶段，输出缺失文件、未确认问题、阻塞问题和下一步补充建议。
-
-详细规则见 `docs/workflow/GATES.md`。
-
-## 9. 实现计划
-
-实现计划必须在写代码前完成。计划应包含：
-
-- 本次目标。
-- 非目标。
-- 允许改动范围。
-- 禁止改动范围。
-- 数据模型或 API 变更。
-- 页面和组件变更。
-- 测试策略。
-- 部署和回滚注意事项。
-
-实现计划本身也必须被开发门禁确认。未批准的实现计划不能作为研发依据。
-
-## 10. 验证标准
-
-验证应按风险选择覆盖范围。默认顺序：
-
-1. 静态检查：typecheck、lint、format check。
-2. 单元测试：业务规则、工具函数、组件逻辑。
-3. 接口测试：API 入参、鉴权、错误、状态码。
-4. Playwright 测试：关键用户路径。
-5. 冒烟测试：本地启动、页面加载、核心操作、控制台错误。
-6. 部署检查：环境变量、构建结果、访问路径、回滚方案。
-
-验证报告必须说明哪些项目已验证、哪些没有验证、为什么没验证。
-
-## 11. 变更流程
-
-新增或修改已有功能时，使用 `docs/changes/CR-xxxx.md`。
-
-变更请求必须说明：
-
-- 当前行为。
-- 期望行为。
-- 影响的需求 ID。
-- 影响的 UI、API、数据、权限、测试。
-- 不允许改变的部分。
-- 新增或修改后的验收标准。
-
-AI 收到变更请求后，应先做影响分析，再修改文档、实现和测试。
-
-变更后的功能也必须重新通过开发门禁。
-
-## 12. 决策记录
-
-重要技术或产品决策使用 ADR 记录，例如：
-
-- 技术栈选择。
-- 数据库选择。
-- 鉴权方案。
-- 支付供应商。
-- 部署平台。
-- 是否引入第三方服务。
-
-ADR 一旦确认，不应直接删除。后续改变应新增 ADR，并标记旧 ADR 被替代。
-
-## 13. 上线判断
-
-上线前至少满足：
-
-- 所有本期需求 ID 都有验收结果。
-- 关键路径 Playwright 或冒烟测试通过。
-- 构建通过。
-- 环境变量和部署配置明确。
-- 数据迁移和回滚方案明确。
-- 未完成项和剩余风险已记录。
-
-## 14. 推荐协作节奏
-
-小功能：
-
-```text
-需求简报 -> AI 体检 -> 实现计划 -> 开发门禁 -> 实现 -> 验证报告
+```bash
+npm run gate:epic -- docs/epics/<epic-id>
 ```
 
-中型功能：
+目标项目不应该把这些脚本加入自己的 `package.json`。安装 Skill 后，AI 使用 Skill 内置脚本并传入 `--target <project-root>`。
 
-```text
-PRD + UI spec + 验收标准 -> 需求体检 -> 文档修订 -> 实现计划 -> 开发门禁 -> 分阶段实现 -> 分阶段验证
-```
+## Execution Discipline
 
-大型产品：
+Feature gate 通过后，实现必须遵守 `EXECUTION_DISCIPLINE.md`。
 
-```text
-产品简报 -> 模块拆分 -> 每个模块独立 PRD -> 每个模块独立验收 -> 分批开发 -> 分批上线
-```
+Standard 和 Strict Feature 的实现交接上下文来自：
+
+- `06-implementation-plan.md`
+- `08-context-pack.md`
+
+实现 agent 必须遵守 Scope Lock；当触发条件成立时使用 TDD 或 systematic debugging；完成前执行 self review；声称完成前记录新的验证证据。
+
+同时要遵守可维护性规则：当结构或逻辑出现 2 or more times 时考虑抽取；触碰的单文件尽量保持在 1000 lines 以下；新的 Next.js UI 样式优先使用 Tailwind CSS。
+
+## Stack Policy
+
+新项目必须选择 `STACK_POLICY.md` 里的标准 Stack Preset。
+
+- `next-fullstack` 只使用 Next.js App Router。
+- `flutter-fastapi` 是 Flutter 独立后端默认预设。
+- `flutter-express` 仅在有明确理由时使用。
+- `legacy-existing` 必须先建立 baseline 和 compatibility contract。
+
+## 变更流程
+
+修改已有行为必须创建 `docs/changes/CR-xxxx.md`。不要靠零散对话覆盖旧需求。
+
+变更请求影响范围后，更新对应 Epic 或 Feature 文档，再重新运行 gate。
+
+## Traceability
+
+长期产品历史使用 `PRODUCT_TRACEABILITY.md` 中定义的模型。目标项目应维护：
+
+- `docs/product/requirement-ledger.md`：原始来源记录
+- `docs/product/traceability.md`：来源到测试覆盖的关系
+- `docs/product/snapshots/`：已批准 Epic 或大型 Feature 的范围快照

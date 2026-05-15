@@ -1,162 +1,86 @@
-# 工作流功能使用说明
+# Usage Guide
 
-本文说明这套文档驱动工作流的每个功能怎么使用。它面向两类场景：
+这份说明解释工作流每个功能怎么使用。用户可以直接通过自然语言让 AI 使用 `document-driven-workflow`，也可以在本仓库维护工作流时运行下面的命令。
 
-- 在本仓库维护和打包工作流 Skill。
-- 在目标项目中让 Codex 或 Claude Code 按文档驱动方式接入、拆需求、开发、测试和验证。
+## 维护本仓库
 
-## 1. 仓库自检
-
-用途：检查工作流仓库的核心文档、模板、脚本和 Skill 入口是否齐全。
-
-命令：
+检查仓库结构：
 
 ```bash
 npm run check
 ```
 
-什么时候用：
-
-- 修改模板后。
-- 修改门禁脚本后。
-- 修改 Skill 入口后。
-- 准备提交前。
-
-通过标准：
-
-- 必要文档存在。
-- 必要模板存在。
-- 本仓库 `package.json` 暴露维护、打包和回归测试命令。
-- Skill 能指向目标项目接入、Epic、Feature、Gate、Stack Policy。
-
-## 2. 打包 Skill
-
-用途：把源文件打包成 Codex / Claude Code 可安装的 Skill。
-
-命令：
+构建可安装 Skill：
 
 ```bash
 npm run build
 ```
 
-输入来源：
-
-- `skills/document-driven-workflow/SKILL.md`
-- `docs/workflow/*.md`
-- `docs/workflow/presets/`
-- `docs/workflow/templates/`
-- `scripts/workflow/`
-- `scripts/shared/`
-
-输出目录：
-
-```text
-dist/skills/document-driven-workflow/
-```
-
-说明：
-
-- `dist/` 是构建产物，不需要提交。
-- 修改源文档、模板或脚本后，重新运行 `npm run build`。
-
-## 3. 安装 Skill
-
-用途：把打包后的 Skill 安装到本机 AI 工具。
-
-安装到 Codex：
+安装到本机 AI 工具：
 
 ```bash
 npm run setup:codex
-```
-
-安装到 Claude Code：
-
-```bash
 npm run setup:claude
-```
-
-同时安装到 Codex 和 Claude Code：
-
-```bash
 npm run setup:all
 ```
 
-什么时候用：
+`dist/` 是构建产物，通常不提交，除非明确需要把构建后的包作为发布物分发。
 
-- 第一次安装工作流。
-- 修改 Skill 后想让 Codex / Claude Code 使用新版本。
+## 目标项目接入
 
-注意：
-
-- 安装后通常需要重启 Codex 或 Claude Code 才能加载最新 Skill。
-- 安装命令会先自动执行一次构建。
-
-## 4. 目标项目接入
-
-用途：把这套工作流应用到一个真实项目。
-
-推荐对 AI 的指令：
+推荐用户提示词：
 
 ```text
-使用 document-driven-workflow skill，把文档驱动工作流接入当前项目。
-先阅读项目现有文档和脚本，不要覆盖已有文档。
-不要为了工作流修改 package.json。
-不要默认复制 workflow 脚本到项目里。
-只在项目中沉淀 docs/epics、docs/features、docs/legacy、docs/changes、docs/decisions 等项目文档产物。
-如果是老项目，先建立 legacy baseline 和 compatibility contract。
+Use document-driven-workflow to apply the workflow to this project.
+Read existing docs and scripts first. Do not overwrite existing docs. Do not modify package.json just to expose workflow commands.
 ```
 
-AI 应该做的事：
-
-- 阅读目标项目现有 `README`、`AGENTS.md`、`CLAUDE.md`、`docs/`、`package.json`。
-- 判断项目是新项目还是老项目。
-- 使用 Skill 内置模板和脚本生成目标项目文档。
-- 不默认复制 `scripts/workflow/` 到目标项目。
-- 不默认给目标项目增加 `feature:new`、`epic:new`、`gate:dev`、`gate:epic` 等命令。
-- 保留目标项目原有 `package.json`、`build`、`dev`、`test`、`lint` 等命令。
-- 目标项目只保存项目事实和交付产物，例如 `docs/epics/`、`docs/features/`、`docs/legacy/`、`docs/changes/`、`docs/decisions/`。
-
-当前边界：
-
-- 目标项目接入由 AI 根据 Skill 执行，不是一个固定的一键脚手架。
-- 这样做是为了避免覆盖老项目已有结构。
-
-目标项目中的推荐交互入口：
+目标项目只保存项目相关文档：
 
 ```text
-使用 document-driven-workflow，处理这个需求文档。
+docs/epics/
+docs/features/
+docs/product/
+docs/legacy/
+docs/changes/
+docs/decisions/
 ```
+
+工作流脚本留在 Skill 内部，通过 `--target <project-root>` 作用到目标项目。
+
+接入时建议先初始化产品历史层：
+
+```bash
+npm run workflow:init-product -- --target <project-root>
+```
+
+它会创建：
 
 ```text
-我已经填好 docs/epics/<epic-id>/00-source.md，继续生成 Epic 和 Features。
+docs/product/requirement-ledger.md
+docs/product/traceability.md
+docs/product/snapshots/
 ```
 
-```text
-我已审核通过，运行门禁并开始执行。
+## 路由一个需求
+
+```bash
+npm run workflow:route -- --source docs/requirements/example.md
 ```
 
-如果 AI 需要直接调用 Skill 内置脚本，应使用 `--target <project-root>` 指向目标项目，而不是要求目标项目安装工作流命令。
+输出为 `docs/workflow/ROUTING_REVIEW.md`，会建议 Direct、Light、Standard、Epic 或 Strict。它不会批准实现。
 
-## 5. 创建 Epic
-
-用途：处理一次跨多个模块的产品迭代。
-
-本仓库维护命令：
+## 创建 Epic
 
 ```bash
 npm run epic:new -- ai-fooler-upgrade
 ```
 
-目标项目中由 AI 使用 Skill 内置脚本生成，用户通常只需要说：
+生成文档包：
 
 ```text
-使用 document-driven-workflow，为这份需求创建 Epic。
-```
-
-生成目录：
-
-```text
-docs/epics/ai-fooler-upgrade/
+docs/epics/<epic-id>/
+  00-workflow.yaml
   00-source.md
   01-epic-brief.md
   02-requirement-inventory.md
@@ -168,481 +92,174 @@ docs/epics/ai-fooler-upgrade/
   08-retrospective.md
 ```
 
-什么时候用：
+当一个产品迭代跨多个模块或多个发布批次时，使用 Epic。
 
-- 一份需求文档涉及多个功能模块。
-- 一次迭代需要分批发布。
-- 需求里同时包含 UI、接口、权限、任务状态、计费、部署等多类风险。
-- 需要先拆清楚优先级和风险，再进入单个功能开发。
+## Hydrate Epic
 
-不应该什么时候用：
-
-- 只是一个明确的小功能。
-- 只是文案、样式或低风险 UI 修改。
-- 已经能直接写清楚目标、边界、验收和实现计划。
-
-## 6. Epic 门禁
-
-用途：判断 Epic 是否已经可以拆成多个 Feature。
-
-本仓库维护命令：
+把原始产品材料放入 `00-source.md`，然后运行：
 
 ```bash
-npm run gate:epic -- -EpicPath docs/epics/ai-fooler-upgrade
+npm run epic:hydrate -- docs/epics/<epic-id>
 ```
 
-目标项目中由 AI 通过 Skill 内置门禁检查，不要求目标项目配置 `gate:epic` 命令。
+Hydration 会生成可审查的 Epic 草稿内容，不会批准 Epic。批准状态仍然只在 `00-workflow.yaml`。
 
-门禁检查：
+## 批准并检查 Epic
 
-- 原始产品材料是否保留。
-- Epic 状态是否可拆分。
-- 是否有 `EREQ-*` 级需求清单。
-- 是否有 Feature 拆分候选。
-- 是否有 `RISK-*` 风险项。
-- 是否有 Batch 1 发布计划。
-- 验收映射是否能追溯到 Epic 需求。
-- 是否存在 `TODO`、`TBD`、待确认、未确认、待补充。
-
-通过后能做什么：
-
-- 可以创建多个 Feature。
-
-不能代表什么：
-
-- 不代表可以直接写代码。
-- 每个 Feature 仍必须通过 `gate:dev`。
-
-## 6.1 Epic Hydrate 草稿补全
-
-用途：降低 Epic 使用成本。用户只需要先把原始产品材料放进 `00-source.md`，命令会调用 Codex CLI 补全其他 Epic 文档草稿。
-
-本仓库维护命令：
+用户审查并明确批准后：
 
 ```bash
-npm run epic:hydrate -- docs/epics/ai-fooler-upgrade
+npm run workflow:approve -- docs/epics/<epic-id> --user-approved
+npm run gate:epic -- docs/epics/<epic-id>
 ```
 
-推荐使用方式：
+Epic gate 通过只表示 Epic 可以拆成 Features，不代表可以直接从 Epic 写代码。
 
-```text
-1. AI 使用 Skill 创建 docs/epics/<epic-id>/00-source.md
-2. 用户把原始需求、会议记录、UI 说明或产品草稿放进 00-source.md
-3. 用户说：我已经填好 00-source.md，继续生成 Epic
-4. AI 阅读 00-source.md，补全 01-epic-brief.md 到 07-progress-board.md
-5. 用户审查和修改
-6. 用户批准后，AI 才能把 Review Status / User Approval 改成通过状态
-7. AI 运行 Epic 门禁
+## 从 Epic 生成 Features
+
+```bash
+npm run epic:features -- docs/epics/<epic-id> --features feature-a,feature-b --stack next-fullstack
 ```
 
-规则：
+生成的 Feature packages 都包含 `00-workflow.yaml`。如果 Epic 已批准，Feature 可以继承批准：
 
-- Hydrate 生成的是草稿，不是批准结果。
-- 命令默认调用 `codex exec` 自动补全结构化内容，但不能替用户批准。
-- 只想生成骨架、不调用 AI 时，使用 `--agent none`。
-- `HYDRATION.md` 中只要仍是 `Review Status: Draft` 或 `User Approval: Pending`，`gate:epic` 必须失败。
-- `HYDRATION.md` 会列出允许值。用户审查通过后，通常改成 `Hydration Status: Reviewed`、`Review Status: Reviewed`、`User Approval: Approved`。
-- AI 推断出来的内容必须标记为假设，不能伪装成用户明确给出的需求。
+```yaml
+approval: inherited
+approval_source: docs/epics/<epic-id>
+```
 
-## 7. 创建 Feature
+每个 Feature 仍然必须单独运行自己的 `gate:dev`。
 
-用途：创建一个可以独立开发和验收的功能文档包。
-
-本仓库维护命令：
+## 创建 Standard Feature
 
 ```bash
 npm run feature:new -- login-phone --stack next-fullstack
 ```
 
-如果来自 Epic：
-
-```bash
-npm run feature:new -- drag-upload-hint --stack legacy-existing --epic ai-fooler-upgrade
-```
-
-目标项目中由 AI 使用 Skill 内置脚本生成，用户通常只需要说：
-
-```text
-使用 document-driven-workflow，为这个明确功能创建 Feature。
-```
-
-生成目录：
-
-```text
-docs/features/login-phone/
-  01-prd.md
-  02-ui-spec.md
-  03-technical-contract.md
-  04-acceptance-criteria.md
-  05-readiness-review.md
-  06-implementation-plan.md
-```
-
-`feature:new` 只生成开发前门禁需要的 `01` 到 `06` 文档。`07-verification-report.md` 是实现和测试完成后的验证产物，按第 13 节模板创建或更新。
-
-允许的 Stack Preset：
-
-- `next-fullstack`
-- `flutter-fastapi`
-- `flutter-express`
-- `legacy-existing`
-
-约束：
-
-- 新 Next.js 项目只支持 App Router。
-- Pages Router 不能作为新项目方案。
-- 老项目使用 `legacy-existing`，并先补齐 Legacy Baseline 和 Compatibility Contract。
-
-## 7.1 从 Epic 批量生成 Feature 草稿
-
-用途：Epic 已经拆分清楚后，一次性创建多个 Feature packages，并让 Codex CLI 基于 Epic 内容补全每个 Feature 的 PRD、UI Spec、技术契约、验收标准、体检和实现计划草稿。
-
-本仓库维护命令：
-
-```bash
-npm run epic:features -- docs/epics/ai-fooler-upgrade --features download-button-progress-percent,login-qr-replacement,daily-free-quota-adjustment,per-tool-task-state-store --stack legacy-existing
-```
-
-也可以把 Feature ID 作为位置参数：
-
-```bash
-npm run epic:features -- docs/epics/ai-fooler-upgrade download-button-progress-percent login-qr-replacement --stack legacy-existing
-```
-
-命令会创建或补齐：
+生成文档包：
 
 ```text
 docs/features/<feature-id>/
-  00-source.md
+  00-workflow.yaml
+  00-intake-review.md
   01-prd.md
   02-ui-spec.md
   03-technical-contract.md
   04-acceptance-criteria.md
   05-readiness-review.md
   06-implementation-plan.md
-  HYDRATION.md
-  09-agent-plan.md
+  08-context-pack.md
 ```
 
-`epic:features` 生成的是待审查 Feature 草稿，不会生成 `07-verification-report.md`。验证报告必须在实现、测试和修复完成后再创建或更新。
+`07-verification-report.md` 在实现和验证后创建或更新。
 
-当生成多个 Feature 时，Epic 目录会额外生成 `09-agent-plan.md`，用于多 Agent 并行开发前的分工审查。
-
-规则：
-
-- 默认调用 `codex exec` 自动补全文档。
-- 只想生成骨架、不调用 AI 时，使用 `--agent none`。
-- 不修改 Epic 文档。
-- 每个 Feature 都保持 `Review Status: Draft` 和 `User Approval: Pending`。
-- 每个 `HYDRATION.md` 都会列出允许值。用户审查通过后，通常改成 `Hydration Status: Reviewed`、`Review Status: Reviewed`、`User Approval: Approved`。
-- 用户审查前，`gate:dev` 必须失败。
-- 每个 Feature 后续仍要独立审查、独立过 `gate:dev`、独立验证。
-
-## 8. Feature 门禁
-
-用途：强制阻止不清楚的需求进入研发阶段。
-
-本仓库维护命令：
+## 创建 Light Feature
 
 ```bash
-npm run gate:dev -- -FeaturePath docs/features/login-phone
+npm run feature:new -- button-copy-adjust --mode light --stack next-fullstack
 ```
 
-目标项目中由 AI 通过 Skill 内置门禁检查，不要求目标项目配置 `gate:dev` 命令。
+生成文档包：
 
-门禁检查：
+```text
+docs/features/<feature-id>/
+  00-workflow.yaml
+  01-light-feature.md
+```
 
-- PRD、UI Spec、Technical Contract、Acceptance Criteria、Readiness Review、Implementation Plan 是否齐全。
-- Readiness 是否为 `Ready`。
-- 未确认问题是否为 `0`。
-- 阻塞问题是否为 `0`。
-- 假设是否已接受。
-- 用户是否批准。
-- 实现计划是否批准。
-- 验收标准是否引用 `REQ-*`。
-- 验收用例是否包含 `AC-*`。
-- 技术栈是否符合 Stack Policy。
-- 是否存在 `TODO`、`TBD`、待确认、未确认、待补充。
+Light 只用于低风险、单一范围改动。不要用于老项目接入、认证、支付、权限、数据库、任务状态、部署、迁移或多模块迭代。
 
-门禁失败时：
+## Hydrate Feature
 
-- AI 必须停留在文档阶段。
-- 只能输出缺失项、阻塞项、未确认项和下一步补文档建议。
-- 不能开始代码实现。
-
-## 8.1 Feature Hydrate 草稿补全
-
-用途：降低 Feature 使用成本。用户可以只提供一段原始需求，命令会调用 Codex CLI 自动整理成 PRD、UI Spec、技术契约、验收标准、体检和实现计划草稿。
-
-本仓库维护命令：
+把原始材料放入 `00-source.md` 或 `01-prd.md`，然后运行：
 
 ```bash
-npm run feature:hydrate -- docs/features/login-phone
+npm run feature:hydrate -- docs/features/<feature-id>
 ```
 
-推荐使用方式：
+Hydration 会补全草稿文档，但不会批准它们。
+
+## 生成 Context Pack
+
+Standard 或 Strict Feature 开发前，可以生成紧凑实现交接材料：
+
+```bash
+npm run workflow:context-pack -- docs/features/<feature-id> --force
+```
+
+输出为 `08-context-pack.md`。实现 agent 应先读它，再按需打开更大的需求文档。
+
+## 执行 Feature
+
+批准并通过门禁后：
+
+```bash
+npm run gate:dev -- docs/features/<feature-id>
+```
+
+实现 agent 必须遵守：
 
 ```text
-1. AI 使用 Skill 创建 docs/features/<feature-id>
-2. 用户把原始需求放进 00-source.md 或 01-prd.md
-3. 用户说：继续补全这个 Feature
-4. AI 阅读原始材料，补全 01-prd.md 到 06-implementation-plan.md
-5. 用户审查和修改
-6. 用户批准后，AI 才能把 Readiness / User Approval / Implementation Plan Status 改成通过状态
-7. AI 运行 Feature 门禁
+docs/features/<feature-id>/06-implementation-plan.md
+docs/features/<feature-id>/08-context-pack.md
+docs/workflow/EXECUTION_DISCIPLINE.md
 ```
 
-规则：
+实现必须留在 Scope Lock 内。如果 Context Pack 要求 TDD 或 debugging，证据必须记录到 `07-verification-report.md`。
 
-- Hydrate 生成的是可审查草稿。
-- 命令默认调用 `codex exec` 自动补全文档。
-- 只想生成骨架、不调用 AI 时，使用 `--agent none`。
-- 未审查草稿不能进入研发。
-- `HYDRATION.md` 中只要仍是 `Review Status: Draft` 或 `User Approval: Pending`，`gate:dev` 必须失败。
-- `HYDRATION.md` 会列出允许值。用户审查通过后，通常改成 `Hydration Status: Reviewed`、`Review Status: Reviewed`、`User Approval: Approved`。
-- AI 不能因为文档看起来完整就自动批准进入实现。
+## 批准前检查
 
-## 9. Legacy Baseline
-
-用途：老项目第一次接入工作流时，记录项目现状。
-
-模板：
-
-```text
-docs/workflow/templates/legacy/baseline.md
+```bash
+npm run workflow:approval-review -- docs/features/<feature-id>
 ```
 
-目标项目建议路径：
+它会写入 `APPROVAL_REVIEW.md`。这个报告只提供建议，不会批准。
+
+## 批准并检查 Feature
+
+用户明确批准后：
+
+```bash
+npm run workflow:approve -- docs/features/<feature-id> --user-approved
+npm run gate:dev -- docs/features/<feature-id>
+```
+
+批准只修改 `00-workflow.yaml`。gate 会检查 manifest 和文档内容。
+
+## Agent Plan
+
+```bash
+npm run workflow:agent-plan -- docs/epics/<epic-id> --features feature-a,feature-b --force
+```
+
+它会写入 `09-agent-plan.md`。这是多 agent 分工计划，不是自动派发器。
+
+## 老项目接入
+
+老项目进入功能开发前，先建立：
 
 ```text
 docs/legacy/BASELINE.md
-```
-
-应记录：
-
-- 技术栈和运行方式。
-- 主要目录结构。
-- 已有功能模块。
-- 已有测试和部署方式。
-- 已知风险。
-- 不能轻易改动的行为。
-
-什么时候必须有：
-
-- `Stack Preset: legacy-existing`。
-- 老项目第一次接入工作流。
-- 涉及登录、支付、权限、数据库、任务状态、部署架构等高风险区域。
-
-## 10. Compatibility Contract
-
-用途：定义老项目不能破坏的兼容边界。
-
-模板：
-
-```text
-docs/workflow/templates/legacy/compatibility-contract.md
-```
-
-目标项目建议路径：
-
-```text
 docs/legacy/COMPATIBILITY_CONTRACT.md
 ```
 
-应记录：
+只有这些文档存在后，才使用 `legacy-existing`。
 
-- 不能改变的用户路径。
-- 不能改变的 API 合约。
-- 不能改变的数据结构或迁移边界。
-- 不能改变的支付、登录、会员、权限行为。
-- 必须保留的部署和环境变量约束。
+## Change Request
 
-作用：
-
-- 防止 AI 把“接入工作流”误当成“顺手重构老项目”。
-- 后续 Feature 修改必须尊重该契约。
-
-## 11. Change Request
-
-用途：修改已有功能时，避免只靠对话覆盖旧需求。
-
-模板：
-
-```text
-docs/workflow/templates/change/change-request.md
-```
-
-目标项目建议路径：
+修改已有行为时创建：
 
 ```text
 docs/changes/CR-0001.md
 ```
 
-应记录：
+然后更新受影响的 Epic 或 Feature 文档，并重新运行相关 gate。
 
-- 当前行为。
-- 期望行为。
-- 影响的需求 ID。
-- 影响的 UI、API、数据、权限、测试。
-- 不允许改变的部分。
-- 新增或修改后的验收标准。
-
-使用方式：
-
-- 先写 CR。
-- 再更新相关 Feature 文档。
-- 再重新运行 `gate:dev`。
-- 最后实现、测试、更新验证报告。
-
-## 12. ADR
-
-用途：记录长期有效的技术或产品决策。
-
-模板：
-
-```text
-docs/workflow/templates/decision/adr.md
-```
-
-目标项目建议路径：
-
-```text
-docs/decisions/ADR-0001.md
-```
-
-适用场景：
-
-- 技术栈选择。
-- 数据库选择。
-- 认证方案。
-- 支付方案。
-- 部署架构。
-- 是否引入第三方服务。
-
-原则：
-
-- ADR 记录决策，不记录普通代码细节。
-- 旧 ADR 不直接删除，后续变更用新 ADR 替代。
-
-## 13. Verification Report
-
-用途：功能完成后记录验证结果，作为是否可上线的依据。
-
-模板：
-
-```text
-docs/workflow/templates/feature/07-verification-report.md
-```
-
-目标项目建议路径：
-
-```text
-docs/features/<feature-id>/07-verification-report.md
-```
-
-应记录：
-
-- 执行过的命令。
-- 通过的测试。
-- 失败项和修复结果。
-- 未验证项。
-- 剩余风险。
-- 每个需求 ID 的覆盖情况。
-- 是否达到上线要求。
-
-## 14. 门禁回归测试
-
-用途：验证门禁脚本没有失效。
-
-命令：
+## 回归测试
 
 ```bash
 npm run test:gates
-```
-
-检查内容：
-
-- 不完整 Epic 必须失败。
-- Ready Epic 必须通过。
-- 不完整 Feature 必须失败。
-- Ready Feature 必须通过。
-- Next.js Pages Router 必须被拦截。
-
-什么时候用：
-
-- 修改门禁脚本后。
-- 修改模板字段后。
-- 修改 Stack Policy 后。
-- 提交前。
-
-## 15. 完整测试
-
-用途：一次性验证构建、自检和门禁回归。
-
-命令：
-
-```bash
 npm test
 ```
 
-等价于：
-
-```bash
-npm run build
-npm run check
-npm run test:gates
-```
-
-提交前应至少运行一次。
-
-## 16. 推荐使用路径
-
-新项目：
-
-```text
-选择 Stack Preset
--> 创建 Feature
--> 补齐 PRD / UI Spec / Technical Contract / Acceptance
--> Readiness Review
--> Implementation Plan
--> gate:dev
--> 实现
--> 测试
--> Verification Report
-```
-
-老项目：
-
-```text
-Legacy Baseline
--> Compatibility Contract
--> 创建 Feature 或 Epic
--> gate
--> 实现
--> 测试
--> Verification Report
-```
-
-产品迭代：
-
-```text
-Epic
--> gate:epic
--> 多个 Feature
--> 每个 Feature 独立 gate:dev
--> 分批实现和验证
--> Epic Progress Board
--> Retrospective
-```
-
-修改已有功能：
-
-```text
-Change Request
--> 影响分析
--> 更新 Feature 文档
--> gate:dev
--> 实现
--> 回归测试
--> Verification Report
-```
+修改 gate、模板、技术栈策略或 Skill 入口后运行这些检查。

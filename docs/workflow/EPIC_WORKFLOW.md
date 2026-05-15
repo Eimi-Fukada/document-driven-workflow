@@ -1,32 +1,22 @@
-# 产品迭代工作流
+# Epic Workflow
 
-Epic 用于承载一次产品迭代。一次迭代可能包含多个功能模块、多个风险等级和多批发布计划，不能直接塞进单个 feature 文档包。
+Epic 是产品迭代层。它的作用是把一个宽泛需求拆成多个可以独立开发、独立测试、独立验收的 Features。
 
-Epic 是通用产品迭代层，不是某个项目的特化规则。是否需要 Epic，应按 `docs/workflow/USER_GUIDE.md` 的复杂度分级判断。
+## 什么时候使用 Epic
 
-## 1. 适用场景
+- 一个需求跨多个模块
+- 发布顺序或批次很重要
+- 实现前需要先拆分风险
+- 原始文档混合了 UI、API、认证、支付、数据、任务状态、部署、移动端或 Web 端关注点
+- 后续可能让多个 agent 同时处理独立 Features
 
-使用 Epic 的情况：
+不要把单个清楚、低风险的小改动放进 Epic。
 
-- 一份需求文档包含多个功能模块。
-- 需求跨支付、登录、会员、任务、数据、UI、移动端、部署等多个区域。
-- 需要分批交付。
-- 需要先做风险分级和依赖排序。
-- 需要把原始产品文档保留下来，再拆成可执行 feature。
-
-不使用 Epic 的情况：
-
-- 单个页面文案调整。
-- 单个低风险 UI 小改。
-- 单个明确 bug 修复。
-- 一个功能包就能清楚表达目标、边界和验收。
-
-如果需求可以独立开发、独立验收，就使用 Feature；如果还需要先拆模块、排批次、控风险，才使用 Epic。
-
-## 2. Epic 目录
+## Epic 文档包
 
 ```text
 docs/epics/<epic-id>/
+  00-workflow.yaml
   00-source.md
   01-epic-brief.md
   02-requirement-inventory.md
@@ -39,74 +29,45 @@ docs/epics/<epic-id>/
   09-agent-plan.md
 ```
 
-`09-agent-plan.md` 只在需要多 Agent 并行开发时使用，不是 Epic 门禁的必需文件。
+`09-agent-plan.md` 只有在考虑并行执行时才必须补全。
 
-## 3. Epic 和 Feature 的关系
+## Gate 含义
 
-Epic 负责：
+`gate:epic` 表示 Epic 可以进入 Feature 拆分。
 
-- 保存原始产品材料。
-- 拆解需求。
-- 标记风险。
-- 排发布批次。
-- 记录 feature 之间的依赖。
-- 汇总验收状态。
+它不表示可以直接从 Epic 写代码。代码实现必须走 Feature 级 `gate:dev`。
 
-Feature 负责：
+## 批次策略
 
-- 单个可开发单元的 PRD。
-- UI Spec。
-- Technical Contract。
-- Acceptance Criteria。
-- Readiness Review。
-- Implementation Plan。
-- Verification Report。
+Batch 1：
 
-## 4. 推荐入口
+- 低风险
+- 确定性高
+- 依赖少
+- 适合快速验证工作流
 
-目标项目中推荐使用自然语言入口：
+Batch 2：
 
-```text
-使用 document-driven-workflow，处理这个需求文档。
-```
+- 中等风险
+- 有一定 UI / API 联动
+- 不包含核心认证、支付、数据迁移，除非已经独立隔离
 
-```text
-我已经填好 docs/epics/<epic-id>/00-source.md，继续生成 Epic 和 Features。
-```
+Batch 3：
 
-AI 应使用 Skill 内置模板、生成器和门禁操作目标项目，不要求目标项目配置 workflow npm scripts。
+- 高风险
+- 认证、支付、会员权益、数据库、任务状态、权限、部署或迁移
+- 应拆成独立 Features，并加强验证
 
-本仓库维护时仍可使用 `npm run epic:new`、`npm run gate:epic`、`npm run epic:features` 做回归验证。
+## 批准
 
+Epic 批准只保存在 `00-workflow.yaml`。
 
-## 5. Epic 门禁
+从已批准 Epic 生成的 Features 可以继承 Epic approval，但每个 Feature 仍然有自己的 manifest 和 gate。
 
-Epic 门禁通过只代表“可以开始拆 feature”，不代表可以写代码。
+## 产品历史
 
-通过条件：
+Epic 应该能追溯到 `docs/product/requirement-ledger.md`。
 
-- 原始需求材料已保存。
-- 需求清单已拆分。
-- 每个需求有风险等级。
-- 已经有第一批 release plan。
-- 至少有一个 feature 候选。
-- 高风险需求没有被放进第一批，除非有明确说明。
-- 没有 `TODO`、`TBD`、`待确认`、`未确认`、`待补充` 等未解决标记。
+当 Epic 被批准，且范围足够大、未来迭代可能需要理解原始决策时，在 `docs/product/snapshots/` 下创建 snapshot。
 
-代码实现仍然必须通过 feature 级 `gate:dev`。
-
-## 6. 分批策略
-
-默认分三批：
-
-### Batch 1
-
-低风险、高确定性、少依赖，用于验证工作流和快速反馈。
-
-### Batch 2
-
-中风险，需要少量代码联动或 UI 改造，但不碰核心支付、登录、数据库写入。
-
-### Batch 3
-
-高风险，涉及支付、登录、会员权益、数据库、任务状态、权限或迁移。必须单独 feature、单独验收、必要时单独 ADR。
+生成的 Features 应在 `00-workflow.yaml`、`00-intake-review.md` 和 `08-context-pack.md` 中保留 Epic 链接。

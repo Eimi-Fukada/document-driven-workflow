@@ -1,42 +1,25 @@
 # Claude Code 协作入口
 
-本仓库使用文档驱动交付模式。Claude Code 在本仓库中工作时，应遵守 `AGENTS.md` 和 `docs/workflow/WORKFLOW.md`。
+Claude Code 使用本仓库时，遵守 `AGENTS.md` 以及 `docs/workflow/` 下的工作流参考文档。
 
 ## 强制规则
 
-- 用户使用产品文档、UI 图和验收标准表达需求。
-- Claude Code 可以读写代码，但对用户输出应以文档、计划、问题清单和验证报告为主。
-- 进入研发前必须通过开发门禁。
-- 如果仍存在未确认问题、阻塞问题、未批准假设或未批准实现计划，不能开始代码实现。
-- Next.js 新项目只支持 App Router。
-- 老项目必须先建立 Legacy Baseline 和 Compatibility Contract。
+- 实现前先按 Direct、Light、Standard、Epic、Strict 路由。
+- `00-workflow.yaml` 是唯一机器可读状态文件。
+- 通过 `docs/product/requirement-ledger.md` 和 `docs/product/traceability.md` 保留产品历史。
+- 相关门禁未通过时，不进入代码实现。
+- Feature gate 通过后，遵守 `EXECUTION_DISCIPLINE.md`，并在验证报告中记录证据。
+- 执行可维护性规则：2 repeated uses 复用检查、1000 lines 单文件限制、Next.js UI 优先 Tailwind CSS。
+- 不为了暴露工作流命令而修改目标项目 `package.json`。
+- 新 Next.js 项目只使用 App Router。
+- 老项目必须先建立 Legacy Baseline 和 Compatibility Contract，再进入 Feature 工作。
 
-## 必跑命令
-
-仓库结构检查：
+## 必要检查
 
 ```bash
 npm run check
+npm run gate:dev -- docs/features/<feature-id>
+npm run gate:epic -- docs/epics/<epic-id>
 ```
 
-功能开发门禁：
-
-```bash
-npm run gate:dev -- -FeaturePath docs/features/<feature-id>
-```
-
-目标项目不要求配置该 npm 命令；使用 document-driven-workflow Skill 时，由 Skill 内置门禁检查目标项目文档。
-
-构建并安装技能：
-
-```bash
-npm run setup:claude
-```
-
-## 工作入口
-
-优先阅读：
-
-1. `docs/workflow/WORKFLOW.md`
-2. `docs/workflow/GATES.md`
-3. 功能目录下的 PRD、UI Spec、验收标准、需求体检和实现计划
+目标项目通过已安装 Skill 的内置脚本执行门禁，并传入 `--target <project-root>`。

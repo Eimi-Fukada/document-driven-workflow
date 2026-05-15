@@ -1,74 +1,124 @@
-﻿# 验证报告模板
+# Verification Report
 
-## 基本信息
+这份文档是交付回执，用来记录实现了什么、验证了什么、还有什么风险。
 
-- 功能名称：
-- 关联需求：
-- 验证日期：
-- 验证人：
-- 状态：Passed / Failed / Partial
+## Basic Info
+
+- Feature ID:
+- Feature name:
+- Related Epic:
+- Related Change Request:
+- Verification date:
+- Verifier:
+- Result: Passed / Failed / Partial
 
 <!--
-Allowed Status Values
-
-- 状态：Passed / Failed / Partial
-- 需求追踪结果：Passed / Failed / Partial / Not Tested
-- Passed：验证通过。
-- Failed：验证失败。
-- Partial：部分验证通过，仍有未验证项或剩余风险。
-- Not Tested：尚未验证。
+Allowed values:
+- Result: Passed / Failed / Partial
+- Requirement result: Passed / Failed / Partial / Not Tested
 -->
 
-## 需求追踪矩阵
+## Requirement Trace
 
-| 需求 ID | 实现位置 | 测试覆盖 | 结果 |
-| --- | --- | --- | --- |
-| REQ-AREA-001 |  |  |  |
+| Requirement ID | Acceptance ID | Implementation Evidence | Test Evidence | Result |
+| --- | --- | --- | --- | --- |
+| REQ-AREA-001 | AC-AREA-001 |  |  | Not Tested |
 
-## 执行命令
+## Scope Lock Review
+
+- Approved scope followed: yes / no
+- Forbidden scope untouched: yes / no
+- Non-goals preserved: yes / no
+- Compatibility constraints preserved: yes / no
+- Notes:
+
+## TDD Evidence
+
+- TDD required: yes / no
+- Failing test before implementation:
+- Passing test after implementation:
+- Reason if not required:
+
+## Debugging Evidence
+
+- Debugging required: yes / no
+- Symptom:
+- Reproduction path:
+- Root cause:
+- Fix location:
+- Regression verification:
+
+## Changed Files
+
+| File | Purpose | Requirement IDs |
+| --- | --- | --- |
+|  |  |  |
+
+## Maintainability Review
+
+- Reuse reviewed: yes / no
+- Extraction performed or intentionally skipped:
+- Any touched file over 1000 lines: yes / no
+- Files over limit and reason:
+- Tailwind CSS used for Next.js UI: yes / no / not-applicable
+- CSS exception reason:
+
+## Commands Run
 
 ```bash
 
 ```
 
-## 验证结果
+## Verification Results
 
-### 静态检查
+### Static Checks
 
-- Typecheck：
-- Lint：
-- Format：
+- Typecheck:
+- Lint:
+- Format:
 
-### 自动化测试
+### Automated Tests
 
-- Unit：
-- API：
-- Playwright：
+- Unit:
+- API:
+- Playwright:
 
-### 冒烟测试
+### Smoke Test
 
-- 本地启动：
-- 关键页面访问：
-- 核心操作：
-- 控制台错误：
+- Local startup:
+- Key pages:
+- Core operations:
+- Console errors:
 
-### 部署检查
+### Deployment Check
 
-- 构建：
-- 环境变量：
-- 数据迁移：
-- 回滚：
+- Build:
+- Environment variables:
+- Data migration:
+- Rollback:
 
-## 未验证项
+## Unverified Items
 
-- 
+-
 
-## 剩余风险
+## Remaining Risk
 
-- 
+-
 
-## 结论
+## Product Traceability Update
 
-是否达到上线要求：
+- Updated `docs/product/traceability.md`: yes / no / not-applicable
+- Snapshot created: yes / no / not-applicable
 
+## Self Review
 
+- Requirement coverage checked: yes / no
+- Acceptance coverage checked: yes / no
+- Changed files mapped to requirements: yes / no
+- No unrelated refactor: yes / no
+- Maintainability guardrails checked: yes / no
+- Fresh verification evidence recorded: yes / no
+
+## Conclusion
+
+Ready to release: yes / no / partial

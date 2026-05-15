@@ -1,8 +1,10 @@
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { cpSync, existsSync, mkdirSync, readFileSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { parseAgentOption, runAgent } from "../../shared/agent-runner.mjs";
 import { createWorkflowContext } from "../../shared/workflow-context.mjs";
+import { recordProductTrace } from "../../shared/product-artifacts.mjs";
+import { createEpicManifest, readManifest, writeManifest } from "../../shared/workflow-manifest.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +22,7 @@ if (!epicArg) {
 }
 
 const epicPath = workflow.resolveTarget(epicArg);
+const epicId = path.basename(epicPath);
 const sourcePath = path.join(epicPath, "00-source.md");
 
 if (!existsSync(sourcePath)) {
@@ -47,6 +50,15 @@ const files = [
 ];
 
 mkdirSync(epicPath, { recursive: true });
+writeManifest(
+  epicPath,
+  createEpicManifest({
+    ...readManifest(epicPath),
+    id: epicId,
+    sourcePath: workflow.relativeToTarget(sourcePath),
+  }),
+);
+recordProductTrace(workflow, { type: "epic", id: epicId, sourcePath: workflow.relativeToTarget(sourcePath) });
 
 let created = 0;
 let skipped = 0;
@@ -60,47 +72,6 @@ for (const file of files) {
 
   cpSync(path.join(templateDir, file), targetPath);
   created += 1;
-}
-
-const markerPath = path.join(epicPath, "HYDRATION.md");
-const marker = `# Epic Hydration Notes
-
-- Hydration Status: Draft
-- Review Status: Draft
-- User Approval: Pending
-
-<!--
-Allowed Status Values
-
-- Hydration Status: Draft / Reviewed
-- Review Status: Draft / Reviewed
-- User Approval: Pending / Approved
-
-Common approved state after user review:
-
-\`\`\`text
-- Hydration Status: Reviewed
-- Review Status: Reviewed
-- User Approval: Approved
-\`\`\`
--->
-
-## AI Instructions
-
-Read \`00-source.md\`, then complete the Epic documents from \`01-epic-brief.md\` to \`07-progress-board.md\`.
-
-Rules:
-
-- Preserve the original product meaning.
-- Mark inferred items explicitly as assumptions.
-- Do not set User Approval to Approved.
-- Do not set Review Status to Reviewed.
-- Ask the user to review after completing the draft.
-- The Epic gate must fail until the user approves the hydrated documents.
-`;
-
-if (!existsSync(markerPath) || force) {
-  writeFileSync(markerPath, marker, "utf8");
 }
 
 console.log(`Epic hydration scaffold ready: ${workflow.relativeToTarget(epicPath)}`);
@@ -117,15 +88,16 @@ Task: hydrate the Epic document package at ${relativeEpicPath}.
 Instructions:
 - Read ${relativeEpicPath}/00-source.md.
 - Complete ${relativeEpicPath}/01-epic-brief.md through ${relativeEpicPath}/07-progress-board.md as reviewable Epic draft documents.
+- Write the main human-facing content in Chinese. Keep file names, command names, IDs, status values, and script-matched headings in English where the template already uses them.
 - Do not modify ${relativeEpicPath}/00-source.md.
-- Do not mark anything as Approved.
-- Keep HYDRATION.md with Review Status: Draft and User Approval: Pending.
+- Do not change ${relativeEpicPath}/00-workflow.yaml approval, readiness, or status.
+- Keep docs/product/requirement-ledger.md and docs/product/traceability.md aligned with the Epic scope when concrete IDs are known.
 - Preserve the user's original product meaning.
 - Mark inferred items explicitly as assumptions.
 - Remove unresolved template placeholders from the completed draft documents when the source supports a concrete answer.
 - If source material is insufficient for a field, write a concise assumption or a review question instead of inventing facts.
 - Do not implement code.
 
-Finish by summarizing which Epic files were hydrated and what the user must review.`;
+Finish in Chinese by summarizing which Epic files were hydrated and what the user must review.`;
 
 runAgent({ agent, cwd: workflow.targetRoot, prompt });

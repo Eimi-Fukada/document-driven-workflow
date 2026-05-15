@@ -11,7 +11,7 @@ Allowed Status Values
 
 - 风险：Low / Medium / High
 - 状态：Draft / Ready / Deferred / Rejected
-- Draft：需求条目草稿，尚未确认。
+- Draft：需求条目草稿，尚未审查。
 - Ready：已确认，可进入 Feature 拆分。
 - Deferred：本轮暂不纳入。
 - Rejected：明确不做。

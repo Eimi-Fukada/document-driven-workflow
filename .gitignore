@@ -8,3 +8,12 @@ pnpm-debug.log*
 Thumbs.db
 
 dist/*
+
+# Maestro runtime state
+.maestro/missions/
+.maestro/sessions/
+.maestro/tasks/local-history/
+.maestro/evidence/
+.maestro/runs/
+
+.codex/*

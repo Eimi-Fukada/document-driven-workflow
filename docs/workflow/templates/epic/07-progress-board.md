@@ -1,40 +1,26 @@
-﻿# Progress Board 模板
+# Progress Board
 
-## 总览
+这份文档用于人工跟踪 Epic 进展，不作为机器状态来源。
 
-- Epic Status: Draft
-- 当前批次：Batch 1
-- 最后更新：
+## Overview
 
-## Feature 状态
+- Current batch: Batch 1
+- Last updated:
 
-| Feature ID | 批次 | 状态 | Gate | Verification |
+## Feature Status
+
+| Feature ID | Batch | Status | Gate | Verification |
 | --- | --- | --- | --- | --- |
 |  | Batch 1 | Draft | Pending | Pending |
 
-<!--
-Allowed Status Values
+## Blockers
 
-- Epic Status: Draft / Ready for Breakdown / In Progress / Released
-- Feature 状态：Draft / Ready / In Progress / Done / Blocked
-- Gate：Pending / Passed / Failed
-- Verification：Pending / Passed / Failed / Partial
+-
 
-说明：
+## Decisions
 
-- Draft：草稿，尚未审查。
-- Ready：已审查，等待进入下一阶段。
-- In Progress：正在实现或验证。
-- Done：该 Feature 已完成。
-- Blocked：存在阻塞问题。
--->
+-
 
-## 阻塞项
+## Status Note
 
-- 
-
-## 决策记录
-
-- 
-
-
+本看板只用于人工进度跟踪。Epic gate 读取 `00-workflow.yaml` 作为机器状态来源。

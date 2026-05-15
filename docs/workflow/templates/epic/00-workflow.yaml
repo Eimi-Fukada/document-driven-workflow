@@ -1,0 +1,22 @@
+# Workflow Control
+# Single source of truth for readiness, approval, routing, and gate state.
+# Allowed approval: pending | approved
+# Allowed readiness: not_ready | ready
+# Allowed status: draft | ready | in_progress | verified | released
+
+schema_version: 1
+type: epic
+mode: epic
+id: unset
+epic_id: none
+approval: pending
+approval_source: none
+readiness: not_ready
+status: draft
+stack_preset: none
+unresolved_questions: 0
+blocking_issues: 0
+assumptions_accepted: false
+approved_by: none
+approved_at: none
+source_path: 00-source.md

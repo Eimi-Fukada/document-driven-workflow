@@ -1,73 +1,45 @@
-﻿# Readiness Review 模板
+# Readiness Review
 
-## 基本信息
+这份文档用于判断 Feature 是否已经足够清楚，可以交给用户做最终批准。
 
-- 功能名称：
-- 关联需求：
-- 创建日期：
-- 状态：Draft / Ready / Blocked
+## Basic Info
 
-<!--
-Allowed Status Values
+- Feature name:
+- Related requirements:
+- Created at:
 
-- 状态：Draft / Ready / Blocked
-- Readiness：Not Ready / Ready
-- Unresolved Questions：0 或正整数
-- Blocking Issues：0 或正整数
-- Assumptions Accepted：no / yes
-- User Approval：Pending / Approved
-- Implementation Plan Status：Draft / Approved
-- Draft：体检草稿，尚未确认。
-- Ready：需求允许进入研发。
-- Blocked：存在阻塞问题。
+## Confirmed Items
 
-通过开发门禁的常用组合：
+已经确认且可以进入计划的内容：
 
-```text
-- Readiness: Ready
-- Unresolved Questions: 0
-- Blocking Issues: 0
-- Assumptions Accepted: yes
-- User Approval: Approved
-- Implementation Plan Status: Approved
-```
--->
+-
 
-## 机器可读门禁字段
+## Open Questions
 
-以下字段用于 `npm run gate:dev` 强制校验。进入开发前必须保持原字段名。
+仍需用户回答的问题。存在必须回答的问题时，不能进入开发：
 
-```text
-- Readiness: Not Ready
-- Unresolved Questions: 0
-- Blocking Issues: 0
-- Assumptions Accepted: no
-- User Approval: Pending
-- Implementation Plan Status: Draft
-```
+-
 
-## 已确认内容
+## Blocking Issues
 
-- 
+会阻止实现或测试的事项：
 
-## 未确认问题
+-
 
-- 
+## Key Assumptions
 
-## 阻塞问题
+AI 做出的关键假设。用户批准前必须可见：
 
-- 
+-
 
-## 关键假设
+## Impact Scope
 
-- 
+影响到的页面、模块、API、数据、权限、测试或部署：
 
-## 影响范围
+-
 
-- 
+## AI Review Conclusion
 
-## 结论
+说明文档是否已经可以交给用户决策。
 
-当前是否允许进入研发：
-
-
+唯一机器可读状态是 `00-workflow.yaml`。

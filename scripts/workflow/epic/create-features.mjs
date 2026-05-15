@@ -3,6 +3,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { parseAgentOption, runAgent } from "../../shared/agent-runner.mjs";
 import { createWorkflowContext, isWorkflowOptionWithValue, parseOption as parseSharedOption } from "../../shared/workflow-context.mjs";
+import { recordProductTrace } from "../../shared/product-artifacts.mjs";
+import { createFeatureManifest, inheritApproval, readManifest, writeManifest } from "../../shared/workflow-manifest.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,6 +68,7 @@ for (const featureId of featureIds) {
 
 const epicPath = workflow.resolveTarget(epicArg);
 const epicId = path.basename(epicPath);
+const epicManifest = readManifest(epicPath);
 
 if (!existsSync(epicPath)) {
   console.error(`Epic path not found: ${workflow.relativeToTarget(epicPath)}`);
@@ -93,15 +96,25 @@ for (const file of requiredEpicFiles) {
 
 const templateDir = path.join(workflow.templateRoot, "feature");
 const templateFiles = [
+  "00-intake-review.md",
   "01-prd.md",
   "02-ui-spec.md",
   "03-technical-contract.md",
   "04-acceptance-criteria.md",
   "05-readiness-review.md",
   "06-implementation-plan.md",
+  "08-context-pack.md",
 ];
 
 function applyTechnicalPreset(featureDir) {
+  const intakePath = path.join(featureDir, "00-intake-review.md");
+  let intake = readFileSync(intakePath, "utf8");
+  intake = intake
+    .replace("- Feature ID:", `- Feature ID: ${path.basename(featureDir)}`)
+    .replace("- Related Epic:", `- Related Epic: ${epicId}`)
+    .replace("- Stack Preset:", `- Stack Preset: ${stackPreset}`);
+  writeFileSync(intakePath, intake, "utf8");
+
   const technicalPath = path.join(featureDir, "03-technical-contract.md");
   let technical = readFileSync(technicalPath, "utf8");
   const projectMode = stackPreset === "legacy-existing" ? "legacy" : "greenfield";
@@ -120,56 +133,6 @@ function applyTechnicalPreset(featureDir) {
   writeFileSync(technicalPath, technical, "utf8");
 }
 
-function writeHydrationMarker(featureDir, featureId) {
-  const markerPath = path.join(featureDir, "HYDRATION.md");
-  const marker = `# Feature Hydration Notes
-
-- Hydration Status: Draft
-- Review Status: Draft
-- User Approval: Pending
-
-<!--
-Allowed Status Values
-
-- Hydration Status: Draft / Reviewed
-- Review Status: Draft / Reviewed
-- User Approval: Pending / Approved
-
-Common approved state after user review:
-
-\`\`\`text
-- Hydration Status: Reviewed
-- Review Status: Reviewed
-- User Approval: Approved
-\`\`\`
--->
-
-## Source
-
-- Epic ID: ${epicId}
-- Epic Path: ${workflow.relativeToTarget(epicPath)}
-- Feature ID: ${featureId}
-
-## AI Instructions
-
-Read the Epic package, then complete \`01-prd.md\` through \`06-implementation-plan.md\` for this Feature.
-
-Rules:
-
-- Preserve the Epic meaning and scope.
-- Keep this Feature independently developable and testable.
-- Mark inferred items explicitly as assumptions.
-- Do not set User Approval to Approved.
-- Do not set Implementation Plan Status to Approved.
-- Do not set Readiness to Ready until the user has reviewed the draft.
-- The development gate must fail until the user approves the hydrated documents.
-`;
-
-  if (!existsSync(markerPath) || force) {
-    writeFileSync(markerPath, marker, "utf8");
-  }
-}
-
 let created = 0;
 let skipped = 0;
 const featurePaths = [];
@@ -178,6 +141,24 @@ for (const featureId of featureIds) {
   const featureDir = path.join(workflow.targetRoot, "docs", "features", featureId);
   mkdirSync(featureDir, { recursive: true });
   featurePaths.push(featureDir);
+
+  let manifest = createFeatureManifest({
+    id: featureId,
+    mode: "standard",
+    stackPreset,
+    epicId,
+    sourcePath: "00-source.md",
+  });
+  if (epicManifest?.approval === "approved" && epicManifest?.readiness === "ready") {
+    manifest = inheritApproval(manifest, workflow.relativeToTarget(epicPath));
+  }
+  writeManifest(featureDir, manifest);
+  recordProductTrace(workflow, {
+    type: "feature",
+    id: featureId,
+    epicId,
+    sourcePath: workflow.relativeToTarget(epicPath),
+  });
 
   const sourcePath = path.join(featureDir, "00-source.md");
   if (!existsSync(sourcePath) || force) {
@@ -189,7 +170,7 @@ for (const featureId of featureIds) {
 - Epic Path: ${workflow.relativeToTarget(epicPath)}
 - Feature ID: ${featureId}
 
-This Feature must be derived from the Epic package. Preserve Epic scope, risks, dependencies, and acceptance mapping.
+本 Feature 必须从 Epic 文档包中推导。保留 Epic 范围、风险、依赖和验收映射。
 `,
       "utf8",
     );
@@ -207,7 +188,6 @@ This Feature must be derived from the Epic package. Preserve Epic scope, risks, 
   }
 
   applyTechnicalPreset(featureDir);
-  writeHydrationMarker(featureDir, featureId);
 }
 
 function writeAgentPlan(featureIdsToPlan) {
@@ -217,7 +197,7 @@ function writeAgentPlan(featureIdsToPlan) {
   }
 
   const rows = featureIdsToPlan
-    .map((featureId, index) => `| ${featureId} | Agent ${index + 1} | Parallel if dependencies are clear | docs/features/${featureId} and files approved by 06-implementation-plan.md | Auth/payment/deployment/data migration unless explicitly approved | Run Feature gate, project tests, and update 07-verification-report.md | Review file overlap before merge |`)
+    .map((featureId, index) => `| ${featureId} | Agent ${index + 1} | Parallel if dependencies are clear | docs/features/${featureId}/08-context-pack.md | docs/features/${featureId} and files approved by 06-implementation-plan.md | Auth/payment/deployment/data migration unless explicitly approved | Run Feature gate, project tests, and update 07-verification-report.md | Review file overlap before merge |`)
     .join("\n");
 
   writeFileSync(
@@ -225,30 +205,20 @@ function writeAgentPlan(featureIdsToPlan) {
     `# Agent Plan
 
 - Epic ID: ${epicId}
-- Agent Plan Status: Draft
-
-<!--
-Allowed Status Values
-
-- Agent Plan Status: Draft / Reviewed / Approved
-- Review Status: Draft / Reviewed
-- User Approval: Pending / Approved
--->
 
 ## Parallelization Rule
 
-Only run multiple agents when Feature boundaries, dependencies, allowed files, forbidden files, and verification commands are clear.
+只有当 Feature 边界、依赖、允许文件、禁止文件和验证命令都清楚时，才使用多 agent 并行。
 
 ## Assignment Matrix
 
-| Feature ID | Suggested Agent | Parallelization | Allowed Scope | Forbidden Scope | Verification | Merge Risk |
-| --- | --- | --- | --- | --- | --- | --- |
+| Feature ID | Suggested Agent | Parallelization | Required Context | Allowed Scope | Forbidden Scope | Verification | Merge Risk |
+| --- | --- | --- | --- | --- | --- | --- | --- |
 ${rows}
 
 ## User Review
 
-- Review Status: Draft
-- User Approval: Pending
+Agent 分工只是建议。批准只记录在 \`00-workflow.yaml\`。
 `,
     "utf8",
   );
@@ -278,16 +248,17 @@ Feature packages to complete:
 
 Instructions:
 - Read the full Epic package first.
-- For each Feature package, complete 01-prd.md through 06-implementation-plan.md.
+- For each Feature package, complete 00-intake-review.md through 08-context-pack.md.
+- Write the main human-facing content in Chinese. Keep file names, command names, IDs, status values, and script-matched headings in English where the template already uses them.
 - Do not modify the Epic files.
-- Do not mark anything as Approved.
-- Keep every HYDRATION.md with Review Status: Draft and User Approval: Pending.
+- Do not change approval, readiness, or status in any Feature 00-workflow.yaml.
+- Keep docs/product/requirement-ledger.md and docs/product/traceability.md aligned with the generated Feature IDs when concrete REQ/AC IDs are known.
 - Keep each Feature independently developable and testable.
 - Preserve Epic scope, risks, dependencies, and acceptance mapping.
 - Mark inferred items explicitly as assumptions.
 - If a Feature ID is not clearly supported by the Epic, write review questions in that Feature instead of inventing scope.
 - Do not implement code.
 
-Finish by summarizing every Feature package generated and what the user must review.`;
+Finish in Chinese by summarizing every Feature package generated and what the user must review.`;
 
 runAgent({ agent, cwd: workflow.targetRoot, prompt });

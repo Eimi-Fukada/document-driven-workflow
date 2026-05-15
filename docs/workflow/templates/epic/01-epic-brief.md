@@ -1,42 +1,43 @@
-﻿# Epic Brief 模板
+# Epic Brief
 
-## 基本信息
+这份文档用于概括一次产品迭代的目标、边界和成功标准。
 
-- Epic ID：
-- Epic 名称：
-- 创建日期：
-- Epic Status: Draft / Ready for Breakdown / In Progress / Released
+## Basic Info
 
-<!--
-Allowed Status Values
+- Epic ID:
+- Epic name:
+- Created at:
 
-- Epic Status: Draft / Ready for Breakdown / In Progress / Released
-- Draft：Epic 草稿，尚未完成拆解。
-- Ready for Breakdown：用户已审查，可以拆分 Feature。
-- In Progress：已有 Feature 正在实现或验证。
-- Released：本轮 Epic 已完成发布。
+## Background
 
-> `Epic Status` 是机器字段，`gate:epic` 只读取这个 ASCII 字段。
--->
+为什么要做这次迭代，它解决什么问题：
 
-## 背景
+-
 
-- 
+## Goals
 
-## 目标
+本次迭代要达成的目标：
 
-- 
+-
 
-## 非目标
+## Non Goals
 
-- 
+本次明确不做、不能顺手扩展的内容：
 
-## 成功标准
+-
 
-- 
+## Success Criteria
 
-## 约束
+用户或业务如何判断这次迭代成功：
 
-- 
+-
 
+## Constraints
 
+技术、业务、上线、兼容或资源约束：
+
+-
+
+## State Boundary
+
+唯一机器可读工作流状态是 `00-workflow.yaml`。

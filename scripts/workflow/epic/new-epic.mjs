@@ -2,6 +2,8 @@ import { cpSync, existsSync, mkdirSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createWorkflowContext } from "../../shared/workflow-context.mjs";
+import { recordProductTrace } from "../../shared/product-artifacts.mjs";
+import { createEpicManifest, writeManifest } from "../../shared/workflow-manifest.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,6 +44,8 @@ const files = [
 ];
 
 mkdirSync(epicDir, { recursive: true });
+writeManifest(epicDir, createEpicManifest({ id: epicId }));
+recordProductTrace(workflow, { type: "epic", id: epicId, sourcePath: `docs/epics/${epicId}/00-source.md` });
 
 for (const file of files) {
   cpSync(path.join(templateDir, file), path.join(epicDir, file));

@@ -39,4 +39,3 @@ npm run test
 npm run build
 docker build .
 ```
-

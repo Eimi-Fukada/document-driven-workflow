@@ -1,162 +1,69 @@
 # Document Driven Workflow
 
-这是一套面向 Codex 和 Claude Code 的文档驱动产品交付工作流。
+这是一个面向 AI 研发协作的文档驱动工作流。它的核心目标是：用户用产品文档、UI 图和验收标准表达需求，AI 根据固定流程生成 Epic / Feature 文档、实现计划、代码、测试、验证报告和部署准备。
 
-核心目标：用“产品文档 + UI 图 + 验收标准”作为人与 AI 的协作接口，由 AI 完成实现计划、代码、测试、修复和部署准备。
+推荐对接方式：
 
-## 先读说明书
+```text
+产品文档 + UI 参考 + 验收标准 -> 产品需求台账 -> Epic / Feature 文档 -> 用户一次批准 -> gate -> 实现 -> 测试 -> 追溯更新 + 验证报告
+```
 
-第一次使用或推广这套工作流时，先读：
+## 核心设计
 
-- `docs/workflow/USER_GUIDE.md`
+- 工作流以 Codex / Claude Code 可使用的 Skill 形式分发。
+- 目标项目只保存 `docs/` 下的项目文档，不需要把工作流脚本写进自己的 `package.json`。
+- 每个 Epic 或 Feature 只有一个机器可读状态文件：`00-workflow.yaml`。
+- 用户批准只发生一次，并且只记录在 `00-workflow.yaml`。
+- 产品历史保存在 `docs/product/requirement-ledger.md`、`docs/product/traceability.md` 和必要的 snapshots 中。
+- Feature 实现前必须通过门禁，门禁会检查 Scope Lock、TDD / debugging 触发条件、自审要求和验证证据。
+- 可维护性默认规则：同类结构或逻辑出现 2 repeated uses 以上要考虑抽取；单文件尽量不超过 1000 lines；Next.js UI 优先使用 Tailwind CSS。
 
-这份说明书解释 Epic、Feature、Gate、Legacy、ADR、Verification 的分工，也说明什么时候不用 Epic、什么时候可以轻量使用 Feature。
+## 常用命令
 
-## 快速开始
-
-检查仓库结构和规则：
+维护本工作流仓库：
 
 ```bash
 npm run check
-```
-
-构建本地 AI 技能：
-
-```bash
 npm run build
-```
-
-安装到 Codex 和 Claude Code：
-
-```bash
-npm run setup:all
-```
-
-只安装到 Codex：
-
-```bash
 npm run setup:codex
-```
-
-只安装到 Claude Code：
-
-```bash
 npm run setup:claude
+npm run setup:all
+npm test
 ```
 
-## 强制开发门禁
-
-进入研发前必须对某个功能文档包执行开发门禁。本仓库维护时可运行：
+初始化目标项目的产品追溯层：
 
 ```bash
-npm run gate:dev -- -FeaturePath docs/features/example-feature
+npm run workflow:init-product -- --target <project-root>
 ```
 
-目标项目不需要配置该命令；使用已安装的 document-driven-workflow Skill 时，由 AI 调用 Skill 内置门禁检查目标项目文档。
-
-只有当功能文档包满足下面条件时，门禁才会通过：
-
-- 需求状态是 `Ready`
-- 未确认问题数量是 `0`
-- 阻塞问题数量是 `0`
-- 关键假设已被接受
-- 用户已批准进入实现
-- 实现计划已批准
-- PRD、UI Spec、技术契约、验收标准、需求体检、实现计划都存在
-- 功能文档中没有 `TODO`、`TBD`、`待确认`、`未确认`、`待补充`
-
-如果门禁失败，不能进入代码实现阶段。
-
-## 创建功能文档包
-
-本仓库维护命令：
+在本仓库中创建和检查文档包：
 
 ```bash
-npm run feature:new -- login-phone --stack next-fullstack
+npm run epic:new -- <epic-id>
+npm run epic:hydrate -- docs/epics/<epic-id>
+npm run gate:epic -- docs/epics/<epic-id>
+npm run epic:features -- docs/epics/<epic-id> --features feature-a,feature-b --stack next-fullstack
+
+npm run feature:new -- <feature-id> --stack next-fullstack
+npm run feature:new -- <feature-id> --mode light --stack next-fullstack
+npm run feature:hydrate -- docs/features/<feature-id>
+npm run workflow:context-pack -- docs/features/<feature-id> --force
+npm run workflow:approve -- docs/features/<feature-id> --user-approved
+npm run gate:dev -- docs/features/<feature-id>
 ```
 
-目标项目中推荐直接让 AI 使用 Skill：
+目标项目中不需要配置这些 npm 命令。安装 Skill 后，由 AI 调用 Skill 内置脚本并传入 `--target <project-root>`。
 
-```text
-使用 document-driven-workflow，为这个明确功能创建 Feature。
-```
+## 参考文档
 
-生成目录：
-
-```text
-docs/features/login-phone/
-  01-prd.md
-  02-ui-spec.md
-  03-technical-contract.md
-  04-acceptance-criteria.md
-  05-readiness-review.md
-  06-implementation-plan.md
-```
-
-新生成的功能包默认是草稿状态，必须填写并通过开发门禁后，才能进入代码实现。
-
-允许的 Stack Preset：
-
-- `next-fullstack`
-- `flutter-fastapi`
-- `flutter-express`
-- `legacy-existing`
-
-Next.js 新项目只支持 App Router，不支持 Pages Router。老项目使用 `legacy-existing`，并先补齐 `docs/legacy/BASELINE.md` 和 `docs/legacy/COMPATIBILITY_CONTRACT.md`。
-
-## 创建产品迭代 Epic
-
-一次产品迭代包含多个功能模块时，先创建 Epic。本仓库维护命令：
-
-```bash
-npm run epic:new -- ai-fooler-upgrade
-```
-
-目标项目中推荐直接让 AI 使用 Skill：
-
-```text
-使用 document-driven-workflow，处理这个需求文档。
-```
-
-Epic 用于保存原始产品材料、拆分需求、标记风险、规划发布批次。Epic 通过门禁后，再拆成多个 Feature。
-
-Epic 门禁通过只代表可以拆 feature，不代表可以写代码。代码实现仍然必须通过 feature 级开发门禁。
-
-## 门禁回归测试
-
-验证门禁没有失效：
-
-```bash
-npm run test:gates
-```
-
-这个命令会自动检查：
-
-- 不完整功能包必须失败。
-- Ready 功能包必须通过。
-- 不完整 Epic 必须失败。
-- Ready Epic 必须通过。
-
-## 推荐流程
-
-```text
-需求包 -> 需求体检 -> 开发门禁 -> 实现计划 -> 实现 -> 测试 -> 验证报告 -> 上线判断
-```
-
-详细规则见：
-
-- `docs/workflow/USER_GUIDE.md`
-- `docs/workflow/USAGE.md`
 - `docs/workflow/WORKFLOW.md`
-- `docs/workflow/EPIC_WORKFLOW.md`
+- `docs/workflow/MODE_ROUTER.md`
 - `docs/workflow/GATES.md`
-- `AGENTS.md`
-- `CLAUDE.md`
-
-模板按职责分组：
-
-- `docs/workflow/templates/feature`
-- `docs/workflow/templates/epic`
-- `docs/workflow/templates/legacy`
-- `docs/workflow/templates/change`
-- `docs/workflow/templates/decision`
+- `docs/workflow/AUTOMATION.md`
+- `docs/workflow/EXECUTION_PROTOCOL.md`
+- `docs/workflow/EXECUTION_DISCIPLINE.md`
+- `docs/workflow/PRODUCT_TRACEABILITY.md`
+- `docs/workflow/USAGE.md`
+- `docs/workflow/STACK_POLICY.md`
+- `docs/workflow/LEGACY_ADOPTION.md`

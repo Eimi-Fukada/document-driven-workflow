@@ -1,212 +1,116 @@
-# 文档驱动工作流使用说明书
+# User Guide
 
-本文说明如何长期使用和维护这套工作流。它不是某个项目的专用规则，而是一套跨项目的协作协议。
+这套工作流面向长期、多项目的 AI 协作。它的目的不是制造文档负担，而是减少返工、跑偏和上线风险。
 
-## 1. 核心思想
+## 分层职责
 
-这套工作流的目标不是增加文档数量，而是让每个阶段只解决自己该解决的问题：
-
-- 产品迭代先拆清楚。
-- 单个功能再进入开发。
-- 不确定需求先停在文档阶段。
-- 代码实现后必须能验证。
-- 老项目先保护兼容边界。
-
-如果某一层没有减少后续返工、风险或沟通成本，就不应该使用那一层。
-
-## 2. 各层分工
-
-| 层级 | 负责什么 | 不负责什么 | 何时使用 |
+| 层级 | 负责什么 | 不负责什么 | 什么时候用 |
 | --- | --- | --- | --- |
-| Epic | 产品迭代拆解、优先级、风险、批次 | 不写实现计划，不直接开发 | 一份需求跨多个模块或需要分批 |
-| Feature | 单个可开发功能的目标、边界、验收、计划 | 不承载大迭代，不混多个高风险模块 | 一个明确可交付单元 |
-| Gate | 判断是否允许进入下一阶段 | 不补需求，不替代人工确认 | Epic 拆分前、Feature 开发前 |
-| ADR | 记录长期技术或产品决策 | 不记录普通实现细节 | 技术栈、数据库、支付、架构变更 |
-| Legacy Baseline | 记录老项目现状 | 不要求老项目立刻重构 | 老项目第一次接入 |
-| Compatibility Contract | 保护老项目不能破坏的边界 | 不定义新功能 | 老项目长期维护 |
-| Verification Report | 记录实现后的验证结果 | 不替代测试本身 | 每个完成的 feature |
-| Retrospective | 复盘流程是否有效 | 不修改业务代码 | 每轮迭代结束 |
+| Epic | 产品迭代拆分、优先级、风险、发布批次 | 直接写代码 | 一个需求跨多个模块 |
+| Feature | 一个可独立开发的功能单元、范围、验收、实现计划 | 承载大型产品迭代 | 一个单元能独立开发和测试 |
+| Gate | 判断能否进入下一阶段 | 代替用户补需求 | Epic 拆 Feature 前或 Feature 开发前 |
+| Legacy Baseline | 老项目当前行为 | 授权重构 | 老项目第一次接入 |
+| Compatibility Contract | 不能破坏的兼容边界 | 新功能范围 | 老项目继续迭代 |
+| Requirement Ledger | 原始需求来源和产品决策 | 实现细节 | 需要长期保留产品历史 |
+| Traceability Matrix | 需求来源到测试证据的覆盖 | 替代 Feature 文档 | 交付前后追踪覆盖关系 |
+| ADR | 长期有效的产品或技术决策 | 普通实现笔记 | 架构、支付、认证、数据、部署选择 |
+| Verification Report | 测试证据和剩余风险 | 测试本身 | 实现完成后 |
+| Context Pack | 紧凑的实现交接材料 | 完整产品历史 | 实现前或多 agent 协作前 |
+| Execution Discipline | Scope Lock、TDD / debugging、自审、证据规则 | 替代产品文档 | Feature gate 通过后 |
 
-## 3. Epic 和 Feature 的区别
+## Epic vs Feature
 
-一句话：
+当你还需要回答这些问题时，用 Epic：
 
-```text
-Epic 决定拆什么、先做什么、风险在哪里。
-Feature 决定某个可开发单元怎么做、怎么验收、能不能开工。
-```
+- 哪些需求应该拆开
+- 哪些 Features 先做
+- 哪些模块风险最高
+- 哪些工作依赖认证、支付、数据、部署或任务状态
+- 哪一批可以先上线
 
-如果一份需求文档可以直接回答下面问题，它就是 Feature：
+当你已经能回答这些问题时，用 Feature：
 
-- 目标是什么？
-- 不做什么？
-- 改哪些页面或接口？
-- 验收标准是什么？
-- 通过什么测试判断完成？
+- 目标是什么
+- 非目标是什么
+- 涉及哪些页面、API、数据或行为
+- 哪些验收标准可以证明完成
+- 应该跑哪些测试
 
-如果一份需求文档还需要先回答下面问题，它就是 Epic：
+## 复杂度等级
 
-- 哪些需求应该拆开？
-- 哪些先做？
-- 哪些高风险？
-- 哪些依赖登录、支付、数据库或任务状态？
-- 哪些可以第一批上线？
-- 哪些必须延后或单独立项？
+Level 0：Direct
 
-## 4. 复杂度分级
+- 极小、清楚、低风险
+- 通常不需要文档包
 
-复杂度分级不是为了放松质量要求，而是为了让工作流成本和风险匹配。
+Level 1：Light
 
-### Level 0：直接变更
+- 低风险、单一范围改动
+- 使用 `00-workflow.yaml` 和 `01-light-feature.md`
 
-适用：
+Level 2：Standard
 
-- 明确文案。
-- 无业务影响的样式小改。
-- 不涉及状态、数据、权限、API 的低风险修复。
+- 普通单 Feature
+- 使用完整 Feature 文档包
 
-要求：
+Level 3：Epic
 
-- 说明目标和验收。
-- 修改后说明验证方式。
-- 不需要 Epic。
-- 通常不需要完整 Feature 包。
+- 多模块产品迭代
+- 先 Epic，再拆 Features
 
-### Level 1：轻量 Feature
+Level 4：Strict / Legacy
 
-适用：
+- 认证、支付、权限、数据库、迁移、部署、任务状态、老项目核心行为或高风险范围
+- 需要更强的边界和验证
 
-- 单个明确功能点。
-- 低风险 UI 或交互。
-- 有少量验收标准。
+## 批准
 
-要求：
+用户对每个 Epic 或 Feature 只批准一次。
 
-- 创建 Feature 包。
-- 文档可以短，但必须写清目标、非目标、验收、改动边界。
-- 通过 `gate:dev` 后再实现。
-
-### Level 2：标准 Feature
-
-适用：
-
-- 涉及 API、状态、权限、计费入口、任务状态或数据读写。
-- 单个模块内的完整功能。
-
-要求：
-
-- 完整 Feature 包。
-- Technical Contract 必须清楚。
-- Acceptance Criteria 必须可测试。
-- Verification Report 必须记录执行命令和剩余风险。
-
-### Level 3：Epic + 多 Feature
-
-适用：
-
-- 一次产品迭代。
-- 多模块修改。
-- 多批发布。
-- 需求中同时包含低风险 UI 和高风险业务链路。
-
-要求：
-
-- 先创建 Epic。
-- 通过 `gate:epic` 后再拆 Feature。
-- 每个 Feature 独立通过 `gate:dev`。
-- 每批结束后更新 Progress Board。
-
-### Level 4：Legacy / 高风险治理
-
-适用：
-
-- 老项目第一次接入。
-- 涉及支付、登录、会员权益、数据库、任务状态、权限、部署、迁移。
-
-要求：
-
-- 先建立 Legacy Baseline。
-- 建立 Compatibility Contract。
-- 高风险技术决策写 ADR。
-- 不把接入工作流当成重构授权。
-
-## 5. 使用决策树
+批准只保存在：
 
 ```text
-这是老项目第一次接入吗？
-  是 -> 先 Legacy Baseline + Compatibility Contract
-  否 -> 继续
-
-这是一份跨多个模块的产品迭代吗？
-  是 -> Epic
-  否 -> 继续
-
-这个需求能独立开发和验收吗？
-  是 -> Feature
-  否 -> 先拆分或回到 Epic
-
-是否涉及支付、登录、数据库、权限、任务状态、部署？
-  是 -> 标准 Feature 或 Legacy 高风险流程
-  否 -> 继续
-
-是否只是文案、样式或低风险 UI？
-  是 -> Level 0 或 Level 1
-  否 -> Level 2
+00-workflow.yaml
 ```
 
-## 6. 通用原则
+不要要求用户在多个 Markdown 文件里改批准状态。
 
-- 工作流服务于交付，不服务于填表。
-- 层级越高，越不应该直接写代码。
-- 需求越小，文档越短。
-- 风险越高，边界越明确。
-- 老项目先保护兼容，再谈现代化。
-- 模板可以简写，但不能省略影响研发判断的字段。
-- 门禁失败是正常反馈，不是流程失败。
-
-## 7. 长期迭代规则
-
-这套工作流会长期演进，但演进必须遵守：
-
-- 不因单个项目把通用规则改成项目特化规则。
-- 项目特化内容放在项目自己的 `docs/legacy`、`docs/features`、`docs/epics`。
-- 通用工作流只沉淀跨项目重复出现的问题。
-- 新增层级前，先证明现有层级无法表达。
-- 新增门禁前，先证明它能减少真实返工或风险。
-- 每次真实项目试用后，用 Retrospective 记录流程问题，再决定是否改工作流。
-
-## 8. 最小推荐用法
+## 推荐路径
 
 新项目：
 
 ```text
-Stack Preset -> Feature -> gate:dev -> 实现 -> Verification Report
+Stack Preset -> Feature -> gate:dev -> implementation -> verification report
 ```
 
 老项目：
 
 ```text
-Legacy Baseline -> Compatibility Contract -> Feature -> gate:dev -> 实现 -> Verification Report
+Legacy Baseline -> Compatibility Contract -> Feature -> gate:dev -> implementation -> verification report
 ```
 
 产品迭代：
 
 ```text
-Epic -> gate:epic -> 多个 Feature -> 分批 gate:dev -> 分批实现 -> Epic Retrospective
+Epic -> gate:epic -> Features -> gate:dev per Feature -> implementation -> verification -> retrospective
 ```
 
-
-## 9. 模板目录
-
-模板按职责分组，便于 Skill 在目标项目中只复制需要的模板：
+长期产品追溯：
 
 ```text
-docs/workflow/templates/
-  feature/
-  epic/
-  legacy/
-  change/
-  decision/
+Requirement Ledger -> Epic/Feature -> Traceability Matrix -> Verification Report -> Snapshot or Change Request
 ```
 
-不要把项目特定模板放回通用模板目录。项目特化模板应放在目标项目自己的文档目录中。
+Feature 实现防跑偏：
+
+```text
+gate:dev -> Scope Lock -> implementation -> self review -> verification report -> traceability update
+```
+
+## 长期演进原则
+
+- 不为了某一个项目把通用工作流改得过度定制。
+- 只有当现有层级无法表达重复出现的真实需求时，才增加新层级。
+- 只有当新门禁能减少真实返工或风险时，才增加新门禁。
+- 目标项目事实留在目标项目。
+- 可复用流程规则留在 Skill。

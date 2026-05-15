@@ -1,51 +1,70 @@
 # AI 协作规则
 
-本仓库采用文档驱动交付模式。用户用产品文档、UI 图和验收标准表达需求；AI 负责把文档翻译成实现计划、代码、测试、验证报告和部署流程。
+本仓库维护 `document-driven-workflow` Skill。这个仓库的产物不是某一个业务项目，而是一套可以接入不同项目的文档驱动交付流程。
 
 ## 工作原则
 
-- 文档是需求源头，代码是实现产物，测试是验收裁判。
-- 所有功能必须能追溯到需求 ID，例如 `REQ-AUTH-001`。
-- 没有明确验收标准时，不直接进入实现；先补齐或列出假设。
-- 修改已有功能时，必须通过 `docs/changes/CR-xxxx.md` 描述变更，不靠零散对话覆盖旧需求。
-- 读代码、改代码、跑测试由 AI 完成；面向用户的沟通尽量使用文档、问题清单、计划和验证报告。
-- 新项目必须使用标准 Stack Preset；Next.js 项目只支持 App Router，不使用 Pages Router。
-- 老项目使用 `legacy-existing`，先建立 baseline 和兼容契约，再接入新增或修改功能。
+- 文档是需求源头。
+- 代码是实现产物。
+- 测试和验证报告是验收证据。
+- 非平凡功能必须能追溯到需求 ID，例如 `REQ-AUTH-001`。
+- 产品源头历史保存在 `docs/product/requirement-ledger.md`，交付覆盖关系保存在 `docs/product/traceability.md`。
+- 没有明确验收标准、没有通过门禁时，不进入代码实现。
+- Feature gate 通过后，必须遵守 `EXECUTION_DISCIPLINE.md` 中的 Scope Lock、TDD / debugging 触发条件、自审和证据规则。
+- 实现时要考虑长期维护性：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；Next.js UI 优先使用 Tailwind CSS。
+- 工作流本身不保留历史兼容补丁，除非有明确迁移理由。
+
+## 状态模型
+
+每个 Epic、Feature、Light Feature 都只使用一个机器可读控制文件：
+
+```text
+00-workflow.yaml
+```
+
+批准状态、可开发状态、当前状态、技术栈预设、未解决问题数、阻塞问题数、假设是否接受，都只放在这个文件里。
+
+不要再在 PRD、readiness review、hydration notes、agent plan 等 Markdown 文件里添加独立批准字段。
 
 ## 默认交付顺序
 
-1. 阅读需求包：PRD、UI 说明、验收标准、相关变更请求。
-2. 输出需求体检：清楚项、缺失项、冲突项、风险项、默认假设。
-3. 达到可开发状态后，生成或更新实现计划。
-4. 运行开发门禁。本仓库可用 `npm run gate:dev -- -FeaturePath docs/features/<feature-id>`；目标项目由 Skill 内置门禁执行。
-5. 门禁通过后按计划实现，保持改动范围和文档边界一致。
-6. 运行验证：类型检查、lint、单元测试、接口测试、Playwright、冒烟测试。
-7. 修复失败项。
-8. 输出验证报告，说明每个需求 ID 的覆盖情况。
+1. 按 `docs/workflow/MODE_ROUTER.md` 判断 Direct、Light、Standard、Epic 或 Strict。
+2. 创建或补全最小安全文档包。
+3. 当已有明确来源、需求 ID 和验收 ID 时，同步产品追溯文档。
+4. 让用户审查文档。
+5. 用户明确批准后，只通过 `workflow:approve` 更新一次批准状态。
+6. 运行 `gate:epic` 或 `gate:dev`。
+7. 门禁通过后才进入实现。
+8. 完成后执行自审、验证、追溯更新，并更新验证报告。
 
-## 强制开发门禁
+## 命令
 
-进入研发前必须通过开发门禁。
+维护本仓库：
 
 ```bash
-npm run gate:dev -- -FeaturePath docs/features/<feature-id>
+npm run check
+npm test
 ```
 
-目标项目不要求配置上述 npm 命令；使用 document-driven-workflow Skill 时，由 AI 调用 Skill 内置门禁或执行等价文档检查。
+Feature gate：
 
-如果仍存在未确认问题、阻塞问题、未批准假设、未批准实现计划，不能开始代码实现。
+```bash
+npm run gate:dev -- docs/features/<feature-id>
+```
 
-门禁失败时，AI 必须停在文档阶段，只能输出缺失项、未确认项、阻塞项和下一步补文档建议。
+Epic gate：
 
-## 边界规则
+```bash
+npm run gate:epic -- docs/epics/<epic-id>
+```
 
-- 尊重文档里的“禁止改动”和“非目标”。
-- 不把 UI 图里没有说明的交互自动扩展成功能。
-- 不在没有确认的情况下改变认证、支付、权限、数据迁移、部署架构。
-- 如发现文档与代码现状冲突，先报告冲突和可选方案。
+目标项目不要为了暴露工作流命令而修改自己的 `package.json`。安装后的 Skill 会用 `--target <project-root>` 调用内置脚本。
 
-## 输出要求
+## 边界
 
-- 重要实现前先给出 `docs/features/<feature-id>/06-implementation-plan.md` 或同等功能级实现计划。
-- 完成后更新 `docs/features/<feature-id>/07-verification-report.md` 或同等功能级验证报告。
-- 报告中必须包含：执行过的命令、测试结果、未验证项、剩余风险。
+- 新 Next.js 项目只支持 App Router。
+- 老项目使用 `legacy-existing`，并且必须先有 `docs/legacy/BASELINE.md` 与 `docs/legacy/COMPATIBILITY_CONTRACT.md`。
+- 修改已有行为时使用 `docs/changes/CR-xxxx.md`。
+- Standard 和 Strict Feature 应包含 `00-intake-review.md` 与 `08-context-pack.md`。
+- 尊重文档里的非目标和禁止改动。
+- 如果代码现状与文档冲突，先报告冲突和方案，不要直接实现。

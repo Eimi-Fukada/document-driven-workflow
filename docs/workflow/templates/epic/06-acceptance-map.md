@@ -10,7 +10,7 @@
 Allowed Status Values
 
 - 验证状态：Draft / Ready / Verified / Failed
-- Draft：验收映射草稿，尚未确认。
+- Draft：验收映射草稿，尚未审查。
 - Ready：验收映射已确认，等待 Feature 验证。
 - Verified：对应 Feature 验证已通过。
 - Failed：对应 Feature 验证失败或未达到验收。

@@ -5,15 +5,25 @@ $ErrorActionPreference = "Stop"
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
 $featuresRoot = Join-Path $root "docs\features"
 $epicsRoot = Join-Path $root "docs\epics"
-$failFeature = Join-Path $featuresRoot "__tmp_gate_fail"
-$passFeature = Join-Path $featuresRoot "__tmp_gate_pass"
-$failEpic = Join-Path $epicsRoot "__tmp_epic_fail"
-$passEpic = Join-Path $epicsRoot "__tmp_epic_pass"
-$hydratedEpic = Join-Path $epicsRoot "__tmp_epic_hydrated"
-$localizedStatusEpic = Join-Path $epicsRoot "__tmp_epic_localized_status"
-$hydratedFeature = Join-Path $featuresRoot "__tmp_feature_hydrated"
-$epicFeatureOne = Join-Path $featuresRoot "tmp-epic-feature-one"
-$epicFeatureTwo = Join-Path $featuresRoot "tmp-epic-feature-two"
+$tmpPaths = @(
+    (Join-Path $featuresRoot "__tmp_gate_fail"),
+    (Join-Path $featuresRoot "__tmp_gate_pass"),
+    (Join-Path $featuresRoot "__tmp_feature_hydrated"),
+    (Join-Path $featuresRoot "__tmp_light_feature_pass"),
+    (Join-Path $featuresRoot "__tmp_light_feature_fail"),
+    (Join-Path $featuresRoot "__tmp_light_feature_legacy"),
+    (Join-Path $featuresRoot "__tmp_approval_feature"),
+    (Join-Path $featuresRoot "__tmp_gate_pages_router"),
+    (Join-Path $featuresRoot "tmp-new-feature-docs"),
+    (Join-Path $featuresRoot "tmp-epic-feature-one"),
+    (Join-Path $featuresRoot "tmp-epic-feature-two"),
+    (Join-Path $epicsRoot "__tmp_epic_fail"),
+    (Join-Path $epicsRoot "__tmp_epic_pass"),
+    (Join-Path $epicsRoot "__tmp_epic_hydrated"),
+    (Join-Path $root "docs\__tmp_route_source.md"),
+    (Join-Path $root "docs\workflow\__tmp_routing_review.md"),
+    (Join-Path $root "docs\product")
+)
 
 function RemoveIfExists($path) {
     if (Test-Path $path) {
@@ -22,229 +32,388 @@ function RemoveIfExists($path) {
 }
 
 function WriteUtf8($path, $lines) {
+    $parent = Split-Path -Parent $path
+    if (-not (Test-Path $parent)) {
+        New-Item -ItemType Directory -Force -Path $parent | Out-Null
+    }
     $lines | Set-Content -LiteralPath $path -Encoding utf8
 }
 
-function RunGate($featurePath) {
-    $output = & powershell -ExecutionPolicy Bypass -File (Join-Path $root "scripts\workflow\feature\gate-feature.ps1") -FeaturePath $featurePath -TargetRoot $root 2>&1
+function WriteManifest($dir, $type, $mode, $id, $stack = "next-fullstack", $approval = "approved") {
+    $readiness = if ($approval -eq "pending") { "not_ready" } else { "ready" }
+    $assumptions = if ($approval -eq "pending") { "false" } else { "true" }
+    WriteUtf8 (Join-Path $dir "00-workflow.yaml") @(
+        "# Workflow Control",
+        "schema_version: 1",
+        "type: $type",
+        "mode: $mode",
+        "id: $id",
+        "epic_id: none",
+        "approval: $approval",
+        "approval_source: none",
+        "readiness: $readiness",
+        "status: draft",
+        "stack_preset: $stack",
+        "unresolved_questions: 0",
+        "blocking_issues: 0",
+        "assumptions_accepted: $assumptions",
+        "approved_by: user",
+        "approved_at: test",
+        "source_path: none"
+    )
+}
+
+function RunFeatureGate($featurePath) {
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $output = & node (Join-Path $root "scripts\workflow\feature\gate-feature.mjs") $featurePath --target $root 2>&1
     $code = $LASTEXITCODE
+    $ErrorActionPreference = $previousErrorActionPreference
     $output | ForEach-Object { Write-Host $_ }
     return $code
 }
 
 function RunEpicGate($epicPath) {
-    $output = & powershell -ExecutionPolicy Bypass -File (Join-Path $root "scripts\workflow\epic\gate-epic.ps1") -EpicPath $epicPath -TargetRoot $root 2>&1
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $output = & node (Join-Path $root "scripts\workflow\epic\gate-epic.mjs") $epicPath --target $root 2>&1
     $code = $LASTEXITCODE
+    $ErrorActionPreference = $previousErrorActionPreference
     $output | ForEach-Object { Write-Host $_ }
     return $code
 }
 
-RemoveIfExists $failFeature
-RemoveIfExists $passFeature
-RemoveIfExists $failEpic
-RemoveIfExists $passEpic
-RemoveIfExists $hydratedEpic
-RemoveIfExists $localizedStatusEpic
-RemoveIfExists $hydratedFeature
-RemoveIfExists $epicFeatureOne
-RemoveIfExists $epicFeatureTwo
+function WriteReadyFeature($dir, $id, $stack = "next-fullstack", $pagesRouter = "no") {
+    New-Item -ItemType Directory -Force -Path $dir | Out-Null
+    WriteManifest $dir "feature" "standard" $id $stack "approved"
+    WriteUtf8 (Join-Path $dir "00-intake-review.md") @("# Requirement Intake Review", "", "## Clear Items", "", "- REQ-DEMO-001 is clear.", "", "## User Questions", "", "- none")
+    WriteUtf8 (Join-Path $dir "01-prd.md") @("# PRD", "", "REQ-DEMO-001 Demo ready requirement")
+    WriteUtf8 (Join-Path $dir "02-ui-spec.md") @("# UI Spec", "", "UI-DEMO-001 Demo UI")
+    WriteUtf8 (Join-Path $dir "03-technical-contract.md") @(
+        "# Technical Contract",
+        "",
+        "- Stack Preset: $stack",
+        "- Project Mode: greenfield",
+        "- Exception Reason: demo exception when needed",
+        "- Legacy Baseline: none",
+        "- Compatibility Contract: none",
+        "",
+        "- Next.js App Router: yes",
+        "- Next.js Pages Router: $pagesRouter",
+        "",
+        "API-DEMO-001 Demo API"
+    )
+    WriteUtf8 (Join-Path $dir "04-acceptance-criteria.md") @("# Acceptance", "", "AC-DEMO-001 covers REQ-DEMO-001")
+    WriteUtf8 (Join-Path $dir "05-readiness-review.md") @("# Readiness Review", "", "Ready for user-approved development.")
+    WriteUtf8 (Join-Path $dir "06-implementation-plan.md") @(
+        "# Implementation Plan",
+        "",
+        "Demo plan",
+        "",
+        "## Scope Lock",
+        "",
+        "- Approved requirement IDs: REQ-DEMO-001",
+        "- Approved acceptance IDs: AC-DEMO-001",
+        "",
+        "## TDD / Debugging Triggers",
+        "",
+        "- TDD required: no",
+        "- Debugging required: no",
+        "",
+        "## Maintainability Plan",
+        "",
+        "- Reuse check: if any structure or logic appears 2 or more times, consider extraction.",
+        "- Tailwind CSS preferred for Next.js UI: yes",
+        "",
+        "## Self Review Checklist",
+        "",
+        "- Requirement coverage: yes"
+    )
+    WriteUtf8 (Join-Path $dir "08-context-pack.md") @(
+        "# Context Pack",
+        "",
+        "## Requirement IDs",
+        "",
+        "- REQ-DEMO-001",
+        "",
+        "## Acceptance IDs",
+        "",
+        "- AC-DEMO-001",
+        "",
+        "## Scope Lock",
+        "",
+        "- Approved requirement IDs: REQ-DEMO-001",
+        "- Approved acceptance IDs: AC-DEMO-001",
+        "",
+        "## Execution Discipline",
+        "",
+        "- TDD required: no",
+        "- Debugging required: no",
+        "- Self review required: yes",
+        "",
+        "## Maintainability Guardrails",
+        "",
+        "- Reuse threshold: consider extraction when structure or logic appears 2 or more times",
+        "- Max single-file size: 1000 lines",
+        "- Tailwind CSS preferred for Next.js UI: yes",
+        "",
+        "## Test Commands",
+        "",
+        "- Typecheck: npm run typecheck"
+    )
+}
+
+function WriteReadyEpic($dir, $id, $approval = "approved") {
+    New-Item -ItemType Directory -Force -Path $dir | Out-Null
+    WriteManifest $dir "epic" "epic" $id "none" $approval
+    WriteUtf8 (Join-Path $dir "00-source.md") @("# Source", "", "Original product iteration material preserved here with enough detail for breakdown and regression testing.")
+    WriteUtf8 (Join-Path $dir "01-epic-brief.md") @("# Epic Brief", "", "Goal is clear.")
+    WriteUtf8 (Join-Path $dir "02-requirement-inventory.md") @("# Requirement Inventory", "", "| Epic Req ID | Title | Module | Risk | Suggested Feature | Status |", "| --- | --- | --- | --- | --- | --- |", "| EREQ-001 | Demo | UI | Low | demo-feature | Ready |")
+    WriteUtf8 (Join-Path $dir "03-scope-breakdown.md") @("# Scope Breakdown", "", "| Feature ID | Source Requirement | Goal | Risk | Dependency |", "| --- | --- | --- | --- | --- |", "| demo-feature | EREQ-001 | Demo | Low | none |")
+    WriteUtf8 (Join-Path $dir "04-risk-map.md") @("# Risk Map", "", "| Risk ID | Requirement | Level | Cause | Mitigation |", "| --- | --- | --- | --- | --- |", "| RISK-001 | EREQ-001 | Low | UI only | Smoke test |")
+    WriteUtf8 (Join-Path $dir "05-release-plan.md") @("# Release Plan", "", "## Batch 1", "", "- demo-feature")
+    WriteUtf8 (Join-Path $dir "06-acceptance-map.md") @("# Acceptance Map", "", "| Epic Req ID | Feature ID | Feature Acceptance File | Verification Status |", "| --- | --- | --- | --- |", "| EREQ-001 | demo-feature | docs/features/demo-feature/04-acceptance-criteria.md | Ready |")
+    WriteUtf8 (Join-Path $dir "07-progress-board.md") @("# Progress Board", "", "| Feature ID | Batch | Status | Gate | Verification |", "| --- | --- | --- | --- | --- |", "| demo-feature | Batch 1 | Ready | Pending | Pending |")
+}
+
+$tmpPaths | ForEach-Object { RemoveIfExists $_ }
 
 try {
-    New-Item -ItemType Directory -Force -Path $failEpic | Out-Null
-    Copy-Item -LiteralPath (Join-Path $root "docs\workflow\templates\epic\00-source.md") -Destination (Join-Path $failEpic "00-source.md")
+    & node (Join-Path $root "scripts\workflow\product\init-product.mjs") --target $root | Out-Host
+    if (-not (Test-Path (Join-Path $root "docs\product\requirement-ledger.md")) -or -not (Test-Path (Join-Path $root "docs\product\traceability.md"))) {
+        Write-Host "Gate regression failed: product init did not create product traceability files." -ForegroundColor Red
+        exit 1
+    }
 
-    $failEpicCode = RunEpicGate "docs/epics/__tmp_epic_fail"
-    if ($failEpicCode -eq 0) {
+    & node (Join-Path $root "scripts\workflow\feature\new-feature.mjs") "tmp-new-feature-docs" --target $root --stack next-fullstack | Out-Host
+    foreach ($expectedFile in @("00-workflow.yaml", "00-intake-review.md", "01-prd.md", "08-context-pack.md")) {
+        if (-not (Test-Path (Join-Path $featuresRoot "tmp-new-feature-docs\$expectedFile"))) {
+            Write-Host "Gate regression failed: feature:new did not create $expectedFile." -ForegroundColor Red
+            exit 1
+        }
+    }
+    $ledgerAfterNewFeature = Get-Content -LiteralPath (Join-Path $root "docs\product\requirement-ledger.md") -Raw -Encoding utf8
+    if ($ledgerAfterNewFeature -notmatch "tmp-new-feature-docs") {
+        Write-Host "Gate regression failed: feature:new did not register product ledger." -ForegroundColor Red
+        exit 1
+    }
+
+    New-Item -ItemType Directory -Force -Path (Join-Path $epicsRoot "__tmp_epic_fail") | Out-Null
+    Copy-Item -LiteralPath (Join-Path $root "docs\workflow\templates\epic\00-source.md") -Destination (Join-Path $epicsRoot "__tmp_epic_fail\00-source.md")
+    if ((RunEpicGate "docs/epics/__tmp_epic_fail") -eq 0) {
         Write-Host "Gate regression failed: incomplete epic package passed." -ForegroundColor Red
         exit 1
     }
 
-    New-Item -ItemType Directory -Force -Path $passEpic | Out-Null
-    WriteUtf8 (Join-Path $passEpic "00-source.md") @("# Source", "", "Original product iteration material preserved here with enough detail for breakdown.")
-    WriteUtf8 (Join-Path $passEpic "01-epic-brief.md") @("# Epic Brief", "", "- 状态：Ready for Breakdown", "- Epic Status: Ready for Breakdown", "", "Goal is clear.")
-    WriteUtf8 (Join-Path $passEpic "02-requirement-inventory.md") @("# Requirement Inventory", "", "| Epic Req ID | 标题 | 模块 | 风险 | 建议 Feature | 状态 |", "| --- | --- | --- | --- | --- | --- |", "| EREQ-001 | Demo | UI | Low | demo-feature | Ready |")
-    WriteUtf8 (Join-Path $passEpic "03-scope-breakdown.md") @("# Scope Breakdown", "", "| Feature ID | 来源需求 | 目标 | 风险 | 依赖 |", "| --- | --- | --- | --- | --- |", "| demo-feature | EREQ-001 | Demo | Low | none |")
-    WriteUtf8 (Join-Path $passEpic "04-risk-map.md") @("# Risk Map", "", "| 风险 ID | 需求 | 风险等级 | 风险原因 | 缓解方式 |", "| --- | --- | --- | --- | --- |", "| RISK-001 | EREQ-001 | Low | UI only | Smoke test |")
-    WriteUtf8 (Join-Path $passEpic "05-release-plan.md") @("# Release Plan", "", "## Batch 1", "", "- demo-feature")
-    WriteUtf8 (Join-Path $passEpic "06-acceptance-map.md") @("# Acceptance Map", "", "| Epic Req ID | Feature ID | Feature 验收文件 | 验证状态 |", "| --- | --- | --- | --- |", "| EREQ-001 | demo-feature | docs/features/demo-feature/04-acceptance-criteria.md | Ready |")
-    WriteUtf8 (Join-Path $passEpic "07-progress-board.md") @("# Progress Board", "", "| Feature ID | 批次 | 状态 | Gate | Verification |", "| --- | --- | --- | --- | --- |", "| demo-feature | Batch 1 | Ready | Pending | Pending |")
-
-    $passEpicCode = RunEpicGate "docs/epics/__tmp_epic_pass"
-    if ($passEpicCode -ne 0) {
+    $passEpic = Join-Path $epicsRoot "__tmp_epic_pass"
+    WriteReadyEpic $passEpic "__tmp_epic_pass" "approved"
+    if ((RunEpicGate "docs/epics/__tmp_epic_pass") -ne 0) {
         Write-Host "Gate regression failed: ready epic package did not pass." -ForegroundColor Red
         exit 1
     }
 
+    $hydratedEpic = Join-Path $epicsRoot "__tmp_epic_hydrated"
     New-Item -ItemType Directory -Force -Path $hydratedEpic | Out-Null
-    WriteUtf8 (Join-Path $hydratedEpic "00-source.md") @("# Source", "", "Original product iteration material preserved here with enough detail for hydrate regression testing. It includes multiple modules, risk, UI changes, and release sequencing.")
+    WriteUtf8 (Join-Path $hydratedEpic "00-source.md") @("# Source", "", "Original product iteration material preserved here with enough detail for hydrate regression testing.")
     & node (Join-Path $root "scripts\workflow\epic\hydrate-epic.mjs") "docs/epics/__tmp_epic_hydrated" --target $root --agent none | Out-Host
-    WriteUtf8 (Join-Path $hydratedEpic "01-epic-brief.md") @("# Epic Brief", "", "- 状态：Ready for Breakdown", "- Epic Status: Ready for Breakdown", "", "Goal is clear.")
-    WriteUtf8 (Join-Path $hydratedEpic "02-requirement-inventory.md") @("# Requirement Inventory", "", "| Epic Req ID | 鏍囬 | 妯″潡 | 椋庨櫓 | 寤鸿 Feature | 鐘舵€?|", "| --- | --- | --- | --- | --- | --- |", "| EREQ-001 | Demo | UI | Low | demo-feature | Ready |")
-    WriteUtf8 (Join-Path $hydratedEpic "03-scope-breakdown.md") @("# Scope Breakdown", "", "| Feature ID | 鏉ユ簮闇€姹?| 鐩爣 | 椋庨櫓 | 渚濊禆 |", "| --- | --- | --- | --- | --- |", "| demo-feature | EREQ-001 | Demo | Low | none |")
-    WriteUtf8 (Join-Path $hydratedEpic "04-risk-map.md") @("# Risk Map", "", "| 椋庨櫓 ID | 闇€姹?| 椋庨櫓绛夌骇 | 椋庨櫓鍘熷洜 | 缂撹В鏂瑰紡 |", "| --- | --- | --- | --- | --- |", "| RISK-001 | EREQ-001 | Low | UI only | Smoke test |")
-    WriteUtf8 (Join-Path $hydratedEpic "05-release-plan.md") @("# Release Plan", "", "## Batch 1", "", "- demo-feature")
-    WriteUtf8 (Join-Path $hydratedEpic "06-acceptance-map.md") @("# Acceptance Map", "", "| Epic Req ID | Feature ID | Feature 楠屾敹鏂囦欢 | 楠岃瘉鐘舵€?|", "| --- | --- | --- | --- |", "| EREQ-001 | demo-feature | docs/features/demo-feature/04-acceptance-criteria.md | Ready |")
-    WriteUtf8 (Join-Path $hydratedEpic "07-progress-board.md") @("# Progress Board", "", "| Feature ID | 鎵规 | 鐘舵€?| Gate | Verification |", "| --- | --- | --- | --- | --- |", "| demo-feature | Batch 1 | Ready | Pending | Pending |")
-    $hydratedEpicCode = RunEpicGate "docs/epics/__tmp_epic_hydrated"
-    if ($hydratedEpicCode -eq 0) {
-        Write-Host "Gate regression failed: hydrated draft epic package passed before review." -ForegroundColor Red
-        exit 1
-    }
-
-    New-Item -ItemType Directory -Force -Path $localizedStatusEpic | Out-Null
-    WriteUtf8 (Join-Path $localizedStatusEpic "00-source.md") @("# Source", "", "Original product iteration material preserved here with enough detail for localized status regression testing.")
-    WriteUtf8 (Join-Path $localizedStatusEpic "01-epic-brief.md") @("# Epic Brief", "", "- 状态：Ready for Breakdown", "", "Goal is clear.")
-    WriteUtf8 (Join-Path $localizedStatusEpic "02-requirement-inventory.md") @("# Requirement Inventory", "", "| Epic Req ID | 标题 | 模块 | 风险 | 建议 Feature | 状态 |", "| --- | --- | --- | --- | --- | --- |", "| EREQ-001 | Demo | UI | Low | demo-feature | Ready |")
-    WriteUtf8 (Join-Path $localizedStatusEpic "03-scope-breakdown.md") @("# Scope Breakdown", "", "| Feature ID | 来源需求 | 目标 | 风险 | 依赖 |", "| --- | --- | --- | --- | --- |", "| demo-feature | EREQ-001 | Demo | Low | none |")
-    WriteUtf8 (Join-Path $localizedStatusEpic "04-risk-map.md") @("# Risk Map", "", "| 风险 ID | 需求 | 风险等级 | 风险原因 | 缓解方式 |", "| --- | --- | --- | --- | --- |", "| RISK-001 | EREQ-001 | Low | UI only | Smoke test |")
-    WriteUtf8 (Join-Path $localizedStatusEpic "05-release-plan.md") @("# Release Plan", "", "## Batch 1", "", "- demo-feature")
-    WriteUtf8 (Join-Path $localizedStatusEpic "06-acceptance-map.md") @("# Acceptance Map", "", "| Epic Req ID | Feature ID | Feature 验收文件 | 验证状态 |", "| --- | --- | --- | --- |", "| EREQ-001 | demo-feature | docs/features/demo-feature/04-acceptance-criteria.md | Ready |")
-    WriteUtf8 (Join-Path $localizedStatusEpic "07-progress-board.md") @("# Progress Board", "", "| Feature ID | 批次 | 状态 | Gate | Verification |", "| --- | --- | --- | --- | --- |", "| demo-feature | Batch 1 | Ready | Pending | Pending |")
-    $localizedStatusCode = RunEpicGate "docs/epics/__tmp_epic_localized_status"
-    if ($localizedStatusCode -eq 0) {
-        Write-Host "Gate regression failed: localized-only epic status passed without ASCII machine field." -ForegroundColor Red
+    if ((RunEpicGate "docs/epics/__tmp_epic_hydrated") -eq 0) {
+        Write-Host "Gate regression failed: hydrated draft epic package passed before approval." -ForegroundColor Red
         exit 1
     }
 
     & node (Join-Path $root "scripts\workflow\epic\create-features.mjs") "docs/epics/__tmp_epic_pass" --target $root --features tmp-epic-feature-one,tmp-epic-feature-two --stack next-fullstack --agent none | Out-Host
     foreach ($generatedFeature in @("tmp-epic-feature-one", "tmp-epic-feature-two")) {
         $generatedPath = Join-Path $featuresRoot $generatedFeature
-        $expectedFiles = @("00-source.md", "01-prd.md", "02-ui-spec.md", "03-technical-contract.md", "04-acceptance-criteria.md", "05-readiness-review.md", "06-implementation-plan.md", "HYDRATION.md")
+        $expectedFiles = @("00-workflow.yaml", "00-source.md", "00-intake-review.md", "01-prd.md", "02-ui-spec.md", "03-technical-contract.md", "04-acceptance-criteria.md", "05-readiness-review.md", "06-implementation-plan.md", "08-context-pack.md")
         foreach ($expectedFile in $expectedFiles) {
             if (-not (Test-Path (Join-Path $generatedPath $expectedFile))) {
                 Write-Host "Gate regression failed: epic:features did not create $generatedFeature/$expectedFile." -ForegroundColor Red
                 exit 1
             }
         }
-
-        $generatedCode = RunGate "docs/features/$generatedFeature"
-        if ($generatedCode -eq 0) {
-            Write-Host "Gate regression failed: generated epic Feature draft passed before review." -ForegroundColor Red
+        if ((RunFeatureGate "docs/features/$generatedFeature") -eq 0) {
+            Write-Host "Gate regression failed: generated template feature passed before concrete REQ/AC hydration." -ForegroundColor Red
+            exit 1
+        }
+        WriteUtf8 (Join-Path $generatedPath "01-prd.md") @("# PRD", "", "REQ-GENERATED-001 Demo ready requirement")
+        WriteUtf8 (Join-Path $generatedPath "04-acceptance-criteria.md") @("# Acceptance", "", "AC-GENERATED-001 covers REQ-GENERATED-001")
+        WriteUtf8 (Join-Path $generatedPath "06-implementation-plan.md") @(
+            "# Implementation Plan",
+            "",
+            "## Scope Lock",
+            "",
+            "- Approved requirement IDs: REQ-GENERATED-001",
+            "- Approved acceptance IDs: AC-GENERATED-001",
+            "",
+            "## TDD / Debugging Triggers",
+            "",
+            "- TDD required: no",
+            "- Debugging required: no",
+            "",
+            "## Maintainability Plan",
+            "",
+            "- Reuse check: if any structure or logic appears 2 or more times, consider extraction.",
+            "- Tailwind CSS preferred for Next.js UI: yes",
+            "",
+            "## Self Review Checklist",
+            "",
+            "- Requirement coverage: yes"
+        )
+        WriteUtf8 (Join-Path $generatedPath "08-context-pack.md") @(
+            "# Context Pack",
+            "",
+            "## Requirement IDs",
+            "",
+            "- REQ-GENERATED-001",
+            "",
+            "## Acceptance IDs",
+            "",
+            "- AC-GENERATED-001",
+            "",
+            "## Scope Lock",
+            "",
+            "- Approved requirement IDs: REQ-GENERATED-001",
+            "- Approved acceptance IDs: AC-GENERATED-001",
+            "",
+            "## Execution Discipline",
+            "",
+            "- TDD required: no",
+            "- Debugging required: no",
+            "- Self review required: yes",
+            "",
+            "## Maintainability Guardrails",
+            "",
+            "- Reuse threshold: consider extraction when structure or logic appears 2 or more times",
+            "- Max single-file size: 1000 lines",
+            "- Tailwind CSS preferred for Next.js UI: yes",
+            "",
+            "## Test Commands",
+            "",
+            "- Typecheck: npm run typecheck"
+        )
+        if ((RunFeatureGate "docs/features/$generatedFeature") -ne 0) {
+            Write-Host "Gate regression failed: generated feature with inherited Epic approval did not pass after concrete REQ/AC hydration." -ForegroundColor Red
             exit 1
         }
     }
-
-    if (-not (Test-Path (Join-Path $passEpic "09-agent-plan.md"))) {
-        Write-Host "Gate regression failed: epic:features did not create 09-agent-plan.md." -ForegroundColor Red
+    $traceAfterGeneratedFeatures = Get-Content -LiteralPath (Join-Path $root "docs\product\traceability.md") -Raw -Encoding utf8
+    if ($traceAfterGeneratedFeatures -notmatch "tmp-epic-feature-one" -or $traceAfterGeneratedFeatures -notmatch "tmp-epic-feature-two") {
+        Write-Host "Gate regression failed: epic:features did not register generated Features in traceability." -ForegroundColor Red
         exit 1
     }
 
+    $failFeature = Join-Path $featuresRoot "__tmp_gate_fail"
     New-Item -ItemType Directory -Force -Path $failFeature | Out-Null
     Copy-Item -LiteralPath (Join-Path $root "docs\workflow\templates\feature\01-prd.md") -Destination (Join-Path $failFeature "01-prd.md")
-
-    $failCode = RunGate "docs/features/__tmp_gate_fail"
-    if ($failCode -eq 0) {
+    if ((RunFeatureGate "docs/features/__tmp_gate_fail") -eq 0) {
         Write-Host "Gate regression failed: incomplete feature package passed." -ForegroundColor Red
         exit 1
     }
 
-    New-Item -ItemType Directory -Force -Path $passFeature | Out-Null
-    WriteUtf8 (Join-Path $passFeature "01-prd.md") @("# PRD", "", "REQ-DEMO-001 Demo ready requirement")
-    WriteUtf8 (Join-Path $passFeature "02-ui-spec.md") @("# UI Spec", "", "UI-DEMO-001 Demo UI")
-    WriteUtf8 (Join-Path $passFeature "03-technical-contract.md") @(
-        "# Technical Contract",
-        "",
-        "- Stack Preset: next-fullstack",
-        "- Project Mode: greenfield",
-        "- Exception Reason: none",
-        "- Legacy Baseline: none",
-        "- Compatibility Contract: none",
-        "",
-        "- Next.js App Router: yes",
-        "- Next.js Pages Router: no",
-        "",
-        "API-DEMO-001 Demo API"
-    )
-    WriteUtf8 (Join-Path $passFeature "04-acceptance-criteria.md") @("# Acceptance", "", "AC-DEMO-001 covers REQ-DEMO-001")
-    WriteUtf8 (Join-Path $passFeature "05-readiness-review.md") @(
-        "# Readiness Review",
-        "",
-        "- Readiness: Ready",
-        "- Unresolved Questions: 0",
-        "- Blocking Issues: 0",
-        "- Assumptions Accepted: yes",
-        "- User Approval: Approved",
-        "- Implementation Plan Status: Approved"
-    )
-    WriteUtf8 (Join-Path $passFeature "06-implementation-plan.md") @("# Implementation Plan", "", "Approved demo plan")
-
-    $passCode = RunGate "docs/features/__tmp_gate_pass"
-    if ($passCode -ne 0) {
+    $passFeature = Join-Path $featuresRoot "__tmp_gate_pass"
+    WriteReadyFeature $passFeature "__tmp_gate_pass"
+    if ((RunFeatureGate "docs/features/__tmp_gate_pass") -ne 0) {
         Write-Host "Gate regression failed: ready feature package did not pass." -ForegroundColor Red
         exit 1
     }
 
+    $hydratedFeature = Join-Path $featuresRoot "__tmp_feature_hydrated"
     New-Item -ItemType Directory -Force -Path $hydratedFeature | Out-Null
-    WriteUtf8 (Join-Path $hydratedFeature "00-source.md") @("# Source", "", "Feature source material with enough detail for hydrate regression testing. It includes user goal, UI behavior, API boundary, and acceptance direction.")
+    WriteUtf8 (Join-Path $hydratedFeature "00-source.md") @("# Source", "", "Feature source material with enough detail for hydrate regression testing.")
     & node (Join-Path $root "scripts\workflow\feature\hydrate-feature.mjs") "docs/features/__tmp_feature_hydrated" --target $root --agent none | Out-Host
-    WriteUtf8 (Join-Path $hydratedFeature "01-prd.md") @("# PRD", "", "REQ-DEMO-001 Demo ready requirement")
-    WriteUtf8 (Join-Path $hydratedFeature "02-ui-spec.md") @("# UI Spec", "", "UI-DEMO-001 Demo UI")
-    WriteUtf8 (Join-Path $hydratedFeature "03-technical-contract.md") @(
-        "# Technical Contract",
+    if ((RunFeatureGate "docs/features/__tmp_feature_hydrated") -eq 0) {
+        Write-Host "Gate regression failed: hydrated draft feature package passed before approval." -ForegroundColor Red
+        exit 1
+    }
+
+    $lightPassFeature = Join-Path $featuresRoot "__tmp_light_feature_pass"
+    New-Item -ItemType Directory -Force -Path $lightPassFeature | Out-Null
+    WriteManifest $lightPassFeature "feature" "light" "__tmp_light_feature_pass" "next-fullstack" "approved"
+    WriteUtf8 (Join-Path $lightPassFeature "01-light-feature.md") @(
+        "# Light Feature Brief",
         "",
+        "- Feature ID: __tmp_light_feature_pass",
         "- Stack Preset: next-fullstack",
-        "- Project Mode: greenfield",
-        "- Exception Reason: none",
-        "- Legacy Baseline: none",
-        "- Compatibility Contract: none",
+        "",
+        "REQ-LIGHT-001 Demo light requirement",
+        "AC-LIGHT-001 covers REQ-LIGHT-001",
         "",
         "- Next.js App Router: yes",
-        "- Next.js Pages Router: no",
-        "",
-        "API-DEMO-001 Demo API"
+        "- Next.js Pages Router: no"
     )
-    WriteUtf8 (Join-Path $hydratedFeature "04-acceptance-criteria.md") @("# Acceptance", "", "AC-DEMO-001 covers REQ-DEMO-001")
-    WriteUtf8 (Join-Path $hydratedFeature "05-readiness-review.md") @(
-        "# Readiness Review",
-        "",
-        "- Readiness: Ready",
-        "- Unresolved Questions: 0",
-        "- Blocking Issues: 0",
-        "- Assumptions Accepted: yes",
-        "- User Approval: Approved",
-        "- Implementation Plan Status: Approved"
-    )
-    WriteUtf8 (Join-Path $hydratedFeature "06-implementation-plan.md") @("# Implementation Plan", "", "Approved demo plan")
-    $hydratedFeatureCode = RunGate "docs/features/__tmp_feature_hydrated"
-    if ($hydratedFeatureCode -eq 0) {
-        Write-Host "Gate regression failed: hydrated draft feature package passed before review." -ForegroundColor Red
+    if ((RunFeatureGate "docs/features/__tmp_light_feature_pass") -ne 0) {
+        Write-Host "Gate regression failed: ready light feature did not pass." -ForegroundColor Red
+        exit 1
+    }
+
+    $lightFailFeature = Join-Path $featuresRoot "__tmp_light_feature_fail"
+    New-Item -ItemType Directory -Force -Path $lightFailFeature | Out-Null
+    Copy-Item -LiteralPath (Join-Path $root "docs\workflow\templates\feature\01-light-feature.md") -Destination (Join-Path $lightFailFeature "01-light-feature.md")
+    if ((RunFeatureGate "docs/features/__tmp_light_feature_fail") -eq 0) {
+        Write-Host "Gate regression failed: draft light feature passed." -ForegroundColor Red
+        exit 1
+    }
+
+    $lightLegacyFeature = Join-Path $featuresRoot "__tmp_light_feature_legacy"
+    New-Item -ItemType Directory -Force -Path $lightLegacyFeature | Out-Null
+    WriteManifest $lightLegacyFeature "feature" "light" "__tmp_light_feature_legacy" "legacy-existing" "approved"
+    WriteUtf8 (Join-Path $lightLegacyFeature "01-light-feature.md") @("# Light Feature Brief", "", "REQ-LIGHT-001 Demo", "AC-LIGHT-001 covers REQ-LIGHT-001")
+    if ((RunFeatureGate "docs/features/__tmp_light_feature_legacy") -eq 0) {
+        Write-Host "Gate regression failed: legacy light feature passed." -ForegroundColor Red
+        exit 1
+    }
+
+    WriteUtf8 (Join-Path $root "docs\__tmp_route_source.md") @("# Requirement", "", "Change the button copy on one screen. No API, auth, payment, database, or deployment impact.")
+    & node (Join-Path $root "scripts\workflow\automation\route.mjs") --source "docs/__tmp_route_source.md" --target $root --output "docs/workflow/__tmp_routing_review.md" --agent none | Out-Host
+    if (-not (Test-Path (Join-Path $root "docs\workflow\__tmp_routing_review.md"))) {
+        Write-Host "Gate regression failed: workflow:route did not create routing review." -ForegroundColor Red
+        exit 1
+    }
+
+    $approvalFeature = Join-Path $featuresRoot "__tmp_approval_feature"
+    New-Item -ItemType Directory -Force -Path $approvalFeature | Out-Null
+    WriteManifest $approvalFeature "feature" "light" "__tmp_approval_feature" "next-fullstack" "pending"
+    WriteUtf8 (Join-Path $approvalFeature "01-light-feature.md") @("# Light Feature Brief", "", "REQ-LIGHT-001 Demo", "AC-LIGHT-001 covers REQ-LIGHT-001", "- Next.js App Router: yes", "- Next.js Pages Router: no")
+    & node (Join-Path $root "scripts\workflow\automation\approval-review.mjs") "docs/features/__tmp_approval_feature" --target $root | Out-Host
+    if (-not (Test-Path (Join-Path $approvalFeature "APPROVAL_REVIEW.md"))) {
+        Write-Host "Gate regression failed: approval review was not created." -ForegroundColor Red
+        exit 1
+    }
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    & node (Join-Path $root "scripts\workflow\automation\approve.mjs") "docs/features/__tmp_approval_feature" --target $root *> $null
+    $approveWithoutUserCode = $LASTEXITCODE
+    $ErrorActionPreference = $previousErrorActionPreference
+    if ($approveWithoutUserCode -eq 0) {
+        Write-Host "Gate regression failed: approve passed without --user-approved." -ForegroundColor Red
+        exit 1
+    }
+
+    & node (Join-Path $root "scripts\workflow\automation\approve.mjs") "docs/features/__tmp_approval_feature" --target $root --user-approved | Out-Host
+    $approvedManifest = Get-Content -LiteralPath (Join-Path $approvalFeature "00-workflow.yaml") -Raw -Encoding utf8
+    if ($approvedManifest -notmatch "approval:\s*approved" -or $approvedManifest -notmatch "readiness:\s*ready") {
+        Write-Host "Gate regression failed: approve did not update the manifest." -ForegroundColor Red
+        exit 1
+    }
+
+    & node (Join-Path $root "scripts\workflow\automation\context-pack.mjs") "docs/features/__tmp_gate_pass" --target $root --force | Out-Host
+    $contextPack = Get-Content -LiteralPath (Join-Path $passFeature "08-context-pack.md") -Raw -Encoding utf8
+    if ($contextPack -notmatch "REQ-DEMO-001" -or $contextPack -notmatch "Test Commands" -or $contextPack -notmatch "Execution Discipline" -or $contextPack -notmatch "Maintainability Guardrails") {
+        Write-Host "Gate regression failed: context-pack did not include requirements, execution discipline, and maintainability guardrails." -ForegroundColor Red
+        exit 1
+    }
+
+    & node (Join-Path $root "scripts\workflow\automation\agent-plan.mjs") "docs/epics/__tmp_epic_pass" --target $root --features tmp-epic-feature-one,tmp-epic-feature-two --force | Out-Host
+    $agentPlan = Get-Content -LiteralPath (Join-Path $passEpic "09-agent-plan.md") -Raw -Encoding utf8
+    if ($agentPlan -notmatch "tmp-epic-feature-one" -or $agentPlan -notmatch "Assignment Matrix") {
+        Write-Host "Gate regression failed: agent-plan did not include generated features." -ForegroundColor Red
         exit 1
     }
 
     $pagesFeature = Join-Path $featuresRoot "__tmp_gate_pages_router"
-    RemoveIfExists $pagesFeature
-    New-Item -ItemType Directory -Force -Path $pagesFeature | Out-Null
-    WriteUtf8 (Join-Path $pagesFeature "01-prd.md") @("# PRD", "", "REQ-DEMO-001 Demo ready requirement")
-    WriteUtf8 (Join-Path $pagesFeature "02-ui-spec.md") @("# UI Spec", "", "UI-DEMO-001 Demo UI")
-    WriteUtf8 (Join-Path $pagesFeature "03-technical-contract.md") @(
-        "# Technical Contract",
-        "",
-        "- Stack Preset: next-fullstack",
-        "- Project Mode: greenfield",
-        "- Exception Reason: none",
-        "- Legacy Baseline: none",
-        "- Compatibility Contract: none",
-        "",
-        "- Next.js App Router: no",
-        "- Next.js Pages Router: yes",
-        "",
-        "API-DEMO-001 Demo API"
-    )
-    WriteUtf8 (Join-Path $pagesFeature "04-acceptance-criteria.md") @("# Acceptance", "", "AC-DEMO-001 covers REQ-DEMO-001")
-    WriteUtf8 (Join-Path $pagesFeature "05-readiness-review.md") @(
-        "# Readiness Review",
-        "",
-        "- Readiness: Ready",
-        "- Unresolved Questions: 0",
-        "- Blocking Issues: 0",
-        "- Assumptions Accepted: yes",
-        "- User Approval: Approved",
-        "- Implementation Plan Status: Approved"
-    )
-    WriteUtf8 (Join-Path $pagesFeature "06-implementation-plan.md") @("# Implementation Plan", "", "Approved demo plan")
-
-    $pagesCode = RunGate "docs/features/__tmp_gate_pages_router"
-    if ($pagesCode -eq 0) {
+    WriteReadyFeature $pagesFeature "__tmp_gate_pages_router" "next-fullstack" "yes"
+    if ((RunFeatureGate "docs/features/__tmp_gate_pages_router") -eq 0) {
         Write-Host "Gate regression failed: next-fullstack Pages Router package passed." -ForegroundColor Red
         exit 1
     }
@@ -252,16 +421,7 @@ try {
     Write-Host "Gate regression tests passed." -ForegroundColor Green
 }
 finally {
-    RemoveIfExists $failFeature
-    RemoveIfExists $passFeature
-    RemoveIfExists (Join-Path $featuresRoot "__tmp_gate_pages_router")
-    RemoveIfExists $hydratedFeature
-    RemoveIfExists $failEpic
-    RemoveIfExists $passEpic
-    RemoveIfExists $hydratedEpic
-    RemoveIfExists $localizedStatusEpic
-    RemoveIfExists $epicFeatureOne
-    RemoveIfExists $epicFeatureTwo
+    $tmpPaths | ForEach-Object { RemoveIfExists $_ }
 }
 
 exit 0

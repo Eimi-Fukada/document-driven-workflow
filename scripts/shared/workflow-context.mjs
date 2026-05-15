@@ -43,5 +43,15 @@ export function createWorkflowContext(args) {
 }
 
 export function isWorkflowOptionWithValue(arg) {
-  return ["--target", "--features", "--stack", "--agent", "--epic"].includes(arg);
+  return [
+    "--target",
+    "--features",
+    "--stack",
+    "--agent",
+    "--epic",
+    "--mode",
+    "--source",
+    "--output",
+    "--subject",
+  ].includes(arg);
 }

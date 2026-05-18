@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import os from "os";
 import path from "path";
 import { spawnSync } from "child_process";
@@ -11,7 +11,8 @@ const host = parseOption(args, "host", "all", { startIndex: 0 }).toLowerCase();
 const outputArg = parseOption(args, "output", "", { startIndex: 0 });
 const skipInstallCheck = args.includes("--skip-install-check");
 const skipCliCheck = args.includes("--skip-cli-check");
-const noWrite = args.includes("--no-write");
+const jsonOutput = args.includes("--json");
+const noWrite = args.includes("--no-write") || (jsonOutput && !outputArg);
 
 const validHosts = new Set(["all", "codex", "claude"]);
 if (!validHosts.has(host)) {
@@ -33,6 +34,7 @@ const referenceFiles = [
   "LEGACY_ADOPTION.md",
   "STACK_POLICY.md",
   "POSITIONING.md",
+  "MAESTRO_INTEGRATION.md",
 ];
 
 const requiredSkillFiles = [
@@ -42,20 +44,38 @@ const requiredSkillFiles = [
   "scripts/workflow/automation/verify.mjs",
   "scripts/workflow/automation/doctor.mjs",
   "scripts/workflow/automation/completion-check.mjs",
+  "scripts/workflow/automation/status.mjs",
+  "scripts/workflow/automation/handoff-pack.mjs",
   "scripts/workflow/feature/gate-feature.mjs",
   "scripts/workflow/epic/gate-epic.mjs",
   "templates/feature/00-workflow.yaml",
   "templates/feature/01-prd.md",
   "templates/feature/07-verification-report.md",
+  "templates/contracts/integration-contract.md",
+  "templates/contracts/project-contract.md",
   "templates/epic/00-source.md",
   "references/USAGE.md",
   "references/POSITIONING.md",
+  "references/MAESTRO_INTEGRATION.md",
 ];
 
 const checks = [];
 
-function addCheck(area, status, check, detail) {
-  checks.push({ area, status, check, detail });
+function classifyCheck(area, check) {
+  if (area === "Installed skill" || area === "CLI" || area === "Skill files") {
+    return "environment_blocker";
+  }
+  if (area === "Legacy" || area === "Target docs") {
+    return "doc_blocker";
+  }
+  if (area === "Target project") {
+    return check === "target root" ? "environment_blocker" : "doc_blocker";
+  }
+  return "doc_blocker";
+}
+
+function addCheck(area, status, check, detail, blockerType = classifyCheck(area, check)) {
+  checks.push({ area, status, check, detail, blocker_type: blockerType });
 }
 
 function normalizeRel(input) {
@@ -313,10 +333,10 @@ const report = `# Workflow Doctor Report
 
 ## Checks
 
-| Area | Status | Check | Detail |
-| --- | --- | --- | --- |
+| Area | Status | Blocker Type | Check | Detail |
+| --- | --- | --- | --- | --- |
 ${checks
-  .map((item) => `| ${item.area} | ${item.status} | ${item.check} | ${String(item.detail).replaceAll("|", "\\|")} |`)
+  .map((item) => `| ${item.area} | ${item.status} | ${item.blocker_type} | ${item.check} | ${String(item.detail).replaceAll("|", "\\|")} |`)
   .join("\n")}
 
 ## Next Step
@@ -331,12 +351,35 @@ ${
 if (!noWrite) {
   mkdirSync(path.dirname(reportPath), { recursive: true });
   writeFileSync(reportPath, report, "utf8");
-  console.log(`Doctor report written: ${workflow.relativeToTarget(reportPath)}`);
 }
 
-console.log(`Workflow doctor result: ${blockers.length ? "BLOCKED" : "PASS"}`);
-console.log(`Blockers: ${blockers.length}`);
-console.log(`Warnings: ${warnings.length}`);
+const payload = {
+  schema_version: "1",
+  kind: "workflow_doctor",
+  generated_at: new Date().toISOString(),
+  package_root: workflow.packageRoot,
+  target_root: workflow.targetRoot,
+  host,
+  result: blockers.length ? "BLOCKED" : "PASS",
+  report_path: noWrite ? null : reportPath,
+  summary: {
+    blockers: blockers.length,
+    warnings: warnings.length,
+    checks: checks.length,
+  },
+  checks,
+};
+
+if (jsonOutput) {
+  console.log(JSON.stringify(payload, null, 2));
+} else {
+  if (!noWrite) {
+    console.log(`Doctor report written: ${workflow.relativeToTarget(reportPath)}`);
+  }
+  console.log(`Workflow doctor result: ${blockers.length ? "BLOCKED" : "PASS"}`);
+  console.log(`Blockers: ${blockers.length}`);
+  console.log(`Warnings: ${warnings.length}`);
+}
 
 if (blockers.length) {
   process.exit(1);

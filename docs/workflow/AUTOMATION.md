@@ -17,6 +17,7 @@
 - 生成 Epic agent plan。
 - 运行硬门禁。
 - 在声称完成前检查验证证据、变更文件映射、禁止范围和可维护性。
+- 为 Maestro 输出机器可读状态、Feature 交接包和完成前检查结果。
 
 自动化不能：
 
@@ -25,6 +26,7 @@
 - 把高风险工作降级成 Light。
 - 为了暴露工作流命令而修改目标项目 `package.json`。
 - 自动启动多个 agent 写代码。
+- 替代 Maestro 做多项目 mission、依赖调度或跨项目联调验收。
 
 ## 主入口
 
@@ -37,6 +39,8 @@
 | `continue.mjs` | 用户批准后运行 gate，并准备下一阶段上下文 | yes | yes，当需要写入批准时 |
 | `verify.mjs` | 执行文档里的验证命令并写回验证报告 | yes，`07-verification-report.md` | no |
 | `completion-check.mjs` | 完成前门禁，检查需求覆盖、验证证据、diff、可维护性和追溯 | yes，`COMPLETION_CHECK.md` | no |
+| `status.mjs` | 输出 Epic / Feature 状态快照，给人或 Maestro 判断下一步 | yes，`STATUS_REPORT.md`；`--json` 时可只输出 JSON | no |
+| `handoff-pack.mjs` | 生成单个 Feature 的实现交接包和机器可读 worker 输入 | yes，`HANDOFF_PACK.md` 和 `handoff-pack.json` | no |
 
 ## 高级脚本
 
@@ -80,6 +84,24 @@ AI 根据需要选择 Skill 内置脚本。目标项目保持轻量，不承担�
 gate 通过后，AI 遵守 `EXECUTION_DISCIPLINE.md` 中的 Scope Lock、TDD / debugging 触发条件、自审和证据规则。
 
 验证通过后，AI 仍然不能直接声称完成；需要运行完成前门禁，确认验证报告、变更文件映射、禁止范围和可维护性检查都通过。
+
+## Maestro 机器接口
+
+当 Maestro 负责多项目调度时，使用这些入口，不要解析普通 Markdown 报告：
+
+```bash
+node scripts/workflow/automation/doctor.mjs --target <project-root> --json
+node scripts/workflow/automation/status.mjs --target <project-root> --json
+node scripts/workflow/automation/handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json
+node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --json
+```
+
+`doctor --json` 判断目标项目是否可接入。  
+`status --json` 给 Maestro 快速读取当前 Epic / Feature 状态，但不代表 gate 已通过。  
+`handoff-pack --json` 生成 Codex worker 输入。  
+`completion-check --json` 是单项目 Feature 完成前的机器可读证据。
+
+跨项目依赖、联调、集成验收由 Maestro 记录；document-driven-workflow 只输出单项目证据。
 
 ## 批准规则
 

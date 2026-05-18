@@ -1,6 +1,6 @@
 ---
 name: "document-driven-workflow"
-description: "Use when a project should be delivered from product documents, UI specs, acceptance criteria, Epic/Feature breakdown, readiness gates, legacy adoption, or AI-managed implementation handoff."
+description: "Use when a project should be delivered from product documents, UI specs, acceptance criteria, Epic/Feature breakdown, readiness gates, legacy adoption, Maestro/Codex handoff, or AI-managed implementation evidence."
 ---
 
 # Document Driven Workflow
@@ -10,25 +10,14 @@ description: "Use when a project should be delivered from product documents, UI 
 ## 核心规则
 
 - 复用脚本、门禁、模板和规则保存在 Skill 内部。
-- 目标项目（target project）只保存项目自己的文档：`docs/epics`、`docs/features`、`docs/product`、`docs/legacy`、`docs/changes`、`docs/decisions`。
+- 目标项目只保存项目自己的文档：`docs/epics`、`docs/features`、`docs/product`、`docs/legacy`、`docs/changes`、`docs/decisions`。
 - 不要为了暴露工作流命令而修改目标项目的 `package.json`。
-- 代码实现前必须通过对应的内置 gate。
+- 每个 Epic、Feature、Light Feature 只使用 `00-workflow.yaml` 作为机器可读状态源。
+- 代码实现前必须通过对应 gate。
 - 实现时遵守 `EXECUTION_DISCIPLINE.md`：Scope Lock、TDD / debugging 触发条件、自审、证据规则。
-- 实现时遵守可维护性规则：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；Next.js UI 优先使用 Tailwind CSS。
-- 声称 Feature 完成前，必须运行完成前检查或完成等价检查：需求覆盖、验收覆盖、验证报告、变更文件映射、禁止范围、可维护性和追溯更新。
-- 如果文档与代码现状冲突，先报告冲突和可选方案，不要直接改代码绕过文档。
-
-## 工作流状态
-
-每个 Epic、Feature、Light Feature 只有一个机器可读状态文件：
-
-```text
-00-workflow.yaml
-```
-
-批准状态、可开发状态、当前状态、技术栈预设、未解决问题数、阻塞问题数、假设是否接受，都只记录在这里。
-
-Markdown 文档只描述产品意图、范围、计划和验证，不再保存独立批准字段。
+- 实现时考虑可维护性：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；Next.js UI 优先使用 Tailwind CSS。
+- 声称 Feature 完成前，必须运行 `completion-check.mjs` 或完成等价检查。
+- 如果文档与代码现状冲突，先报告冲突和方案，不要直接改代码绕过文档。
 
 ## 执行顺序
 
@@ -51,7 +40,7 @@ Markdown 文档只描述产品意图、范围、计划和验证，不再保存�
 使用 document-driven-workflow，处理这个需求文档，生成需要的 Epic / Feature 文档，等待我审查。
 ```
 
-如果必须直接调用脚本，在 Skill 目录下运行，并传入 `--target <project-root>`。主交付入口是：
+如果必须直接调用脚本，在 Skill 目录下运行，并传入 `--target <project-root>`：
 
 - 处理需求：`node scripts/workflow/automation/process.mjs --source <requirement-file> --target <project-root> --stack <preset>`
 - 批准后继续：`node scripts/workflow/automation/continue.mjs <docs/features/id|docs/epics/id> --target <project-root> --user-approved`
@@ -59,7 +48,16 @@ Markdown 文档只描述产品意图、范围、计划和验证，不再保存�
 - 完成前检查：`node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root>`
 - 环境体检：`node scripts/workflow/automation/doctor.mjs --target <project-root> --host all`
 
-其他脚本是高级调试入口，按 `references/USAGE.md` 和 `references/AUTOMATION.md` 使用。
+## Maestro 集成
+
+当 Maestro 负责更大的 mission 时，本 Skill 仍然只处理单个目标项目：
+
+1. `doctor.mjs --target <project-root> --json`：检查环境、Skill 安装和项目接入状态。
+2. `status.mjs --target <project-root> --json`：生成项目状态快照，不运行 gate。
+3. `handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json`：生成 `HANDOFF_PACK.md` 和 `handoff-pack.json`，交给 Codex worker。
+4. `completion-check.mjs docs/features/<feature-id> --target <project-root> --json`：Feature 完成前的机器可读门禁。
+
+不要把本 Skill 当成多项目调度器。Maestro 负责 mission 状态、依赖、派发和跨项目集成证据；document-driven-workflow 负责单项目文档、门禁、验证和交接输入。
 
 ## Agent 选项
 
@@ -73,15 +71,16 @@ Hydrate 和生成类脚本支持：
 
 ## 参考文档
 
-- `references/WORKFLOW.md`：核心模型和文档包
-- `references/POSITIONING.md`：适合人群、优势、与 Superpowers 的区别
-- `references/MODE_ROUTER.md`：模式选择
-- `references/GATES.md`：硬门禁规则
-- `references/AUTOMATION.md`：自动化脚本边界
-- `references/EXECUTION_PROTOCOL.md`：门禁通过后的实现流程
-- `references/EXECUTION_DISCIPLINE.md`：Scope Lock、TDD / debugging、自审和证据规则
-- `references/PRODUCT_TRACEABILITY.md`：Requirement Ledger、Traceability Matrix 和 snapshots
-- `references/STACK_POLICY.md`：允许使用的 Stack Preset
-- `references/EPIC_WORKFLOW.md`：产品迭代拆分流程
-- `references/LEGACY_ADOPTION.md`：老项目接入流程
-- `references/USER_GUIDE.md` 与 `references/USAGE.md`：面向使用者的完整说明
+- `references/WORKFLOW.md`：核心模型和文档包。
+- `references/POSITIONING.md`：适合人群、优势、与 Superpowers 的区别。
+- `references/MODE_ROUTER.md`：模式选择。
+- `references/GATES.md`：硬门禁规则。
+- `references/AUTOMATION.md`：自动化脚本边界。
+- `references/MAESTRO_INTEGRATION.md`：Maestro 多项目编排集成方式。
+- `references/EXECUTION_PROTOCOL.md`：门禁通过后的实现流程。
+- `references/EXECUTION_DISCIPLINE.md`：Scope Lock、TDD / debugging、自审和证据规则。
+- `references/PRODUCT_TRACEABILITY.md`：Requirement Ledger、Traceability Matrix 和 snapshots。
+- `references/STACK_POLICY.md`：允许使用的 Stack Preset。
+- `references/EPIC_WORKFLOW.md`：产品迭代拆分流程。
+- `references/LEGACY_ADOPTION.md`：老项目接入流程。
+- `references/USER_GUIDE.md` 和 `references/USAGE.md`：面向使用者的完整说明。

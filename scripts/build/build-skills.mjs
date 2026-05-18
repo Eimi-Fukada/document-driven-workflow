@@ -22,6 +22,7 @@ const referenceFiles = [
   "LEGACY_ADOPTION.md",
   "STACK_POLICY.md",
   "POSITIONING.md",
+  "MAESTRO_INTEGRATION.md",
 ];
 
 function copyRequiredFile(source, target) {

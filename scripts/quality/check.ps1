@@ -14,6 +14,7 @@ $required = @(
     "docs/workflow/USAGE.md",
     "docs/workflow/AUTOMATION.md",
     "docs/workflow/POSITIONING.md",
+    "docs/workflow/MAESTRO_INTEGRATION.md",
     "docs/workflow/GATES.md",
     "docs/workflow/MODE_ROUTER.md",
     "docs/workflow/EXECUTION_PROTOCOL.md",
@@ -41,6 +42,8 @@ $required = @(
     "docs/workflow/templates/product/traceability.md",
     "docs/workflow/templates/product/snapshots/README.md",
     "docs/workflow/templates/change/change-request.md",
+    "docs/workflow/templates/contracts/integration-contract.md",
+    "docs/workflow/templates/contracts/project-contract.md",
     "docs/workflow/templates/decision/adr.md",
     "docs/workflow/templates/legacy/baseline.md",
     "docs/workflow/templates/legacy/compatibility-contract.md",
@@ -69,8 +72,10 @@ $required = @(
     "scripts/workflow/automation/continue.mjs",
     "scripts/workflow/automation/context-pack.mjs",
     "scripts/workflow/automation/doctor.mjs",
+    "scripts/workflow/automation/handoff-pack.mjs",
     "scripts/workflow/automation/process.mjs",
     "scripts/workflow/automation/route.mjs",
+    "scripts/workflow/automation/status.mjs",
     "scripts/workflow/automation/verify.mjs",
     "scripts/workflow/epic/create-features.mjs",
     "scripts/shared/workflow-manifest.mjs",
@@ -109,6 +114,7 @@ $userGuide = ReadText "docs/workflow/USER_GUIDE.md"
 $usage = ReadText "docs/workflow/USAGE.md"
 $automation = ReadText "docs/workflow/AUTOMATION.md"
 $positioning = ReadText "docs/workflow/POSITIONING.md"
+$maestroIntegration = ReadText "docs/workflow/MAESTRO_INTEGRATION.md"
 $gates = ReadText "docs/workflow/GATES.md"
 $modeRouter = ReadText "docs/workflow/MODE_ROUTER.md"
 $executionProtocol = ReadText "docs/workflow/EXECUTION_PROTOCOL.md"
@@ -135,6 +141,8 @@ $completionCheckScript = ReadText "scripts/workflow/automation/completion-check.
 $continueScript = ReadText "scripts/workflow/automation/continue.mjs"
 $contextPackScript = ReadText "scripts/workflow/automation/context-pack.mjs"
 $doctorScript = ReadText "scripts/workflow/automation/doctor.mjs"
+$statusScript = ReadText "scripts/workflow/automation/status.mjs"
+$handoffPackScript = ReadText "scripts/workflow/automation/handoff-pack.mjs"
 $processScript = ReadText "scripts/workflow/automation/process.mjs"
 $agentPlanScript = ReadText "scripts/workflow/automation/agent-plan.mjs"
 $verifyScript = ReadText "scripts/workflow/automation/verify.mjs"
@@ -169,12 +177,17 @@ $contentChecks = @(
     @{ Name = "EXECUTION_DISCIPLINE.md defines maintainability guardrails"; Pass = $executionDiscipline -match "2 or more times" -and $executionDiscipline -match "1000 lines" -and $executionDiscipline -match "Tailwind CSS" },
     @{ Name = "PRODUCT_TRACEABILITY.md defines product layer"; Pass = $productTraceability -match "requirement-ledger.md" -and $productTraceability -match "traceability.md" -and $productTraceability -match "snapshots" },
     @{ Name = "POSITIONING.md explains audience and Superpowers boundary"; Pass = $positioning -match "Superpowers" -and $positioning -match "document-driven-workflow" -and $positioning -match "Requirement Ledger" },
+    @{ Name = "POSITIONING.md explains Maestro boundary"; Pass = $positioning -match "Maestro" -and $positioning -match "doctor --json" -and $positioning -match "handoff-pack --json" },
+    @{ Name = "MAESTRO_INTEGRATION.md defines orchestration boundary"; Pass = $maestroIntegration -match "Maestro" -and $maestroIntegration -match "document-driven-workflow" -and $maestroIntegration -match "integration_blocker" },
+    @{ Name = "MAESTRO_INTEGRATION.md documents machine interfaces"; Pass = $maestroIntegration -match "doctor --json" -and $maestroIntegration -match "status --json" -and $maestroIntegration -match "handoff-pack --json" -and $maestroIntegration -match "completion-check --json" },
     @{ Name = "USAGE.md separates users and maintainers"; Pass = $usage -match "document-driven-workflow" -and $usage -match "package.json" -and $usage -match "Skill" },
     @{ Name = "USAGE.md documents maintainer commands"; Pass = $usage -match "npm run build" -and $usage -match "npm run check" -and $usage -match "npm test" },
     @{ Name = "USAGE.md documents main script entries"; Pass = $usage -match "process.mjs" -and $usage -match "continue.mjs" -and $usage -match "verify.mjs" -and $usage -match "doctor.mjs" -and $usage -match "completion-check.mjs" },
+    @{ Name = "USAGE.md documents Maestro entries"; Pass = $usage -match "status.mjs" -and $usage -match "handoff-pack.mjs" -and $usage -match "--json" },
     @{ Name = "AUTOMATION.md documents approval boundary"; Pass = $automation -match "approve.mjs" -and $automation -match "--user-approved" -and $automation -match "Agent Plan" },
     @{ Name = "AUTOMATION.md documents context pack"; Pass = $automation -match "context-pack.mjs" -and $automation -match "08-context-pack.md" },
     @{ Name = "AUTOMATION.md documents main entries"; Pass = $automation -match "process.mjs" -and $automation -match "continue.mjs" -and $automation -match "verify.mjs" -and $automation -match "doctor.mjs" -and $automation -match "completion-check.mjs" },
+    @{ Name = "AUTOMATION.md documents Maestro machine interfaces"; Pass = $automation -match "status.mjs" -and $automation -match "handoff-pack.mjs" -and $automation -match "Maestro" },
     @{ Name = "USAGE.md documents agent options"; Pass = $usage -match "--agent codex" -and $usage -match "--agent claude" -and $usage -match "--agent none" },
     @{ Name = "Templates do not contain scattered approval fields"; Pass = -not ($templateStatusDocs | Where-Object { $_ -match "User Approval|Review Status|Hydration Status|Implementation Plan Status|Agent Plan Status|approval state|user approval|ready for user approval" }) },
     @{ Name = "USAGE.md documents document packages"; Pass = $usage -match "00-source.md" -and $usage -match "01-prd.md" -and $usage -match "01-light-feature.md" },
@@ -187,6 +200,7 @@ $contentChecks = @(
     @{ Name = "GATES.md requires execution discipline"; Pass = $gates -match "Scope Lock" -and $gates -match "execution discipline" },
     @{ Name = "GATES.md requires maintainability guardrails"; Pass = $gates -match "reuse threshold" -and $gates -match "1000-line" -and $gates -match "Tailwind CSS" },
     @{ Name = "GATES.md documents completion gate"; Pass = $gates -match "Completion Gate" -and $gates -match "completion-check.mjs" -and $gates -match "traceability.md" },
+    @{ Name = "GATES.md documents machine-readable completion gate"; Pass = $gates -match "--json" -and $gates -match "Maestro" },
     @{ Name = "STACK_POLICY.md bans Pages Router"; Pass = $stackPolicy -match "Pages Router" -and $stackPolicy -match "App Router" },
     @{ Name = "STACK_POLICY.md defines allowed presets"; Pass = $stackPolicy -match "next-fullstack" -and $stackPolicy -match "flutter-fastapi" -and $stackPolicy -match "legacy-existing" },
     @{ Name = "AGENTS.md mentions gate:dev"; Pass = $agents -match "gate:dev" },
@@ -196,9 +210,10 @@ $contentChecks = @(
     @{ Name = "Skill mentions execution discipline"; Pass = $skill -match "EXECUTION_DISCIPLINE.md" -and $skill -match "Scope Lock" },
     @{ Name = "Skill mentions maintainability guardrails"; Pass = $skill -match "2 repeated uses" -and $skill -match "1000 lines" -and $skill -match "Tailwind CSS" },
     @{ Name = "Skill mentions completion check"; Pass = $skill -match "completion-check.mjs" -and $skill -match "Feature" },
-    @{ Name = "Skill describes target project adoption"; Pass = $skill -match "target project" -and $skill -match "00-workflow.yaml" },
+    @{ Name = "Skill mentions Maestro integration"; Pass = $skill -match "Maestro" -and $skill -match "handoff-pack.mjs" -and $skill -match "status.mjs" },
+    @{ Name = "Skill describes target project adoption"; Pass = $skill -match "--target <project-root>" -and $skill -match "00-workflow.yaml" },
     @{ Name = "Skill mentions product traceability"; Pass = $skill -match "requirement-ledger.md" -and $skill -match "traceability.md" },
-    @{ Name = "Build script generates skill references"; Pass = $buildScript -match "references" -and $buildScript -match "USAGE.md" -and $buildScript -match "workflow" },
+    @{ Name = "Build script generates skill references"; Pass = $buildScript -match "references" -and $buildScript -match "USAGE.md" -and $buildScript -match "MAESTRO_INTEGRATION.md" },
     @{ Name = "Build script generates skill templates"; Pass = $buildScript -match "templates" -and $buildScript -match "copyDirectoryRecursive" },
     @{ Name = "Build script generates workflow scripts"; Pass = $buildScript -match "scripts" -and $buildScript -match "workflow" },
     @{ Name = "Hydrate scripts use manifest state"; Pass = $epicHydrateScript -match "00-workflow.yaml" -and $featureHydrateScript -match "00-workflow.yaml" -and $epicFeaturesScript -match "writeManifest" },
@@ -206,6 +221,7 @@ $contentChecks = @(
     @{ Name = "Gate subject does not keep legacy path options"; Pass = -not ($gateSubjectScript -match "FeaturePath|EpicPath") },
     @{ Name = "Feature scripts support light mode"; Pass = $featureNewScript -match "--mode" -and $gateSubjectScript -match "01-light-feature.md" },
     @{ Name = "Automation scripts exist"; Pass = $routeScript -match "Recommended Mode" -and $approvalReviewScript -match "Approval Review" -and $approveScript -match "--user-approved" -and $agentPlanScript -match "Assignment Matrix" -and $doctorScript -match "Workflow Doctor Report" -and $completionCheckScript -match "Completion Check" },
+    @{ Name = "Maestro support scripts exist"; Pass = $doctorScript -match "workflow_doctor" -and $completionCheckScript -match "workflow_completion_check" -and $statusScript -match "workflow_status" -and $handoffPackScript -match "workflow_handoff_pack" },
     @{ Name = "Orchestration scripts exist"; Pass = $processScript -match "workflow:process" -or ($processScript -match "Workflow process completed" -and $continueScript -match "Feature gate passed" -and $verifyScript -match "Automated Verification Run") },
     @{ Name = "Product automation scripts exist"; Pass = $contextPackScript -match "Context Pack" -and $productArtifactsScript -match "requirement-ledger.md" },
     @{ Name = "package.json exposes workflow route"; Pass = $package -match '"workflow:route"' },
@@ -215,6 +231,8 @@ $contentChecks = @(
     @{ Name = "package.json exposes workflow context pack"; Pass = $package -match '"workflow:context-pack"' },
     @{ Name = "package.json exposes workflow continue"; Pass = $package -match '"workflow:continue"' },
     @{ Name = "package.json exposes workflow doctor"; Pass = $package -match '"workflow:doctor"' },
+    @{ Name = "package.json exposes workflow status"; Pass = $package -match '"workflow:status"' },
+    @{ Name = "package.json exposes workflow handoff pack"; Pass = $package -match '"workflow:handoff-pack"' },
     @{ Name = "package.json exposes workflow process"; Pass = $package -match '"workflow:process"' },
     @{ Name = "package.json exposes workflow verify"; Pass = $package -match '"workflow:verify"' },
     @{ Name = "package.json exposes product init"; Pass = $package -match '"workflow:init-product"' },

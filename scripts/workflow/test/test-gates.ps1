@@ -26,6 +26,7 @@ $tmpPaths = @(
     (Join-Path $root "docs\workflow\ROUTING_REVIEW.md"),
     (Join-Path $root "docs\workflow\__tmp_routing_review.md"),
     (Join-Path $root "docs\workflow\DOCTOR_REPORT.md"),
+    (Join-Path $root "docs\workflow\STATUS_REPORT.md"),
     (Join-Path $root "docs\product")
 )
 
@@ -495,11 +496,47 @@ try {
         Write-Host "Gate regression failed: workflow:completion-check did not pass a fully evidenced feature." -ForegroundColor Red
         exit 1
     }
+    $completionJsonRaw = & node (Join-Path $root "scripts\workflow\automation\completion-check.mjs") "docs/features/tmp-process-feature" --target $root --changed-files "src/demo.ts" --json
+    $completionJson = $completionJsonRaw | ConvertFrom-Json
+    if ($completionJson.kind -ne "workflow_completion_check" -or $completionJson.result -ne "PASS" -or $completionJson.summary.checks -lt 1) {
+        Write-Host "Gate regression failed: workflow:completion-check --json did not emit a passing machine-readable payload." -ForegroundColor Red
+        exit 1
+    }
 
     & node (Join-Path $root "scripts\workflow\automation\doctor.mjs") --target $root --host all --skip-install-check --skip-cli-check | Out-Host
     $doctorReport = Get-Content -LiteralPath (Join-Path $root "docs\workflow\DOCTOR_REPORT.md") -Raw -Encoding utf8
     if ($doctorReport -notmatch "Workflow Doctor Report" -or $doctorReport -notmatch "Result: PASS") {
         Write-Host "Gate regression failed: workflow:doctor did not generate a passing local report when install and CLI checks are skipped." -ForegroundColor Red
+        exit 1
+    }
+    $doctorJsonRaw = & node (Join-Path $root "scripts\workflow\automation\doctor.mjs") --target $root --host all --skip-install-check --skip-cli-check --json
+    $doctorJson = $doctorJsonRaw | ConvertFrom-Json
+    if ($doctorJson.kind -ne "workflow_doctor" -or $doctorJson.result -ne "PASS" -or $doctorJson.summary.checks -lt 1) {
+        Write-Host "Gate regression failed: workflow:doctor --json did not emit a passing machine-readable payload." -ForegroundColor Red
+        exit 1
+    }
+
+    & node (Join-Path $root "scripts\workflow\automation\status.mjs") --target $root | Out-Host
+    $statusReport = Get-Content -LiteralPath (Join-Path $root "docs\workflow\STATUS_REPORT.md") -Raw -Encoding utf8
+    if ($statusReport -notmatch "Workflow Status Report" -or $statusReport -notmatch "tmp-process-feature") {
+        Write-Host "Gate regression failed: workflow:status did not generate a useful status report." -ForegroundColor Red
+        exit 1
+    }
+    $statusJsonRaw = & node (Join-Path $root "scripts\workflow\automation\status.mjs") --target $root --json
+    $statusJson = $statusJsonRaw | ConvertFrom-Json
+    if ($statusJson.kind -ne "workflow_status" -or $statusJson.result -ne "PASS" -or $statusJson.summary.features_total -lt 1) {
+        Write-Host "Gate regression failed: workflow:status --json did not emit a machine-readable payload." -ForegroundColor Red
+        exit 1
+    }
+
+    $handoffJsonRaw = & node (Join-Path $root "scripts\workflow\automation\handoff-pack.mjs") "docs/features/tmp-process-feature" --target $root --json
+    $handoffJson = $handoffJsonRaw | ConvertFrom-Json
+    if ($handoffJson.kind -ne "workflow_handoff_pack" -or $handoffJson.feature.id -ne "tmp-process-feature" -or -not (Test-Path (Join-Path $processFeature "HANDOFF_PACK.md")) -or -not (Test-Path (Join-Path $processFeature "handoff-pack.json"))) {
+        Write-Host "Gate regression failed: workflow:handoff-pack did not generate handoff artifacts." -ForegroundColor Red
+        exit 1
+    }
+    if (-not ($handoffJson.requirement_ids -contains "REQ-DEMO-001") -or -not ($handoffJson.acceptance_ids -contains "AC-DEMO-001")) {
+        Write-Host "Gate regression failed: workflow:handoff-pack did not include requirement and acceptance IDs." -ForegroundColor Red
         exit 1
     }
 

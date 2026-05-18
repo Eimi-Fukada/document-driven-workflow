@@ -18,6 +18,7 @@
 - Feature 实现前必须通过门禁。
 - 实现时遵守 Scope Lock、TDD / debugging 触发条件、自审、验证证据和可维护性规则。
 - 声称完成前必须通过完成前检查，确认需求覆盖、测试证据、验证报告、变更文件映射、禁止范围和产品追溯。
+- 支持被 Maestro 驾驭：通过 JSON 状态、Feature 交接包和完成前门禁，让 Maestro 负责多项目调度，workflow 负责单项目交付证据。
 
 ## 适合谁
 
@@ -76,6 +77,21 @@ node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id>
 node scripts/workflow/automation/doctor.mjs --target <project-root> --host all
 ```
 
+## Maestro 集成
+
+Maestro 负责多项目 mission、依赖、派发和跨项目验收；本工作流只负责单个项目里的需求结构化、门禁、验证和交接证据。
+
+给 Maestro 使用的稳定入口：
+
+```bash
+node scripts/workflow/automation/doctor.mjs --target <project-root> --json
+node scripts/workflow/automation/status.mjs --target <project-root> --json
+node scripts/workflow/automation/handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json
+node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --json
+```
+
+详细边界见 `docs/workflow/MAESTRO_INTEGRATION.md`。
+
 ## Agent 支持
 
 Hydrate 类脚本支持：
@@ -93,6 +109,7 @@ Hydrate 类脚本支持：
 - `docs/workflow/MODE_ROUTER.md`
 - `docs/workflow/GATES.md`
 - `docs/workflow/AUTOMATION.md`
+- `docs/workflow/MAESTRO_INTEGRATION.md`
 - `docs/workflow/EXECUTION_PROTOCOL.md`
 - `docs/workflow/EXECUTION_DISCIPLINE.md`
 - `docs/workflow/PRODUCT_TRACEABILITY.md`

@@ -145,6 +145,17 @@ node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id>
 node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --changed-files "src/app/page.tsx,src/lib/demo.ts"
 ```
 
+Maestro 集成入口：
+
+```bash
+node scripts/workflow/automation/doctor.mjs --target <project-root> --json
+node scripts/workflow/automation/status.mjs --target <project-root> --json
+node scripts/workflow/automation/handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json
+node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --json
+```
+
+这几个入口用于让 Maestro 读取机器可读状态和交接信息。Maestro 负责多项目 mission、依赖、派发和跨项目集成；document-driven-workflow 只负责单项目文档、门禁、验证和证据。
+
 ## 高级脚本
 
 这些脚本用于调试、局部流程或维护工作流本身。普通使用者通常不需要直接调用。
@@ -189,6 +200,19 @@ node scripts/workflow/automation/agent-plan.mjs docs/epics/<epic-id> --target <p
 
 ```bash
 node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root>
+```
+
+状态快照：
+
+```bash
+node scripts/workflow/automation/status.mjs --target <project-root>
+node scripts/workflow/automation/status.mjs --target <project-root> --json
+```
+
+生成 Feature 交接包：
+
+```bash
+node scripts/workflow/automation/handoff-pack.mjs docs/features/<feature-id> --target <project-root>
 ```
 
 ## 文档包

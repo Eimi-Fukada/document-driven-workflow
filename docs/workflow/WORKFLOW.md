@@ -136,6 +136,21 @@ node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id>
 
 它会检查需求 ID 覆盖、验收覆盖、验证报告、变更文件映射、禁止范围、可维护性和产品追溯。通过后生成 `COMPLETION_CHECK.md`，作为验证报告之外的完成证据。
 
+## Maestro Integration
+
+当需要一次驾驭多个项目时，Maestro 负责 mission、依赖、派发、跨项目状态和集成验收。本工作流只负责单个项目的需求结构化和交付证据。
+
+Maestro 可使用这些机器接口：
+
+```bash
+node scripts/workflow/automation/doctor.mjs --target <project-root> --json
+node scripts/workflow/automation/status.mjs --target <project-root> --json
+node scripts/workflow/automation/handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json
+node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --json
+```
+
+跨项目接口和联调验收使用 `templates/contracts/project-contract.md` 与 `templates/contracts/integration-contract.md`，不要让单个 Feature 承担多项目编排职责。
+
 ## Stack Policy
 
 新项目必须选择 `STACK_POLICY.md` 里的标准 Stack Preset。

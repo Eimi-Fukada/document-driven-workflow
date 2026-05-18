@@ -13,6 +13,7 @@
 - Feature gate 通过后，必须遵守 `EXECUTION_DISCIPLINE.md` 中的 Scope Lock、TDD / debugging 触发条件、自审和证据规则。
 - 实现时要考虑长期维护性：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；Next.js UI 优先使用 Tailwind CSS。
 - 工作流本身不保留历史兼容补丁，除非有明确迁移理由。
+- Maestro 只负责多项目调度、依赖和跨项目验收；本工作流只负责单项目文档、门禁、验证和交接证据。
 
 ## 状态模型
 
@@ -36,6 +37,19 @@
 6. 运行 `gate:epic` 或 `gate:dev`。
 7. 门禁通过后才进入实现。
 8. 完成后执行自审、验证、追溯更新，并更新验证报告。
+
+## Maestro 集成
+
+给 Maestro 使用时，优先暴露机器可读接口：
+
+```bash
+npm run workflow:doctor -- --target <project-root> --json
+npm run workflow:status -- --target <project-root> --json
+npm run workflow:handoff-pack -- docs/features/<feature-id> --target <project-root> --json
+npm run workflow:completion-check -- docs/features/<feature-id> --target <project-root> --json
+```
+
+`workflow:status` 只是快照，不等于 gate 通过。`workflow:handoff-pack` 只为单个 Feature 生成 Codex worker 输入。跨项目 integration blocker 应由 Maestro mission 或 Integration Contract 记录。
 
 ## 命令
 

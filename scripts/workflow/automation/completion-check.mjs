@@ -11,6 +11,7 @@ const subjectArg = parseOption(args, "subject", args[0] || "", { startIndex: 0 }
 const baseArg = parseOption(args, "base", "", { startIndex: 0 });
 const changedFilesArg = parseOption(args, "changed-files", "", { startIndex: 0 });
 const skipGate = args.includes("--skip-gate");
+const jsonOutput = args.includes("--json");
 
 if (!subjectArg) {
   console.error("Missing Feature path.");
@@ -34,12 +35,35 @@ const failures = [];
 const warnings = [];
 const rows = [];
 
-function addRow(check, status, detail) {
-  rows.push({ check, status, detail });
+function classifyRow(check) {
+  if (/Approved Feature/i.test(check)) {
+    return "approval_blocker";
+  }
+  if (/Git diff available/i.test(check)) {
+    return "environment_blocker";
+  }
+  if (/Requirement IDs|Feature gate/i.test(check)) {
+    return "doc_blocker";
+  }
+  if (/Forbidden scope|Allowed scope/i.test(check)) {
+    return "implementation_blocker";
+  }
+  if (/Changed files|1000-line guardrail/i.test(check)) {
+    return "implementation_blocker";
+  }
+  if (/evidence|verification|Completion result|Self review|Traceability/i.test(check)) {
+    return "verification_blocker";
+  }
+  return "verification_blocker";
+}
+
+function addRow(check, status, detail, blockerType = classifyRow(check)) {
+  const row = { check, status, detail, blocker_type: blockerType };
+  rows.push(row);
   if (status === "BLOCKED") {
-    failures.push(detail);
+    failures.push(row);
   } else if (status === "WARN") {
-    warnings.push(detail);
+    warnings.push(row);
   }
 }
 
@@ -311,9 +335,9 @@ const completionReport = `# Completion Check
 
 ## Checks
 
-| Check | Status | Detail |
-| --- | --- | --- |
-${rows.map((row) => `| ${row.check} | ${row.status} | ${row.detail.replaceAll("|", "\\|")} |`).join("\n")}
+| Check | Status | Blocker Type | Detail |
+| --- | --- | --- | --- |
+${rows.map((row) => `| ${row.check} | ${row.status} | ${row.blocker_type} | ${row.detail.replaceAll("|", "\\|")} |`).join("\n")}
 
 ## Changed Files
 
@@ -330,19 +354,55 @@ ${
 
 mkdirSync(path.dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, completionReport, "utf8");
-console.log(`Completion check written: ${workflow.relativeToTarget(outputPath)}`);
-console.log(`Completion check result: ${failures.length ? "BLOCKED" : "PASS"}`);
+
+const payload = {
+  schema_version: "1",
+  kind: "workflow_completion_check",
+  generated_at: new Date().toISOString(),
+  target_root: workflow.targetRoot,
+  subject: workflow.relativeToTarget(subjectPath),
+  feature: {
+    id: manifest.id || path.basename(subjectPath),
+    mode: manifest.mode || "standard",
+    approval: manifest.approval || "pending",
+    readiness: manifest.readiness || "not_ready",
+    status: failures.length ? manifest.status || "draft" : "verified",
+    stack_preset: manifest.stack_preset || "next-fullstack",
+    epic_id: manifest.epic_id || "none",
+  },
+  result: failures.length ? "BLOCKED" : "PASS",
+  summary: {
+    blockers: failures.length,
+    warnings: warnings.length,
+    checks: rows.length,
+  },
+  checks: rows,
+  changed_files: relevantChangedFiles,
+  completion_report_path: outputPath,
+  verification_report_path: path.join(subjectPath, reportFile),
+};
+
+if (!failures.length) {
+  writeManifest(subjectPath, {
+    ...manifest,
+    status: "verified",
+  });
+}
+
+if (jsonOutput) {
+  console.log(JSON.stringify(payload, null, 2));
+} else {
+  console.log(`Completion check written: ${workflow.relativeToTarget(outputPath)}`);
+  console.log(`Completion check result: ${failures.length ? "BLOCKED" : "PASS"}`);
+}
 
 if (failures.length) {
-  console.error("");
-  console.error("Blocked items:");
-  for (const failure of failures) {
-    console.error(` - ${failure}`);
+  if (!jsonOutput) {
+    console.error("");
+    console.error("Blocked items:");
+    for (const failure of failures) {
+      console.error(` - ${failure.detail}`);
+    }
   }
   process.exit(1);
 }
-
-writeManifest(subjectPath, {
-  ...manifest,
-  status: "verified",
-});

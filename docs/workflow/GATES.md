@@ -156,6 +156,12 @@ node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id>
 node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --changed-files "src/app/page.tsx,src/lib/demo.ts"
 ```
 
+Maestro 或其他编排器需要机器可读结果时使用：
+
+```bash
+node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --json
+```
+
 Completion gate 检查：
 
 - Feature gate 仍然通过。
@@ -170,3 +176,5 @@ Completion gate 检查：
 - `docs/product/traceability.md` 更新状态必须写明 `yes` 或 `not-applicable`。
 
 completion gate 失败时，AI 不能声称完成，只能继续补验证、修实现或回到文档阶段修正范围。
+
+Completion gate 只判断单个 Feature 是否具备完成证据。跨项目联调、接口兼容和集成验收属于 Maestro 或其他上层编排器的职责，不应该被塞进单个 Feature 的完成状态里。

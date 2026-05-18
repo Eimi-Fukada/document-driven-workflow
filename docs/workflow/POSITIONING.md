@@ -9,6 +9,7 @@
 - 用中文产品文档、UI 图、验收标准和 AI 协作的独立开发者或小团队。
 - 希望从需求、拆解、实现、测试到部署都有留痕的产品负责人。
 - 有多个 Next.js 全栈项目，或 Flutter + Express / FastAPI 项目，需要统一交付方式的人。
+- 希望用 Maestro 管多个项目，但仍然让每个项目按同一套文档、门禁和验证证据执行的人。
 - 已有老项目，希望 AI 先理解当前行为和兼容边界，再安全迭代的人。
 - 不希望每个项目都复制一套 workflow scripts，也不希望目标项目的 `package.json` 被工作流污染的人。
 
@@ -41,6 +42,9 @@
 
 7. 对老项目更安全  
    老项目先建立 baseline 和 compatibility contract，再进入 Feature 开发，减少 AI 误改已有行为。
+
+8. 可被 Maestro 驾驭  
+   通过 `doctor --json`、`status --json`、`handoff-pack --json` 和 `completion-check --json`，让 Maestro 读取项目状态、派发单 Feature 任务、收集完成证据，而不需要目标项目复制 workflow scripts。
 
 ## 与 Superpowers 的区别
 
@@ -92,5 +96,6 @@ Superpowers 的问题不是能力不足，而是对本工作流目标来说过�
 - 每个任务都必须 red-green-refactor 的严格 TDD。
 - 真正自动调度多个 subagent 写代码并合并结果。
 - 完整代码评审体系。
+- Maestro 这类多项目 mission 调度器。
 
 本工作流的策略是：主流程轻量、门禁刚性、执行纪律够用；只有真实项目证明需要时，才增加更重的自动化。

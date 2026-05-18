@@ -6,12 +6,7 @@ import { MANIFEST_FILE, manifestPath, readManifest } from "../../shared/workflow
 
 const args = process.argv.slice(2);
 const workflow = createWorkflowContext(args);
-const subjectArg =
-  parseOption(args, "subject", "", { startIndex: 0 }) ||
-  parseOption(args, "FeaturePath", "", { startIndex: 0 }) ||
-  parseOption(args, "EpicPath", "", { startIndex: 0 }) ||
-  args[0] ||
-  "";
+const subjectArg = parseOption(args, "subject", args[0] || "", { startIndex: 0 });
 
 if (!subjectArg) {
   console.error("Gate failed: missing subject path.");

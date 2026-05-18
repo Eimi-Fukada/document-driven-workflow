@@ -15,13 +15,17 @@ $tmpPaths = @(
     (Join-Path $featuresRoot "__tmp_approval_feature"),
     (Join-Path $featuresRoot "__tmp_gate_pages_router"),
     (Join-Path $featuresRoot "tmp-new-feature-docs"),
+    (Join-Path $featuresRoot "tmp-process-feature"),
     (Join-Path $featuresRoot "tmp-epic-feature-one"),
     (Join-Path $featuresRoot "tmp-epic-feature-two"),
     (Join-Path $epicsRoot "__tmp_epic_fail"),
     (Join-Path $epicsRoot "__tmp_epic_pass"),
     (Join-Path $epicsRoot "__tmp_epic_hydrated"),
     (Join-Path $root "docs\__tmp_route_source.md"),
+    (Join-Path $root "docs\__tmp_process_source.md"),
+    (Join-Path $root "docs\workflow\ROUTING_REVIEW.md"),
     (Join-Path $root "docs\workflow\__tmp_routing_review.md"),
+    (Join-Path $root "docs\workflow\DOCTOR_REPORT.md"),
     (Join-Path $root "docs\product")
 )
 
@@ -401,6 +405,101 @@ try {
     $contextPack = Get-Content -LiteralPath (Join-Path $passFeature "08-context-pack.md") -Raw -Encoding utf8
     if ($contextPack -notmatch "REQ-DEMO-001" -or $contextPack -notmatch "Test Commands" -or $contextPack -notmatch "Execution Discipline" -or $contextPack -notmatch "Maintainability Guardrails") {
         Write-Host "Gate regression failed: context-pack did not include requirements, execution discipline, and maintainability guardrails." -ForegroundColor Red
+        exit 1
+    }
+
+    WriteUtf8 (Join-Path $root "docs\__tmp_process_source.md") @("# Requirement", "", "Add a clear low risk copy update to one button. No auth, payment, database, deployment, or migration impact.")
+    & node (Join-Path $root "scripts\workflow\automation\process.mjs") --source "docs/__tmp_process_source.md" --target $root --id "tmp-process-feature" --mode standard --stack next-fullstack --agent none | Out-Host
+    $processFeature = Join-Path $featuresRoot "tmp-process-feature"
+    foreach ($expectedFile in @("00-workflow.yaml", "00-source.md", "00-intake-review.md", "01-prd.md", "08-context-pack.md", "APPROVAL_REVIEW.md")) {
+        if (-not (Test-Path (Join-Path $processFeature $expectedFile))) {
+            Write-Host "Gate regression failed: workflow:process did not create tmp-process-feature/$expectedFile." -ForegroundColor Red
+            exit 1
+        }
+    }
+
+    WriteReadyFeature $processFeature "tmp-process-feature"
+    & node (Join-Path $root "scripts\workflow\automation\continue.mjs") "docs/features/tmp-process-feature" --target $root --user-approved | Out-Host
+    $continuedManifest = Get-Content -LiteralPath (Join-Path $processFeature "00-workflow.yaml") -Raw -Encoding utf8
+    if ($continuedManifest -notmatch "approval:\s*approved" -or $continuedManifest -notmatch "readiness:\s*ready") {
+        Write-Host "Gate regression failed: workflow:continue did not approve the Feature manifest." -ForegroundColor Red
+        exit 1
+    }
+
+    & node (Join-Path $root "scripts\workflow\automation\verify.mjs") "docs/features/tmp-process-feature" --target $root --command "cmd /c echo workflow verify ok" | Out-Host
+    $verificationReport = Get-Content -LiteralPath (Join-Path $processFeature "07-verification-report.md") -Raw -Encoding utf8
+    if ($verificationReport -notmatch "Automated Verification Run" -or $verificationReport -notmatch "workflow verify ok") {
+        Write-Host "Gate regression failed: workflow:verify did not append command evidence." -ForegroundColor Red
+        exit 1
+    }
+    WriteUtf8 (Join-Path $processFeature "07-verification-report.md") @(
+        "# Verification Report",
+        "",
+        "## Basic Info",
+        "",
+        "- Result: Passed",
+        "",
+        "## Requirement Trace",
+        "",
+        "| Requirement ID | Acceptance ID | Implementation Evidence | Test Evidence | Result |",
+        "| --- | --- | --- | --- | --- |",
+        "| REQ-DEMO-001 | AC-DEMO-001 | src/demo.ts | workflow verify ok | Passed |",
+        "",
+        "## Scope Lock Review",
+        "",
+        "- Approved scope followed: yes",
+        "- Forbidden scope untouched: yes",
+        "- Allowed files / modules followed: yes",
+        "- Non-goals preserved: yes",
+        "- Compatibility constraints preserved: yes",
+        "",
+        "## Changed Files",
+        "",
+        "| File | Purpose | Requirement IDs |",
+        "| --- | --- | --- |",
+        "| src/demo.ts | Demo implementation | REQ-DEMO-001 |",
+        "",
+        "## Commands Run",
+        "",
+        '```bash',
+        "cmd /c echo workflow verify ok",
+        '```',
+        "",
+        "## Verification Results",
+        "",
+        "- Unit: Passed for AC-DEMO-001",
+        "",
+        "## Product Traceability Update",
+        "",
+        '- Updated `docs/product/traceability.md`: not-applicable',
+        "- Snapshot created: not-applicable",
+        "",
+        "## Self Review",
+        "",
+        "- Requirement coverage checked: yes",
+        "- Acceptance coverage checked: yes",
+        "- Changed files mapped to requirements: yes",
+        "- No unrelated refactor: yes",
+        "- Forbidden scope untouched: yes",
+        "- Allowed scope followed: yes",
+        "- Maintainability guardrails checked: yes",
+        "- Fresh verification evidence recorded: yes",
+        "",
+        "## Conclusion",
+        "",
+        "Ready to release: yes"
+    )
+    & node (Join-Path $root "scripts\workflow\automation\completion-check.mjs") "docs/features/tmp-process-feature" --target $root --changed-files "src/demo.ts" | Out-Host
+    $completionReport = Get-Content -LiteralPath (Join-Path $processFeature "COMPLETION_CHECK.md") -Raw -Encoding utf8
+    if ($completionReport -notmatch "Completion Check" -or $completionReport -notmatch "Result: PASS") {
+        Write-Host "Gate regression failed: workflow:completion-check did not pass a fully evidenced feature." -ForegroundColor Red
+        exit 1
+    }
+
+    & node (Join-Path $root "scripts\workflow\automation\doctor.mjs") --target $root --host all --skip-install-check --skip-cli-check | Out-Host
+    $doctorReport = Get-Content -LiteralPath (Join-Path $root "docs\workflow\DOCTOR_REPORT.md") -Raw -Encoding utf8
+    if ($doctorReport -notmatch "Workflow Doctor Report" -or $doctorReport -notmatch "Result: PASS") {
+        Write-Host "Gate regression failed: workflow:doctor did not generate a passing local report when install and CLI checks are skipped." -ForegroundColor Red
         exit 1
     }
 

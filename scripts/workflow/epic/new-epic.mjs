@@ -7,7 +7,6 @@ import { createEpicManifest, writeManifest } from "../../shared/workflow-manifes
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const epicGateCommand = process.env.WORKFLOW_EPIC_GATE_COMMAND || "npm run gate:epic";
 
 const args = process.argv.slice(2);
 const epicId = args[0];

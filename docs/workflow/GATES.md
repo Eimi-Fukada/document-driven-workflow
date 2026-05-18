@@ -39,6 +39,10 @@ npm run gate:dev -- docs/features/<feature-id>
 
 目标项目不需要本地 npm scripts。安装 Skill 后，AI 使用内置 gate 脚本并传入 `--target <project-root>`。
 
+```bash
+node scripts/workflow/feature/gate-feature.mjs docs/features/<feature-id> --target <project-root>
+```
+
 Standard 和 Strict Feature 必须包含：
 
 ```text
@@ -82,6 +86,12 @@ gate 还会检查：
 npm run gate:epic -- docs/epics/<epic-id>
 ```
 
+目标项目通过 Skill 内置脚本执行：
+
+```bash
+node scripts/workflow/epic/gate-epic.mjs docs/epics/<epic-id> --target <project-root>
+```
+
 Epic 必须包含：
 
 ```text
@@ -106,6 +116,12 @@ Epic gate 表示 Epic 已经可以拆分为 Feature。它不授权代码实现�
 npm run workflow:approve -- docs/features/<feature-id> --user-approved
 ```
 
+目标项目通过 Skill 内置脚本执行：
+
+```bash
+node scripts/workflow/automation/approve.mjs docs/features/<feature-id> --target <project-root> --user-approved
+```
+
 approve 命令没有 `--user-approved` 时会拒绝运行。
 
 ## Gate Failure
@@ -119,3 +135,38 @@ gate 失败时，AI 必须返回：
 - 下一步仅限文档阶段的动作
 
 AI 不能绕过 gate 去写实现代码。
+
+## Completion Gate
+
+Feature 实现和验证后，AI 声称“完成”前必须运行完成前门禁：
+
+```bash
+node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root>
+```
+
+如果需要和某个基线分支比较：
+
+```bash
+node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --base origin/main
+```
+
+如果当前改动已经提交，或者目标项目没有 git，可以显式传入变更文件：
+
+```bash
+node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --changed-files "src/app/page.tsx,src/lib/demo.ts"
+```
+
+Completion gate 检查：
+
+- Feature gate 仍然通过。
+- `07-verification-report.md` 或 Light Feature 验证区包含所有 `REQ-*` 和 `AC-*` 的证据。
+- 验证报告包含新的命令输出或明确人工验证证据。
+- 验证报告不再保留 `Not Tested`。
+- 结果为 `Passed` 或 `Ready to release: yes`。
+- 所有变更文件都映射到需求或测试证据。
+- 变更文件没有命中文档中的 forbidden scope。
+- 如有明确 allowed scope，代码变更不能超出 allowed scope。
+- 超过 1000 lines 的触碰文件必须在验证报告中解释抽取或暂缓原因。
+- `docs/product/traceability.md` 更新状态必须写明 `yes` 或 `not-applicable`。
+
+completion gate 失败时，AI 不能声称完成，只能继续补验证、修实现或回到文档阶段修正范围。

@@ -46,6 +46,7 @@ export function isWorkflowOptionWithValue(arg) {
   return [
     "--target",
     "--features",
+    "--id",
     "--stack",
     "--agent",
     "--epic",
@@ -53,5 +54,9 @@ export function isWorkflowOptionWithValue(arg) {
     "--source",
     "--output",
     "--subject",
+    "--command",
+    "--base",
+    "--changed-files",
+    "--host",
   ].includes(arg);
 }

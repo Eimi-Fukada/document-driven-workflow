@@ -7,7 +7,6 @@ import { createFeatureManifest, writeManifest } from "../../shared/workflow-mani
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const gateCommand = process.env.WORKFLOW_GATE_COMMAND || "npm run gate:dev";
 
 const args = process.argv.slice(2);
 const featureId = args[0];
@@ -133,5 +132,5 @@ if (mode === "light") {
 } else {
   console.log(`1. Fill docs/features/${featureId}/00-intake-review.md through 08-context-pack.md`);
 }
-console.log(`2. User approves once in docs/features/${featureId}/00-workflow.yaml or by running workflow:approve`);
-console.log(`3. Run: ${gateCommand} -- docs/features/${featureId}`);
+console.log(`2. User reviews and explicitly approves the Feature`);
+console.log(`3. Run workflow:continue for docs/features/${featureId} with --user-approved`);

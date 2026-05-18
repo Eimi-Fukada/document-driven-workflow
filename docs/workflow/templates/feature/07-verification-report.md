@@ -28,6 +28,7 @@ Allowed values:
 
 - Approved scope followed: yes / no
 - Forbidden scope untouched: yes / no
+- Allowed files / modules followed: yes / no
 - Non-goals preserved: yes / no
 - Compatibility constraints preserved: yes / no
 - Notes:
@@ -58,6 +59,7 @@ Allowed values:
 
 - Reuse reviewed: yes / no
 - Extraction performed or intentionally skipped:
+- Repeated structure or logic found 2 or more times: yes / no
 - Any touched file over 1000 lines: yes / no
 - Files over limit and reason:
 - Tailwind CSS used for Next.js UI: yes / no / not-applicable
@@ -116,6 +118,8 @@ Allowed values:
 - Acceptance coverage checked: yes / no
 - Changed files mapped to requirements: yes / no
 - No unrelated refactor: yes / no
+- Forbidden scope untouched: yes / no
+- Allowed scope followed: yes / no
 - Maintainability guardrails checked: yes / no
 - Fresh verification evidence recorded: yes / no
 

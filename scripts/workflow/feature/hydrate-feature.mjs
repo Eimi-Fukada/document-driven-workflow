@@ -15,11 +15,11 @@ const force = args.includes("--force");
 const agent = parseAgentOption(args);
 const workflow = createWorkflowContext(args);
 const mode = args.includes("--light") ? "light" : parseSharedOption(args, "mode", "standard", { startIndex: 1 });
-const validModes = new Set(["light", "standard"]);
+const validModes = new Set(["light", "standard", "strict"]);
 
 if (!validModes.has(mode)) {
   console.error(`Invalid feature hydrate mode: ${mode}`);
-  console.error("Allowed values: light, standard");
+  console.error("Allowed values: light, standard, strict");
   process.exit(1);
 }
 

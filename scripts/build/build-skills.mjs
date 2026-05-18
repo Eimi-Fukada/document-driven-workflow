@@ -21,6 +21,7 @@ const referenceFiles = [
   "GATES.md",
   "LEGACY_ADOPTION.md",
   "STACK_POLICY.md",
+  "POSITIONING.md",
 ];
 
 function copyRequiredFile(source, target) {

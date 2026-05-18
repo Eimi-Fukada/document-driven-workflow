@@ -15,6 +15,7 @@ description: "Use when a project should be delivered from product documents, UI 
 - 代码实现前必须通过对应的内置 gate。
 - 实现时遵守 `EXECUTION_DISCIPLINE.md`：Scope Lock、TDD / debugging 触发条件、自审、证据规则。
 - 实现时遵守可维护性规则：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；Next.js UI 优先使用 Tailwind CSS。
+- 声称 Feature 完成前，必须运行完成前检查或完成等价检查：需求覆盖、验收覆盖、验证报告、变更文件映射、禁止范围、可维护性和追溯更新。
 - 如果文档与代码现状冲突，先报告冲突和可选方案，不要直接改代码绕过文档。
 
 ## 工作流状态
@@ -36,31 +37,44 @@ Markdown 文档只描述产品意图、范围、计划和验证，不再保存�
 3. 按需要补全产品、UI、技术契约、验收、实现计划和验证文档。
 4. 当存在明确需求 ID 时，同步 `docs/product/requirement-ledger.md` 和 `docs/product/traceability.md`。
 5. 让用户审查文档包。
-6. 只有用户明确批准后，才用 `approve.mjs` 写入批准状态。
+6. 只有用户明确批准后，才用 `approve.mjs` 或 `continue.mjs --user-approved` 写入批准状态。
 7. 运行内置 gate。
 8. gate 通过后，按已批准范围、`08-context-pack.md` 和 `EXECUTION_DISCIPLINE.md` 实现。
 9. 完成自审、验证、产品追溯更新，并更新验证报告。
+10. 声称完成前运行 `completion-check.mjs`，把结果作为交付证据。
 
-## 直接脚本调用
+## 推荐入口
 
-在 Skill 目录下运行脚本，并传入 `--target <project-root>`：
+优先让用户用自然语言触发工作流：
 
-- 路由评审：`node scripts/workflow/automation/route.mjs --source <requirement-file> --target <project-root>`
-- 初始化产品追溯：`node scripts/workflow/product/init-product.mjs --target <project-root>`
-- 批准前检查：`node scripts/workflow/automation/approval-review.mjs <docs/features/id|docs/epics/id> --target <project-root>`
-- 写入批准：`node scripts/workflow/automation/approve.mjs <docs/features/id|docs/epics/id> --target <project-root> --user-approved`
-- 生成 Context Pack：`node scripts/workflow/automation/context-pack.mjs docs/features/<feature-id> --target <project-root> --force`
-- Feature gate：`node scripts/workflow/feature/gate-feature.mjs docs/features/<feature-id> --target <project-root>`
-- Epic gate：`node scripts/workflow/epic/gate-epic.mjs docs/epics/<epic-id> --target <project-root>`
-- Light Feature：`node scripts/workflow/feature/new-feature.mjs <feature-id> --mode light --target <project-root> --stack <preset>`
-- Feature hydrate：`node scripts/workflow/feature/hydrate-feature.mjs docs/features/<feature-id> --target <project-root>`
-- Epic hydrate：`node scripts/workflow/epic/hydrate-epic.mjs docs/epics/<epic-id> --target <project-root>`
-- Epic 拆分 Feature：`node scripts/workflow/epic/create-features.mjs docs/epics/<epic-id> --target <project-root> --features feature-a,feature-b --stack <preset>`
-- Agent Plan：`node scripts/workflow/automation/agent-plan.mjs docs/epics/<epic-id> --target <project-root> --features feature-a,feature-b`
+```text
+使用 document-driven-workflow，处理这个需求文档，生成需要的 Epic / Feature 文档，等待我审查。
+```
+
+如果必须直接调用脚本，在 Skill 目录下运行，并传入 `--target <project-root>`。主交付入口是：
+
+- 处理需求：`node scripts/workflow/automation/process.mjs --source <requirement-file> --target <project-root> --stack <preset>`
+- 批准后继续：`node scripts/workflow/automation/continue.mjs <docs/features/id|docs/epics/id> --target <project-root> --user-approved`
+- 执行验证：`node scripts/workflow/automation/verify.mjs docs/features/<feature-id> --target <project-root>`
+- 完成前检查：`node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root>`
+- 环境体检：`node scripts/workflow/automation/doctor.mjs --target <project-root> --host all`
+
+其他脚本是高级调试入口，按 `references/USAGE.md` 和 `references/AUTOMATION.md` 使用。
+
+## Agent 选项
+
+Hydrate 和生成类脚本支持：
+
+- `--agent codex`：调用 Codex CLI。
+- `--agent claude`：调用 Claude Code CLI。
+- `--agent none`：只生成文档骨架，不调用 AI，主要用于测试。
+
+默认值是 `codex`。可以用 `WORKFLOW_HYDRATE_AGENT=claude` 改成 Claude Code。
 
 ## 参考文档
 
 - `references/WORKFLOW.md`：核心模型和文档包
+- `references/POSITIONING.md`：适合人群、优势、与 Superpowers 的区别
 - `references/MODE_ROUTER.md`：模式选择
 - `references/GATES.md`：硬门禁规则
 - `references/AUTOMATION.md`：自动化脚本边界

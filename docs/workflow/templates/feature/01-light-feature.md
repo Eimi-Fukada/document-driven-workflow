@@ -63,3 +63,15 @@ Light Feature 不能用于认证、支付、权限、会员权益、数据库变
 - Result:
 - Unverified:
 - Remaining Risk:
+
+## Completion Self Review
+
+- Requirement coverage checked: yes / no
+- Acceptance coverage checked: yes / no
+- Changed files mapped to requirements: yes / no
+- No unrelated refactor: yes / no
+- Forbidden scope untouched: yes / no
+- Allowed scope followed: yes / no
+- Maintainability guardrails checked: yes / no
+- Fresh verification evidence recorded: yes / no
+- Updated `docs/product/traceability.md`: yes / no / not-applicable

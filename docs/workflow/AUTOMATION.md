@@ -1,4 +1,4 @@
-# Automation
+# 自动化
 
 自动化用来减少重复手工操作，但不替代用户批准。
 
@@ -6,25 +6,41 @@
 
 自动化可以：
 
-- 推荐 Direct、Light、Standard、Epic 或 Strict mode
-- 初始化产品追溯文件
-- 创建或 hydrate Epic 和 Feature 文档
-- 生成批准前检查报告
-- 生成 Feature context pack
-- 通过 gate 和验证报告约束 Feature execution discipline
-- 把用户明确批准写入 `00-workflow.yaml`
-- 生成 Epic agent plan
-- 运行硬门禁
+- 检查本机 Skill、AI CLI、目标项目文档结构和老项目接入状态。
+- 推荐 Direct、Light、Standard、Epic 或 Strict mode。
+- 初始化产品追溯文件。
+- 创建或 hydrate Epic 和 Feature 文档。
+- 生成批准前检查报告。
+- 生成 Feature context pack。
+- 通过 gate 和验证报告约束 Feature execution discipline。
+- 把用户明确批准写入 `00-workflow.yaml`。
+- 生成 Epic agent plan。
+- 运行硬门禁。
+- 在声称完成前检查验证证据、变更文件映射、禁止范围和可维护性。
 
 自动化不能：
 
-- 自己批准需求
-- gate 失败时开始代码实现
-- 把高风险工作降级成 Light
-- 为了暴露工作流命令而修改目标项目 `package.json`
-- 自动启动多 agent 实现
+- 自己批准需求。
+- gate 失败时开始代码实现。
+- 把高风险工作降级成 Light。
+- 为了暴露工作流命令而修改目标项目 `package.json`。
+- 自动启动多个 agent 写代码。
 
-## 脚本
+## 主入口
+
+普通使用者优先通过自然语言触发这些能力。维护者直接调试时，优先使用主入口。
+
+| Script | 用途 | 是否写文件 | 是否需要明确批准 |
+| --- | --- | --- | --- |
+| `doctor.mjs` | 体检 Skill 安装、CLI、目标项目接入和文档结构 | yes，`DOCTOR_REPORT.md` | no |
+| `process.mjs` | 从需求来源编排路由、建包、hydrate 和批准前检查 | yes，文档包和 `APPROVAL_REVIEW.md` | no |
+| `continue.mjs` | 用户批准后运行 gate，并准备下一阶段上下文 | yes | yes，当需要写入批准时 |
+| `verify.mjs` | 执行文档里的验证命令并写回验证报告 | yes，`07-verification-report.md` | no |
+| `completion-check.mjs` | 完成前门禁，检查需求覆盖、验证证据、diff、可维护性和追溯 | yes，`COMPLETION_CHECK.md` | no |
+
+## 高级脚本
+
+这些脚本是主入口背后的组成部分，主要用于调试、局部重跑或维护工作流本身。
 
 | Script | 用途 | 是否写文件 | 是否需要明确批准 |
 | --- | --- | --- | --- |
@@ -52,12 +68,18 @@ I approve this Feature. Apply approval, run the gate, then start implementation.
 ```
 
 ```text
-Generate the implementation context pack for this Feature.
+Run workflow verification for this Feature.
+```
+
+```text
+Run workflow completion check for this Feature before reporting it done.
 ```
 
 AI 根据需要选择 Skill 内置脚本。目标项目保持轻量，不承担工作流脚本。
 
 gate 通过后，AI 遵守 `EXECUTION_DISCIPLINE.md` 中的 Scope Lock、TDD / debugging 触发条件、自审和证据规则。
+
+验证通过后，AI 仍然不能直接声称完成；需要运行完成前门禁，确认验证报告、变更文件映射、禁止范围和可维护性检查都通过。
 
 ## 批准规则
 
@@ -65,13 +87,23 @@ gate 通过后，AI 遵守 `EXECUTION_DISCIPLINE.md` 中的 Scope Lock、TDD / d
 
 批准写入后仍然必须通过 gate。批准是必要条件，不是充分条件。
 
+## Agent 选项
+
+Hydrate 和生成类脚本支持：
+
+- `--agent codex`：调用 Codex CLI。
+- `--agent claude`：调用 Claude Code CLI。
+- `--agent none`：只生成文档骨架，不调用 AI。
+
+默认值是 `codex`。也可以通过 `WORKFLOW_HYDRATE_AGENT` 设置默认 agent。
+
 ## 多 Agent 支持
 
 当前支持计划层面的多 agent：
 
-- 生成 `09-agent-plan.md`
-- 推荐每个 agent 的职责边界
-- 标记可以并行的条件
-- 标记禁止范围和合并风险
+- 生成 `09-agent-plan.md`。
+- 推荐每个 agent 的职责边界。
+- 标记可以并行的条件。
+- 标记禁止范围和合并风险。
 
-工作流目前不会自动启动或协调多个 agent。只有真实项目使用证明需要后，才应加入真正的编排。
+工作流目前不会自动启动或协调多个 agent 写代码。只有真实项目使用证明需要后，才应加入真正的编排。

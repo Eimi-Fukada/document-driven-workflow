@@ -126,6 +126,16 @@ Standard 和 Strict Feature 的实现交接上下文来自：
 
 同时要遵守可维护性规则：当结构或逻辑出现 2 or more times 时考虑抽取；触碰的单文件尽量保持在 1000 lines 以下；新的 Next.js UI 样式优先使用 Tailwind CSS。
 
+## Completion Check
+
+Feature 实现和验证后，AI 不能只凭口头总结声称完成。完成前需要运行：
+
+```bash
+node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root>
+```
+
+它会检查需求 ID 覆盖、验收覆盖、验证报告、变更文件映射、禁止范围、可维护性和产品追溯。通过后生成 `COMPLETION_CHECK.md`，作为验证报告之外的完成证据。
+
 ## Stack Policy
 
 新项目必须选择 `STACK_POLICY.md` 里的标准 Stack Preset。

@@ -11,24 +11,34 @@ export function parseAgentOption(args) {
     }
   }
 
-  return process.env.WORKFLOW_HYDRATE_AGENT || "codex";
+  return (process.env.WORKFLOW_HYDRATE_AGENT || "codex").toLowerCase();
 }
 
-export function runAgent({ agent, cwd, prompt }) {
-  if (agent === "none") {
-    console.log("AI generation skipped because --agent none was provided.");
-    return;
-  }
+function runCommand({ agentName, command, args, cwd, installHint }) {
+  const result = spawnSync(command, args, {
+    cwd,
+    encoding: "utf8",
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
 
-  if (agent !== "codex") {
-    console.error(`Unsupported hydrate agent: ${agent}`);
-    console.error("Supported values: codex, none");
+  if (result.error) {
+    console.error(`Failed to run ${agentName}: ${result.error.message}`);
+    console.error(installHint);
     process.exit(1);
   }
 
-  const result = spawnSync(
-    "codex",
-    [
+  if (result.status !== 0) {
+    console.error(`${agentName} failed with exit code ${result.status}.`);
+    process.exit(result.status || 1);
+  }
+}
+
+function runCodex({ cwd, prompt }) {
+  runCommand({
+    agentName: "Codex CLI",
+    command: "codex",
+    args: [
       "exec",
       "--cd",
       cwd,
@@ -40,22 +50,49 @@ export function runAgent({ agent, cwd, prompt }) {
       "--",
       prompt,
     ],
-    {
-      cwd,
-      encoding: "utf8",
-      stdio: "inherit",
-      shell: process.platform === "win32",
-    },
-  );
+    cwd,
+    installHint: "Install or login to Codex CLI, or run with --agent none to only scaffold files.",
+  });
+}
 
-  if (result.error) {
-    console.error(`Failed to run Codex CLI: ${result.error.message}`);
-    console.error("Install or login to Codex CLI, or run with --agent none to only scaffold files.");
-    process.exit(1);
+function runClaude({ cwd, prompt }) {
+  runCommand({
+    agentName: "Claude Code CLI",
+    command: "claude",
+    args: [
+      "--permission-mode",
+      "acceptEdits",
+      "--max-turns",
+      "20",
+      "-p",
+      prompt,
+    ],
+    cwd,
+    installHint: "Install or login to Claude Code CLI, or run with --agent none to only scaffold files.",
+  });
+}
+
+export function runAgent({ agent, cwd, prompt }) {
+  const selectedAgent = (agent || "codex").toLowerCase();
+
+  if (selectedAgent === "none") {
+    console.log("AI generation skipped because --agent none was provided.");
+    return;
   }
 
-  if (result.status !== 0) {
-    console.error(`Codex hydrate agent failed with exit code ${result.status}.`);
-    process.exit(result.status || 1);
+  if (selectedAgent === "codex") {
+    runCodex({ cwd, prompt });
+    return;
+  }
+
+  if (selectedAgent === "claude") {
+    runClaude({ cwd, prompt });
+    return;
+  }
+
+  if (!["codex", "claude", "none"].includes(selectedAgent)) {
+    console.error(`Unsupported hydrate agent: ${agent}`);
+    console.error("Supported values: codex, claude, none");
+    process.exit(1);
   }
 }

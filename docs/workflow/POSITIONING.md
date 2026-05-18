@@ -46,6 +46,12 @@
 8. 可被 Maestro 驾驭  
    通过 `doctor --json`、`status --json`、`handoff-pack --json` 和 `completion-check --json`，让 Maestro 读取项目状态、派发单 Feature 任务、收集完成证据，而不需要目标项目复制 workflow scripts。
 
+9. 适合多项目并行的单项目协议  
+   它不自己调度多个项目，而是把每个项目的状态、边界、交接输入和完成证据标准化。Maestro 可以据此判断哪些项目能并行、哪些 Feature 必须等待依赖完成。
+
+10. 可维护性默认进入实现约束  
+    Feature 执行阶段要求遵守 Scope Lock、自审、重复逻辑抽取、单文件膨胀控制和验证证据更新，减少 AI 按文档实现但代码失控的问题。
+
 ## 与 Superpowers 的区别
 
 Superpowers 更像一套通用工程纪律框架，强项是：
@@ -89,6 +95,8 @@ Superpowers 的问题不是能力不足，而是对本工作流目标来说过�
 - 实现交接。
 - 验证报告。
 - 产品追溯。
+- 多项目调度里的单项目任务协议。
+- Codex / Claude worker 的 Feature 交接包。
 
 暂不完全替代：
 
@@ -99,3 +107,13 @@ Superpowers 的问题不是能力不足，而是对本工作流目标来说过�
 - Maestro 这类多项目 mission 调度器。
 
 本工作流的策略是：主流程轻量、门禁刚性、执行纪律够用；只有真实项目证明需要时，才增加更重的自动化。
+
+## 与 Maestro 组合后的定位
+
+`document-driven-workflow + Codex + Maestro` 的合理分工是：
+
+- `document-driven-workflow` 定义单个项目如何从需求进入、如何拆成 Feature、何时允许实现、完成时需要哪些证据。
+- Codex / Claude Code 执行具体 Feature，实现代码、跑测试、修复问题并更新验证报告。
+- Maestro 负责多个项目之间的 mission、依赖、派发、状态汇总和跨项目集成验收。
+
+这意味着它适合同时推进多个项目，但稳定运行的前提是：每个目标项目先通过 `doctor --json`，每个可开发 Feature 都有 `handoff-pack.json`，worker 完成后 `completion-check --json` 通过，跨项目接口和联调风险由 Maestro 的 mission 或 Integration Contract 管理。

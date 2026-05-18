@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, writeFileSync } from "fs";
 import path from "path";
 import { createWorkflowContext, parseOption } from "../../shared/workflow-context.mjs";
 import { readText, stripHtmlComments } from "../../shared/document-utils.mjs";

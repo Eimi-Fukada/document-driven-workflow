@@ -8,6 +8,17 @@
 
 本工作流不把自己升级成多项目调度系统，也不替代 Maestro 的 mission / task 能力。
 
+## 集成价值
+
+接入 Maestro 后，本工作流提供的是一套稳定的单项目任务协议：
+
+- `doctor --json` 告诉 Maestro 目标项目是否已接入、环境是否可用、文档结构是否完整。
+- `status --json` 告诉 Maestro 当前有哪些 Epic / Feature、哪些已批准、哪些可实现、哪些已验证。
+- `handoff-pack --json` 把单个 Feature 的需求 ID、验收 ID、范围、测试命令和 worker prompt 固化成机器可读输入。
+- `completion-check --json` 在 worker 声称完成前提供统一的机器可读收尾证据。
+
+这样 Maestro 不需要理解每个项目内部的文档细节，也不需要解析普通 Markdown。它只负责读取稳定 JSON、派发任务、处理依赖和汇总结果。
+
 ## 推荐流程
 
 1. Maestro 为每个目标项目运行体检：
@@ -39,6 +50,25 @@ node <skill-root>/scripts/workflow/automation/completion-check.mjs docs/features
 ```
 
 9. Maestro 汇总每个项目的完成证据，并单独处理跨项目联调和集成验收。
+
+## 并行调度边界
+
+可以并行的情况：
+
+- 不同目标项目之间没有共享数据库迁移、共享接口变更或发布时间依赖。
+- 同一项目内的多个 Feature 已经拆清范围，`08-context-pack.md` 或 `handoff-pack.json` 中的 allowed / forbidden scope 不重叠。
+- 每个 Feature 都已经通过用户批准和开发前 gate。
+- 每个 worker 都能独立运行测试，并在完成前通过 `completion-check --json`。
+
+不应该并行的情况：
+
+- 多个 Feature 修改同一批核心文件、同一套 schema、同一条认证/支付/权限链路。
+- 一个项目的接口变更是另一个项目的前置条件。
+- 老项目还没有 baseline 和 compatibility contract。
+- `status --json` 显示存在 `doc_blocker`、`approval_blocker` 或 `verification_blocker`。
+- 跨项目验收标准还没有写进 Maestro mission 或 Integration Contract。
+
+稳定并行的原则是：Maestro 并行调度，Codex 执行单个 Feature，document-driven-workflow 为每个 Feature 提供可检查的边界和完成证据。
 
 ## 机器接口
 
@@ -134,3 +164,13 @@ document-driven-workflow 只产生单项目 blocker。跨项目 blocker 应由 M
 - 没有 `handoff-pack.json`：先生成交接包。
 - worker 完成后 `completion-check.result != PASS`：任务不能关闭。
 - 多项目联调失败：在 Maestro mission 或 Integration Contract 中记录 `integration_blocker`，不要改写单项目 Feature 为已完成。
+
+## 推荐闭环
+
+Maestro 关闭一个跨项目 mission 前，应至少确认：
+
+- 每个目标项目的 `doctor --json` 为 `PASS`。
+- 每个派发 Feature 的 `handoff-pack.json` 存在。
+- 每个 worker 返回的 `completion-check --json` 为 `PASS`。
+- 跨项目接口、联调和发布顺序已经在 Integration Contract 或 Maestro mission 中完成验收。
+- 单项目 Feature 的完成状态不被用来替代跨项目验收状态。

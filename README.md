@@ -20,6 +20,15 @@
 - 声称完成前必须通过完成前检查，确认需求覆盖、测试证据、验证报告、变更文件映射、禁止范围和产品追溯。
 - 支持被 Maestro 驾驭：通过 JSON 状态、Feature 交接包和完成前门禁，让 Maestro 负责多项目调度，workflow 负责单项目交付证据。
 
+## 主要优势
+
+- 中文产品文档优先：用户可以用需求文档、UI 图和验收标准沟通，不需要先把需求翻译成代码任务。
+- 需求留痕完整：原始需求、Epic、Feature、验收标准、验证报告和追溯矩阵形成一条可回看的链路。
+- 门禁刚性：未批准、需求 ID 缺失、验收标准不完整、范围不清楚或验证证据不足时，AI 不能直接进入实现或声称完成。
+- 接入轻量：目标项目只保留自己的 `docs/` 交付文档，不需要复制 workflow scripts，也不需要修改自己的 `package.json`。
+- 老项目友好：先建立 baseline 和 compatibility contract，再做功能迭代，避免 AI 在不了解现状时误改已有行为。
+- Maestro 适配：提供 `doctor/status/handoff-pack/completion-check --json`，让 Maestro 能稳定读取项目状态、派发 Feature、收集完成证据和处理跨项目集成。
+
 ## 适合谁
 
 这套工作流适合希望用中文产品文档、UI 图和验收标准驱动 AI 研发的人，尤其适合长期维护多个 Next.js 全栈项目、Flutter + Express / FastAPI 项目，或者需要把老项目逐步接入 AI 交付流程的团队。
@@ -89,6 +98,14 @@ node scripts/workflow/automation/status.mjs --target <project-root> --json
 node scripts/workflow/automation/handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json
 node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --json
 ```
+
+在多项目并行时，推荐的分层是：
+
+- Maestro 负责选择哪些项目和 Feature 可以并行、处理依赖顺序、汇总跨项目验收。
+- Codex / Claude Code 作为 worker，只执行拿到的单个 Feature 交接包。
+- document-driven-workflow 保证每个项目都有统一的文档、gate、验证报告和完成前证据。
+
+因此，这套工作流可以支撑 Maestro 同时推进多个项目，但不能把存在共享文件、共享数据库迁移、接口互相依赖或同一目标项目内有重叠改动的 Features 盲目并行。遇到这些情况，应由 Maestro 先建依赖关系或拆成顺序任务。
 
 详细边界见 `docs/workflow/MAESTRO_INTEGRATION.md`。
 

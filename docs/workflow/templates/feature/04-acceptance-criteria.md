@@ -5,24 +5,13 @@
 - 功能名称：
 - 关联 PRD：
 - 关联 UI Spec：
-- 状态：Draft / Ready / Verified
-
-<!--
-Allowed Status Values
-
-- 状态：Draft / Ready / Verified
-- 验收矩阵状态：Draft / Ready / Verified / Failed
-- Draft：验收标准草稿，尚未审查。
-- Ready：验收标准已确认，可用于测试。
-- Verified：验收已通过。
-- Failed：验收失败或未达到要求。
--->
+- 文档说明：本文件只描述验收项和验证口径，不保存批准或实现状态。唯一机器可读状态在 `00-workflow.yaml`。
 
 ## 验收矩阵
 
-| 需求 ID | 验收项 | 测试类型 | 状态 |
+| 需求 ID | 验收项 | 测试类型 | 验证结果 |
 | --- | --- | --- | --- |
-| REQ-AREA-001 |  | Unit / API / E2E / Smoke | Draft |
+| REQ-AREA-001 |  | Unit / API / E2E / Smoke | pending / passed / failed |
 
 ## 验收用例
 

@@ -99,19 +99,19 @@ AI 可以生成草稿、补全文档、整理问题，但不能在 gate 通过�
 
 ## Gates
 
-Feature 进入实现前：
+Feature 进入实现前使用 Skill 内置脚本：
 
 ```bash
-npm run gate:dev -- docs/features/<feature-id>
+node scripts/workflow/feature/gate-feature.mjs docs/features/<feature-id> --target <project-root>
 ```
 
-Epic 拆分为可执行 Feature 前：
+Epic 拆分为可执行 Feature 前使用 Skill 内置脚本：
 
 ```bash
-npm run gate:epic -- docs/epics/<epic-id>
+node scripts/workflow/epic/gate-epic.mjs docs/epics/<epic-id> --target <project-root>
 ```
 
-目标项目不应该把这些脚本加入自己的 `package.json`。安装 Skill 后，AI 使用 Skill 内置脚本并传入 `--target <project-root>`。
+维护本仓库时可以用 `package.json` 里的 npm scripts 简化调用。目标项目不应该把这些脚本加入自己的 `package.json`。
 
 ## Execution Discipline
 
@@ -122,7 +122,7 @@ Standard 和 Strict Feature 的实现交接上下文来自：
 - `06-implementation-plan.md`
 - `08-context-pack.md`
 
-实现 agent 必须遵守 Scope Lock；当触发条件成立时使用 TDD 或 systematic debugging；完成前执行 self review；声称完成前记录新的验证证据。
+实现 agent 必须遵守 Scope Lock；当触发条件成立时使用 TDD、systematic debugging、性能纪律和方案/闭环提醒；完成前执行 self review；声称完成前记录新的验证证据。
 
 同时要遵守可维护性规则：当结构或逻辑出现 2 or more times 时考虑抽取；触碰的单文件尽量保持在 1000 lines 以下；新的 Next.js UI 样式优先使用 Tailwind CSS。
 
@@ -134,7 +134,7 @@ Feature 实现和验证后，AI 不能只凭口头总结声称完成。完成前
 node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root>
 ```
 
-它会检查需求 ID 覆盖、验收覆盖、验证报告、变更文件映射、禁止范围、可维护性和产品追溯。通过后生成 `COMPLETION_CHECK.md`，作为验证报告之外的完成证据。
+它会检查需求 ID 覆盖、验收覆盖、验证报告、变更文件映射、禁止范围、可维护性、性能风险、闭环风险和产品追溯。通过后生成 `COMPLETION_CHECK.md`，作为验证报告之外的完成证据。
 
 ## Maestro Integration
 

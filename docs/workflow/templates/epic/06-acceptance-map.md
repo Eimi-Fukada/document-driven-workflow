@@ -2,19 +2,11 @@
 
 ## Epic 验收映射
 
-| Epic Req ID | Feature ID | Feature 验收文件 | 验证状态 |
+| Epic Req ID | Feature ID | Feature 验收文件 | 验证结果 |
 | --- | --- | --- | --- |
-| EREQ-001 |  |  | Draft |
+| EREQ-001 |  |  | pending / passed / failed |
 
-<!--
-Allowed Status Values
-
-- 验证状态：Draft / Ready / Verified / Failed
-- Draft：验收映射草稿，尚未审查。
-- Ready：验收映射已确认，等待 Feature 验证。
-- Verified：对应 Feature 验证已通过。
-- Failed：对应 Feature 验证失败或未达到验收。
--->
+<!-- 验证结果只用于 Epic 内部阅读，不替代 Feature 的 00-workflow.yaml 或 07-verification-report.md。 -->
 
 ## Epic 级验收
 

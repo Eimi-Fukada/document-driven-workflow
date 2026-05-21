@@ -31,17 +31,13 @@ approval_source: docs/epics/<epic-id>
 
 ## Feature Gate
 
-本仓库命令：
-
-```bash
-npm run gate:dev -- docs/features/<feature-id>
-```
-
-目标项目不需要本地 npm scripts。安装 Skill 后，AI 使用内置 gate 脚本并传入 `--target <project-root>`。
+Feature gate 使用 Skill 内置脚本：
 
 ```bash
 node scripts/workflow/feature/gate-feature.mjs docs/features/<feature-id> --target <project-root>
 ```
+
+维护本仓库时可以用 `npm run gate:dev -- docs/features/<feature-id>` 简化调用。目标项目不需要本地 npm scripts。
 
 Standard 和 Strict Feature 必须包含：
 
@@ -72,6 +68,7 @@ gate 还会检查：
 - Context Pack 中包含 requirement IDs 和 test commands
 - 实现交接中包含 Scope Lock 和 execution discipline 字段
 - 可维护性规则：reuse threshold、1000-line file limit、Tailwind CSS preference for Next.js UI
+- 性能和闭环规则：Performance Guardrails、Option And Closure Notes
 - 不包含未解决占位符，例如 `TODO`、`TBD`、`待确认`、`未确认`、`待补充`
 - `stack_preset` 合法
 - `next-fullstack` 使用 App Router，不能使用 Pages Router
@@ -80,17 +77,13 @@ gate 还会检查：
 
 ## Epic Gate
 
-本仓库命令：
-
-```bash
-npm run gate:epic -- docs/epics/<epic-id>
-```
-
-目标项目通过 Skill 内置脚本执行：
+Epic gate 使用 Skill 内置脚本：
 
 ```bash
 node scripts/workflow/epic/gate-epic.mjs docs/epics/<epic-id> --target <project-root>
 ```
+
+维护本仓库时可以用 `npm run gate:epic -- docs/epics/<epic-id>` 简化调用。目标项目不需要本地 npm scripts。
 
 Epic 必须包含：
 
@@ -111,10 +104,6 @@ Epic gate 表示 Epic 已经可以拆分为 Feature。它不授权代码实现�
 ## 批准
 
 用户对每个 Epic 或 Feature 只批准一次。批准只写入 `00-workflow.yaml`。
-
-```bash
-npm run workflow:approve -- docs/features/<feature-id> --user-approved
-```
 
 目标项目通过 Skill 内置脚本执行：
 
@@ -173,6 +162,9 @@ Completion gate 检查：
 - 变更文件没有命中文档中的 forbidden scope。
 - 如有明确 allowed scope，代码变更不能超出 allowed scope。
 - 超过 1000 lines 的触碰文件必须在验证报告中解释抽取或暂缓原因。
+- 如果 Feature 文档命中性能风险，验证报告必须包含 Performance Review 和具体性能验证证据。
+- 如果 Feature 文档命中闭环风险，验证报告必须记录 Closure Review 和用户提醒处理。
+- 如果 Feature 文档要求方案选择，验证报告必须记录最终选择证据。
 - `docs/product/traceability.md` 更新状态必须写明 `yes` 或 `not-applicable`。
 
 completion gate 失败时，AI 不能声称完成，只能继续补验证、修实现或回到文档阶段修正范围。

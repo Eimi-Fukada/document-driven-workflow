@@ -16,7 +16,7 @@
 - 把用户明确批准写入 `00-workflow.yaml`。
 - 生成 Epic agent plan。
 - 运行硬门禁。
-- 在声称完成前检查验证证据、变更文件映射、禁止范围和可维护性。
+- 在声称完成前检查验证证据、变更文件映射、禁止范围、可维护性、性能风险和闭环风险。
 - 为 Maestro 输出机器可读状态、Feature 交接包和完成前检查结果。
 
 自动化不能：
@@ -55,35 +55,13 @@
 | `agent-plan.mjs` | 生成 Epic agent 分工 | yes，`09-agent-plan.md` | 计划阶段 no；执行前 yes |
 | `init-product.mjs` | 创建产品台账、追溯矩阵和 snapshot 目录 | yes，`docs/product/*` | no |
 
-## 自然语言接口
+## AI 调用边界
 
-用户可以说：
+自然语言入口只在 `README.md` 和 `USER_GUIDE.md` 中面向使用者展开。这里不重复示例，只定义自动化边界：AI 根据用户意图选择 Skill 内置脚本，并通过 `--target <project-root>` 作用到目标项目。目标项目保持轻量，不承担工作流脚本。
 
-```text
-Use document-driven-workflow to process this requirement.
-```
+gate 通过后，AI 遵守 `EXECUTION_DISCIPLINE.md` 中的 Scope Lock、TDD / debugging 触发条件、性能纪律、方案/闭环提醒、自审和证据规则。
 
-```text
-I filled the Epic source. Generate the Epic documents and split it into Features.
-```
-
-```text
-I approve this Feature. Apply approval, run the gate, then start implementation.
-```
-
-```text
-Run workflow verification for this Feature.
-```
-
-```text
-Run workflow completion check for this Feature before reporting it done.
-```
-
-AI 根据需要选择 Skill 内置脚本。目标项目保持轻量，不承担工作流脚本。
-
-gate 通过后，AI 遵守 `EXECUTION_DISCIPLINE.md` 中的 Scope Lock、TDD / debugging 触发条件、自审和证据规则。
-
-验证通过后，AI 仍然不能直接声称完成；需要运行完成前门禁，确认验证报告、变更文件映射、禁止范围和可维护性检查都通过。
+验证通过后，AI 仍然不能直接声称完成；需要运行完成前门禁，确认验证报告、变更文件映射、禁止范围、可维护性、性能风险和闭环风险检查都通过。
 
 ## Maestro 机器接口
 

@@ -14,7 +14,7 @@ const workflow = createWorkflowContext(args);
 
 if (!epicId) {
   console.error("Missing epic id.");
-  console.error("Usage: npm run epic:new -- <epic-id>");
+  console.error("Usage: node scripts/workflow/epic/new-epic.mjs <epic-id> --target <project-root>");
   process.exit(1);
 }
 

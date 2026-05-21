@@ -39,15 +39,7 @@ mkdirSync(path.dirname(outputPath), { recursive: true });
 const scaffold = `# Workflow Routing Review
 
 - Source: ${workflow.relativeToTarget(sourcePath)}
-- Routing Status: Draft
 - Recommended Mode: unset
-
-<!--
-Allowed Status Values
-
-- Routing Status: Draft / Reviewed
-- Recommended Mode: Direct / Light / Standard / Epic / Strict
--->
 
 ## Recommendation
 

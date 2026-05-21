@@ -17,12 +17,6 @@
 - 不要用 Light 处理老项目接入或敏感后端行为。
 - 如果需求一开始像 Light，但后来发现涉及 API、数据、认证、支付、权限、部署或跨模块影响，必须在实现前升级模式。
 
-## 用户入口
+## 路由执行
 
-用户可以只说：
-
-```text
-Use document-driven-workflow to process this requirement.
-```
-
-AI 应该完成路由、创建必要文档包、有原始材料时 hydrate 草稿、等待一次用户批准、运行 gate，然后再实现。
+用户入口在 `USER_GUIDE.md` 中说明。AI 收到 `document-driven-workflow` 请求后，应完成路由、创建必要文档包、有原始材料时 hydrate 草稿、等待一次用户批准、运行 gate，然后再实现。

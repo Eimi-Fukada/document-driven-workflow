@@ -5,16 +5,9 @@
 - ADR ID：ADR-0000
 - 标题：
 - 日期：
-- 状态：Proposed / Accepted / Superseded
+- 决策阶段：proposed / accepted / superseded
 
-<!--
-Allowed Status Values
-
-- 状态：Proposed / Accepted / Superseded
-- Proposed：待审查的决策提案。
-- Accepted：已经采纳，后续实现应遵守。
-- Superseded：已被新的 ADR 替代。
--->
+<!-- 决策阶段只用于阅读和追踪 ADR 本身，不替代 Epic / Feature 的 00-workflow.yaml。 -->
 
 ## 背景
 

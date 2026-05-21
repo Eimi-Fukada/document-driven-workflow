@@ -59,6 +59,21 @@
 - Planned component / hook / helper extraction:
 - CSS exception reason:
 
+## Performance Guardrails
+
+- Performance risk: yes / no / not-applicable
+- Risk trigger:
+- Required mitigation:
+- Verification required:
+
+## Option And Closure Notes
+
+- Selected option:
+- Option tradeoff:
+- Closure risk: yes / no
+- User warning:
+- Required document update:
+
 ## Test Commands
 
 - Typecheck:

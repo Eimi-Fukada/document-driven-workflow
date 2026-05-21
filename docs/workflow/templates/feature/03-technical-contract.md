@@ -66,6 +66,40 @@
 | --- | --- | --- | --- |
 | id | string | yes |  |
 
+## 性能边界
+
+- Performance risk: yes / no / not-applicable
+- Data scale assumption:
+- Concurrency assumption:
+- Backend risk:
+- Frontend risk:
+- Database risk:
+- Mitigation:
+- Verification method:
+
+命中大表查询、子查询、聚合、长列表、大文件、轮询、批处理、队列、并发写入、缓存、索引、分页或虚拟滚动等场景时，不能写 `not-applicable`。
+
+## 方案选择
+
+当实现方案不唯一，或存在新旧技术路线差异时，列出可选方案：
+
+| Option | 优势 | 劣势 | 风险 | 适用条件 | 结论 |
+| --- | --- | --- | --- | --- | --- |
+| Option A |  |  |  |  | recommended / rejected |
+
+如果用户选择了非推荐方案，应在 ADR 或实现计划中记录原因。
+
+## 闭环提醒
+
+- Closure risk: yes / no
+- Missing product loop:
+- Missing technical loop:
+- Possible side effects:
+- User decision needed:
+- Suggested update:
+
+当需求缺少入口、出口、状态流转、异常处理、权限、日志、回滚、部署、验证条件或会影响其他模块时，必须写出提醒。
+
 ## 权限
 
 - 可访问角色：

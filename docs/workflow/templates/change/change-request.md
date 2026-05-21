@@ -5,18 +5,9 @@
 - CR ID：CR-0000
 - 标题：
 - 创建日期：
-- 状态：Draft / Accepted / Implemented / Verified / Released
+- 变更阶段：draft / accepted / implemented / verified / released
 
-<!--
-Allowed Status Values
-
-- 状态：Draft / Accepted / Implemented / Verified / Released
-- Draft：变更请求草稿，尚未批准。
-- Accepted：用户已批准该变更可以进入后续文档和计划。
-- Implemented：代码实现已完成。
-- Verified：验证报告已确认通过。
-- Released：已上线或已发布。
--->
+<!-- 变更阶段只用于阅读和追踪 CR 本身，不替代 Epic / Feature 的 00-workflow.yaml。 -->
 
 ## 当前行为
 

@@ -2,6 +2,28 @@
 
 这套工作流面向长期、多项目的 AI 协作。它的目的不是制造文档负担，而是减少返工、跑偏和上线风险。
 
+## 使用入口
+
+普通使用者不需要记脚本，也不需要修改目标项目的 `package.json`。安装 Skill 后，在 Codex 或 Claude Code 里说：
+
+```text
+使用 document-driven-workflow，处理这个需求文档，生成需要的 Epic / Feature 文档，等待我审查。
+```
+
+审查通过后说：
+
+```text
+我已经批准这些文档。使用 document-driven-workflow 写入批准、运行门禁，并在通过后开始实现。
+```
+
+实现完成前说：
+
+```text
+使用 document-driven-workflow 执行验证和完成前检查，并更新验证报告。
+```
+
+AI 会选择 Skill 内置脚本执行，目标项目只保留自己的 `docs/` 文档。
+
 ## 分层职责
 
 | 层级 | 负责什么 | 不负责什么 | 什么时候用 |

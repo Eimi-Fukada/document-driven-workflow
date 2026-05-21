@@ -38,8 +38,12 @@ Light Feature 不能用于认证、支付、权限、会员权益、数据库变
 - Allowed changes:
 - Forbidden changes:
 - API / data / permission impact: none
+- Performance risk: no / not-applicable
+- Closure risk: no
 - Next.js App Router: yes / not-applicable
 - Next.js Pages Router: no / not-applicable
+
+如果出现性能风险、多个实现方案需要用户决策、或产品/技术闭环风险，应升级为 Standard、Strict 或 Epic。
 
 ## Acceptance Criteria
 
@@ -73,5 +77,7 @@ Light Feature 不能用于认证、支付、权限、会员权益、数据库变
 - Forbidden scope untouched: yes / no
 - Allowed scope followed: yes / no
 - Maintainability guardrails checked: yes / no
+- Performance risk handled or marked not-applicable: yes / no
+- Closure risk reviewed: yes / no
 - Fresh verification evidence recorded: yes / no
 - Updated `docs/product/traceability.md`: yes / no / not-applicable

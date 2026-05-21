@@ -33,8 +33,8 @@
 2. 创建或补全最小安全文档包。
 3. 当已有明确来源、需求 ID 和验收 ID 时，同步产品追溯文档。
 4. 让用户审查文档。
-5. 用户明确批准后，只通过 `workflow:approve` 更新一次批准状态。
-6. 运行 `gate:epic` 或 `gate:dev`。
+5. 用户明确批准后，只通过 Skill 内置批准脚本更新一次批准状态。
+6. 运行 Epic gate 或 Feature gate。
 7. 门禁通过后才进入实现。
 8. 完成后执行自审、验证、追溯更新，并更新验证报告。
 
@@ -43,13 +43,13 @@
 给 Maestro 使用时，优先暴露机器可读接口：
 
 ```bash
-npm run workflow:doctor -- --target <project-root> --json
-npm run workflow:status -- --target <project-root> --json
-npm run workflow:handoff-pack -- docs/features/<feature-id> --target <project-root> --json
-npm run workflow:completion-check -- docs/features/<feature-id> --target <project-root> --json
+node scripts/workflow/automation/doctor.mjs --target <project-root> --json
+node scripts/workflow/automation/status.mjs --target <project-root> --json
+node scripts/workflow/automation/handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json
+node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --json
 ```
 
-`workflow:status` 只是快照，不等于 gate 通过。`workflow:handoff-pack` 只为单个 Feature 生成 Codex worker 输入。跨项目 integration blocker 应由 Maestro mission 或 Integration Contract 记录。
+`status` 只是快照，不等于 gate 通过。`handoff-pack` 只为单个 Feature 生成 Codex worker 输入。跨项目 integration blocker 应由 Maestro mission 或 Integration Contract 记录。
 
 ## 命令
 
@@ -60,19 +60,21 @@ npm run check
 npm test
 ```
 
+维护本仓库时可以用 npm scripts。目标项目通过已安装 Skill 的内置脚本执行门禁，并传入 `--target <project-root>`。
+
 Feature gate：
 
 ```bash
-npm run gate:dev -- docs/features/<feature-id>
+node scripts/workflow/feature/gate-feature.mjs docs/features/<feature-id> --target <project-root>
 ```
 
 Epic gate：
 
 ```bash
-npm run gate:epic -- docs/epics/<epic-id>
+node scripts/workflow/epic/gate-epic.mjs docs/epics/<epic-id> --target <project-root>
 ```
 
-目标项目不要为了暴露工作流命令而修改自己的 `package.json`。安装后的 Skill 会用 `--target <project-root>` 调用内置脚本。
+目标项目不要为了暴露工作流命令而修改自己的 `package.json`。
 
 ## 边界
 

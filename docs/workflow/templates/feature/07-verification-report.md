@@ -65,6 +65,22 @@ Allowed values:
 - Tailwind CSS used for Next.js UI: yes / no / not-applicable
 - CSS exception reason:
 
+## Performance Review
+
+- Performance risk: yes / no / not-applicable
+- Risk trigger:
+- Mitigation implemented:
+- Verification evidence:
+- Remaining performance risk:
+
+## Option And Closure Review
+
+- Selected option implemented: yes / no / not-applicable
+- Option decision evidence:
+- Closure risk reviewed: yes / no
+- User warning handled: yes / no / not-applicable
+- Downstream impact checked:
+
 ## Commands Run
 
 ```bash
@@ -121,6 +137,9 @@ Allowed values:
 - Forbidden scope untouched: yes / no
 - Allowed scope followed: yes / no
 - Maintainability guardrails checked: yes / no
+- Performance risk handled or marked not-applicable: yes / no
+- Option decision recorded when needed: yes / no
+- Closure risk reviewed: yes / no
 - Fresh verification evidence recorded: yes / no
 
 ## Conclusion

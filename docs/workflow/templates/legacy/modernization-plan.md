@@ -4,16 +4,9 @@
 
 - 项目名称：
 - 创建日期：
-- 状态：Draft / Approved / Paused
+- 计划阶段：draft / approved / paused
 
-<!--
-Allowed Status Values
-
-- 状态：Draft / Approved / Paused
-- Draft：现代化计划草稿，尚未批准。
-- Approved：用户已批准，可按计划推进。
-- Paused：暂停推进。
--->
+<!-- 计划阶段只用于阅读和追踪现代化计划本身，不替代 Epic / Feature 的 00-workflow.yaml。 -->
 
 ## 现代化目标
 

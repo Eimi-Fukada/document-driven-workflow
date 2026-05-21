@@ -42,7 +42,7 @@ const validStacks = new Set(["next-fullstack", "flutter-fastapi", "flutter-expre
 
 if (!epicArg) {
   console.error("Missing epic path.");
-  console.error("Usage: npm run epic:features -- docs/epics/<epic-id> --features feature-a,feature-b --stack next-fullstack");
+  console.error("Usage: node scripts/workflow/epic/create-features.mjs docs/epics/<epic-id> --target <project-root> --features feature-a,feature-b --stack next-fullstack");
   process.exit(1);
 }
 

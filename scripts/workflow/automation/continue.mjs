@@ -79,11 +79,11 @@ if (currentManifest.type === "epic") {
     ]);
     console.log("");
     console.log("Epic gate passed and Feature packages were generated.");
-    console.log("Next step: review generated Features, then run workflow:continue for each implementation-ready Feature.");
+    console.log("Next step: review generated Features, then use document-driven-workflow to continue each implementation-ready Feature.");
   } else {
     console.log("");
     console.log("Epic gate passed.");
-    console.log("Next step: run epic:features or workflow:continue again with --features feature-a,feature-b.");
+    console.log("Next step: use document-driven-workflow to split this Epic into Features, or rerun this script with --features feature-a,feature-b.");
   }
   process.exit(0);
 }

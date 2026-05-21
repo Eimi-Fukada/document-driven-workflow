@@ -19,19 +19,22 @@ Claude Code 使用本仓库时，遵守 `AGENTS.md` 以及 `docs/workflow/` 下�
 
 ```bash
 npm run check
-npm run gate:dev -- docs/features/<feature-id>
-npm run gate:epic -- docs/epics/<epic-id>
 ```
 
 目标项目通过已安装 Skill 的内置脚本执行门禁，并传入 `--target <project-root>`。
 
+```bash
+node scripts/workflow/feature/gate-feature.mjs docs/features/<feature-id> --target <project-root>
+node scripts/workflow/epic/gate-epic.mjs docs/epics/<epic-id> --target <project-root>
+```
+
 ## Maestro 机器接口
 
 ```bash
-npm run workflow:doctor -- --target <project-root> --json
-npm run workflow:status -- --target <project-root> --json
-npm run workflow:handoff-pack -- docs/features/<feature-id> --target <project-root> --json
-npm run workflow:completion-check -- docs/features/<feature-id> --target <project-root> --json
+node scripts/workflow/automation/doctor.mjs --target <project-root> --json
+node scripts/workflow/automation/status.mjs --target <project-root> --json
+node scripts/workflow/automation/handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json
+node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --json
 ```
 
-`workflow:status` 只是状态快照；进入实现前仍然必须运行 Feature gate。
+`status` 只是状态快照；进入实现前仍然必须运行 Feature gate。

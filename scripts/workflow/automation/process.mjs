@@ -84,15 +84,7 @@ function writeRoutingReview({ mode, source }) {
   const content = `# Workflow Routing Review
 
 - Source: ${workflow.relativeToTarget(sourcePath)}
-- Routing Status: Reviewed
 - Recommended Mode: ${mode[0].toUpperCase()}${mode.slice(1)}
-
-<!--
-Allowed Status Values
-
-- Routing Status: Draft / Reviewed
-- Recommended Mode: Direct / Light / Standard / Epic / Strict
--->
 
 ## Recommendation
 
@@ -114,7 +106,7 @@ ${mode === "direct" ? "- 不创建 Epic / Feature 文档包。" : mode === "epic
 ## Next Step
 
 - 审查生成的文档包。
-- 如同意，使用 \`workflow:continue <docs/epics/id|docs/features/id> --user-approved\` 进入 gate。
+- 如同意，让 AI 使用 document-driven-workflow 写入批准并进入 gate。
 `;
   writeFileSync(outputPath, content, "utf8");
   return outputPath;
@@ -199,4 +191,4 @@ console.log("");
 console.log("Workflow process completed.");
 console.log(`Routing review: ${workflow.relativeToTarget(routingReviewPath)}`);
 console.log(`Generated subject: ${targetSubject}`);
-console.log("Next step: user reviews the documents, then run workflow:continue with --user-approved.");
+console.log("Next step: user reviews the documents, then ask document-driven-workflow to continue with explicit approval.");

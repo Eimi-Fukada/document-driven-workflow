@@ -16,6 +16,8 @@ description: "Use when a project should be delivered from product documents, UI 
 - 代码实现前必须通过对应 gate。
 - 实现时遵守 `EXECUTION_DISCIPLINE.md`：Scope Lock、TDD / debugging 触发条件、自审、证据规则。
 - 实现时考虑可维护性：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；Next.js UI 优先使用 Tailwind CSS。
+- Performance：命中大表、长列表、轮询、批处理、缓存、索引、并发或大文件等场景时，必须记录性能风险、缓解方案和验证证据。
+- Closure：当实现方案不唯一、用户方案可能不闭环、或技术路线明显老旧时，先给出方案对比和闭环提醒，再实施。
 - 声称 Feature 完成前，必须运行 `completion-check.mjs` 或完成等价检查。
 - 如果文档与代码现状冲突，先报告冲突和方案，不要直接改代码绕过文档。
 
@@ -32,21 +34,9 @@ description: "Use when a project should be delivered from product documents, UI 
 9. 完成自审、验证、产品追溯更新，并更新验证报告。
 10. 声称完成前运行 `completion-check.mjs`，把结果作为交付证据。
 
-## 推荐入口
+## 入口规则
 
-优先让用户用自然语言触发工作流：
-
-```text
-使用 document-driven-workflow，处理这个需求文档，生成需要的 Epic / Feature 文档，等待我审查。
-```
-
-如果必须直接调用脚本，在 Skill 目录下运行，并传入 `--target <project-root>`：
-
-- 处理需求：`node scripts/workflow/automation/process.mjs --source <requirement-file> --target <project-root> --stack <preset>`
-- 批准后继续：`node scripts/workflow/automation/continue.mjs <docs/features/id|docs/epics/id> --target <project-root> --user-approved`
-- 执行验证：`node scripts/workflow/automation/verify.mjs docs/features/<feature-id> --target <project-root>`
-- 完成前检查：`node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root>`
-- 环境体检：`node scripts/workflow/automation/doctor.mjs --target <project-root> --host all`
+优先用用户的自然语言意图驱动工作流，不要求用户记脚本。需要脚本时，在 Skill 目录下运行内置脚本，并传入 `--target <project-root>`。主脚本见 `references/USAGE.md`，用户侧说明见 `references/USER_GUIDE.md`。
 
 ## Maestro 集成
 
@@ -78,7 +68,7 @@ Hydrate 和生成类脚本支持：
 - `references/AUTOMATION.md`：自动化脚本边界。
 - `references/MAESTRO_INTEGRATION.md`：Maestro 多项目编排集成方式。
 - `references/EXECUTION_PROTOCOL.md`：门禁通过后的实现流程。
-- `references/EXECUTION_DISCIPLINE.md`：Scope Lock、TDD / debugging、自审和证据规则。
+- `references/EXECUTION_DISCIPLINE.md`：Scope Lock、TDD / debugging、性能纪律、方案/闭环提醒、自审和证据规则。
 - `references/PRODUCT_TRACEABILITY.md`：Requirement Ledger、Traceability Matrix 和 snapshots。
 - `references/STACK_POLICY.md`：允许使用的 Stack Preset。
 - `references/EPIC_WORKFLOW.md`：产品迭代拆分流程。

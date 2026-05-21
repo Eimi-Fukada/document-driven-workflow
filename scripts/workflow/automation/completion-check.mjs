@@ -51,6 +51,9 @@ function classifyRow(check) {
   if (/Changed files|1000-line guardrail/i.test(check)) {
     return "implementation_blocker";
   }
+  if (/Performance|Option decision|Closure risk/i.test(check)) {
+    return "verification_blocker";
+  }
   if (/evidence|verification|Completion result|Self review|Traceability/i.test(check)) {
     return "verification_blocker";
   }
@@ -170,6 +173,31 @@ function isCodeLike(file) {
   return /\.(js|jsx|ts|tsx|mjs|cjs|dart|py|css|scss|sass|html|vue|svelte)$/.test(file);
 }
 
+function hasPerformanceKeywords(...texts) {
+  const combined = texts.join("\n");
+  return /(large table|subquery|aggregate|pagination|cursor|index|cache|queue|batch|concurrency|N\+1|long list|virtual scroll|infinite scroll|polling|large file|upload|download|audio|video|canvas|大表|子查询|聚合|分页|索引|缓存|队列|批处理|并发|长列表|虚拟滚动|无限滚动|轮询|大文件|上传|下载|音频|视频)/i.test(combined);
+}
+
+function hasExplicitPerformanceRisk(...texts) {
+  const combined = texts.join("\n");
+  return /Performance risk:\s*yes/i.test(combined);
+}
+
+function hasClosureKeywords(...texts) {
+  const combined = texts.join("\n");
+  return /(missing loop|downstream|side effect|not closed|closure gap|闭环|入口|出口|状态流转|异常处理|回滚|日志|影响其他模块)/i.test(combined);
+}
+
+function hasExplicitClosureRisk(...texts) {
+  const combined = texts.join("\n");
+  return /(Closure risk:\s*yes|User warning:\s*(?!\s*(-|none|no|not-applicable)\s*$).+|Missing product loop:\s*(?!\s*(-|none|no|not-applicable)\s*$).+|Missing technical loop:\s*(?!\s*(-|none|no|not-applicable)\s*$).+|Downstream impact:\s*(?!\s*(-|none|no|not-applicable)\s*$).+)/im.test(combined);
+}
+
+function hasOptionDecisionRequired(...texts) {
+  const combined = texts.join("\n");
+  return /(Multiple implementation options:\s*yes|User decision required:\s*yes|User decision recorded:\s*yes|ADR required:\s*yes)/i.test(combined);
+}
+
 function countLines(file) {
   const full = workflow.resolveTarget(file);
   if (!existsSync(full)) {
@@ -200,6 +228,8 @@ const prd = light ? readIfExists("01-light-feature.md") : readIfExists("01-prd.m
 const acceptance = light ? readIfExists("01-light-feature.md") : readIfExists("04-acceptance-criteria.md");
 const plan = light ? readIfExists("01-light-feature.md") : readIfExists("06-implementation-plan.md");
 const context = light ? readIfExists("01-light-feature.md") : readIfExists("08-context-pack.md");
+const technical = light ? readIfExists("01-light-feature.md") : readIfExists("03-technical-contract.md");
+const readiness = light ? readIfExists("01-light-feature.md") : readIfExists("05-readiness-review.md");
 const reportFile = light ? "01-light-feature.md" : "07-verification-report.md";
 const report = readIfExists(reportFile);
 const requirementIds = collectIds(/\bREQ-[A-Z0-9-]+\b/g, prd, acceptance, plan, context);
@@ -255,6 +285,55 @@ const requiredSelfReview = [
 for (const label of requiredSelfReview) {
   const ok = new RegExp(`^-\\s*${label}:\\s*yes\\s*$`, "im").test(report);
   addRow(`Self review: ${label}`, ok ? "PASS" : "BLOCKED", ok ? "checked" : `${label} must be yes in ${reportFile}`);
+}
+
+const performanceRequired = hasPerformanceKeywords(prd, acceptance) || hasExplicitPerformanceRisk(technical, readiness, plan, context);
+if (performanceRequired) {
+  const performanceRecorded = /## Performance Review/i.test(report) && /Performance risk:\s*yes/i.test(report);
+  const performanceEvidence = /Verification evidence:\s*(?!\s*(-|none|no|not-applicable)\s*$).+/im.test(report);
+  addRow(
+    "Performance evidence",
+    performanceRecorded && performanceEvidence ? "PASS" : "BLOCKED",
+    performanceRecorded && performanceEvidence
+      ? "performance risk and verification evidence are recorded"
+      : "performance risk is triggered; verification report must include Performance Review with concrete verification evidence",
+  );
+} else {
+  const performanceMarked = /Performance risk handled or marked not-applicable:\s*yes/im.test(report) || /Performance risk:\s*(no|not-applicable)/i.test(report);
+  addRow(
+    "Performance evidence",
+    performanceMarked ? "PASS" : "WARN",
+    performanceMarked ? "performance risk marked as handled or not-applicable" : "performance risk was not triggered, but report should mark it handled or not-applicable",
+  );
+}
+
+const closureRequired = hasClosureKeywords(prd, acceptance) || hasExplicitClosureRisk(technical, readiness, plan, context);
+if (closureRequired) {
+  const closureReviewed = /Closure risk reviewed:\s*yes/im.test(report);
+  const closureHandled = /User warning handled:\s*(yes|not-applicable)/im.test(report);
+  addRow(
+    "Closure risk review",
+    closureReviewed && closureHandled ? "PASS" : "BLOCKED",
+    closureReviewed && closureHandled
+      ? "closure risk was reviewed and user warning handling is recorded"
+      : "closure risk is triggered; verification report must record closure review and user warning handling",
+  );
+} else {
+  addRow(
+    "Closure risk review",
+    /Closure risk reviewed:\s*yes/im.test(report) ? "PASS" : "WARN",
+    /Closure risk reviewed:\s*yes/im.test(report) ? "closure risk reviewed" : "closure risk was not triggered, but self review should mark it reviewed",
+  );
+}
+
+const optionRequired = hasOptionDecisionRequired(readiness, plan, context);
+if (optionRequired) {
+  const optionRecorded = /Option decision recorded when needed:\s*yes/im.test(report) || /Selected option implemented:\s*(yes|not-applicable)/im.test(report);
+  addRow(
+    "Option decision evidence",
+    optionRecorded ? "PASS" : "BLOCKED",
+    optionRecorded ? "option decision evidence is recorded" : "implementation options were present; verification report must record selected option evidence",
+  );
 }
 
 const traceabilityLine = /^-\s*Updated `?docs\/product\/traceability\.md`?:\s*(yes|not-applicable)\s*$/im.test(report);

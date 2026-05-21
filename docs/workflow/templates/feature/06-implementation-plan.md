@@ -59,6 +59,43 @@ Forbidden changes:
 
 权限、会员、额度、定价、权益、任务状态、上传下载、API 校验、数据转换和可复现 bug 修复，默认需要 TDD。
 
+## Option Decision
+
+| Option | 优势 | 劣势 | 风险 | 适用条件 | Decision |
+| --- | --- | --- | --- | --- | --- |
+| Option A |  |  |  |  | recommended / rejected |
+
+- Selected option:
+- Selection reason:
+- User decision recorded: yes / no / not-applicable
+- ADR required: yes / no
+
+当方案不唯一时，必须先给出选择理由。用户选择非推荐方案时，应记录风险和原因。
+
+## Performance Plan
+
+- Performance risk: yes / no / not-applicable
+- Risk trigger:
+- Data scale assumption:
+- Backend mitigation:
+- Frontend mitigation:
+- Database/index mitigation:
+- Cache/async/batch strategy:
+- Verification command or manual check:
+
+命中性能风险时，不能只写“注意性能”，必须写出具体缓解和验证方式。
+
+## Closure Advisory
+
+- Closure risk: yes / no
+- Missing product loop:
+- Missing technical loop:
+- Downstream impact:
+- User warning:
+- Required document update:
+
+如果发现需求不闭环或会影响其他模块，应先补充文档或等待用户确认，再进入实现。
+
 ## Implementation Steps
 
 | Step | Task | Allowed Changes | Forbidden Changes | Verification |
@@ -102,6 +139,9 @@ Strict mode 可能需要额外需求审查、代码质量审查或多 agent 计�
 - Touched files remain below 1000 lines or have an extraction note:
 - Tailwind CSS used for Next.js UI unless exception is documented:
 - Traceability updated:
+- Performance risk handled or marked not-applicable:
+- Option decision recorded when needed:
+- Closure risk reviewed:
 - Verification evidence ready:
 
 ## Deployment Plan

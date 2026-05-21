@@ -17,7 +17,7 @@ const workflow = createWorkflowContext(args);
 
 if (!epicArg) {
   console.error("Missing epic path.");
-  console.error("Usage: npm run epic:hydrate -- docs/epics/<epic-id>");
+  console.error("Usage: node scripts/workflow/epic/hydrate-epic.mjs docs/epics/<epic-id> --target <project-root>");
   process.exit(1);
 }
 

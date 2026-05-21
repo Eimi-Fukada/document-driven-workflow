@@ -1,56 +1,10 @@
-# 使用说明
+# 维护者使用说明
 
-这份说明解释 `document-driven-workflow` 的每个能力怎么使用。它分成两类：
-
-- 使用者：在目标项目里通过自然语言让 AI 执行工作流。
-- 维护者：在本仓库维护 Skill、模板、脚本和门禁。
+这份文档只面向维护 `document-driven-workflow` 仓库的人。普通项目使用者应阅读 `USER_GUIDE.md`，并通过自然语言让 Codex / Claude Code 使用 Skill。
 
 目标项目不要为了暴露工作流命令而修改自己的 `package.json`。
 
-## 使用者主路径
-
-处理需求：
-
-```text
-使用 document-driven-workflow，处理这个需求文档，生成需要的 Epic / Feature 文档，等待我审查。
-```
-
-补全 Epic 并拆 Feature：
-
-```text
-我已经填好 Epic 的 00-source.md。使用 document-driven-workflow 补全 Epic 文档，并拆分成可独立开发的 Features。
-```
-
-批准后继续：
-
-```text
-我已经批准这些文档。使用 document-driven-workflow 写入批准、运行门禁，并在通过后开始实现。
-```
-
-验证交付：
-
-```text
-使用 document-driven-workflow 执行这个 Feature 的验证，并更新验证报告。
-```
-
-完成前检查：
-
-```text
-使用 document-driven-workflow，在声明完成前检查这个 Feature 的需求覆盖、验证证据、变更范围和可维护性。
-```
-
-AI 应该调用 Skill 内置脚本，并通过 `--target <project-root>` 作用到目标项目。目标项目只保存项目文档：
-
-```text
-docs/epics/
-docs/features/
-docs/product/
-docs/legacy/
-docs/changes/
-docs/decisions/
-```
-
-## 维护本仓库
+## 仓库维护命令
 
 检查仓库结构：
 
@@ -72,19 +26,23 @@ npm run setup:claude
 npm run setup:all
 ```
 
+完整回归：
+
+```bash
+npm test
+```
+
 `dist/` 是构建产物，通常不提交，除非明确需要把构建后的包作为发布物分发。
 
-## 推荐脚本入口
+## 主脚本
 
-维护者直接调试时，优先使用主入口。
+维护者直接调试时，优先使用这些 Skill 内置脚本，并始终传入 `--target <project-root>`。
 
 体检目标项目和本机 Skill：
 
 ```bash
 node scripts/workflow/automation/doctor.mjs --target <project-root> --host all
 ```
-
-它会检查当前 Skill 文件是否完整、Codex / Claude 安装的 Skill 是否是最新、本机是否能找到 `codex` / `claude` CLI、目标项目是否已有基本文档结构，以及老项目是否具备 legacy baseline 和 compatibility contract。
 
 一步处理需求：
 
@@ -108,13 +66,11 @@ node scripts/workflow/automation/continue.mjs docs/features/<feature-id> --targe
 node scripts/workflow/automation/continue.mjs docs/epics/<epic-id> --target <project-root> --user-approved --features feature-a,feature-b --stack next-fullstack
 ```
 
-自动验证：
+执行验证：
 
 ```bash
 node scripts/workflow/automation/verify.mjs docs/features/<feature-id> --target <project-root>
 ```
-
-它会读取 `08-context-pack.md`、`06-implementation-plan.md` 或 Light Feature 文档中的测试命令，执行命令，并把结果追加到 `07-verification-report.md` 或 `01-light-feature.md`。
 
 也可以手动补一个命令：
 
@@ -128,16 +84,6 @@ node scripts/workflow/automation/verify.mjs docs/features/<feature-id> --target 
 node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root>
 ```
 
-它会在 AI 声称 Feature 完成前检查：
-
-- Feature gate 是否仍然通过。
-- 需求 ID 和验收 ID 是否有验证证据。
-- 验证报告是否记录了新测试或人工验证证据。
-- 变更文件是否映射到需求。
-- 是否触碰禁止范围或超出允许范围。
-- 是否处理 1000-line 文件限制、复用抽取、Tailwind CSS 等可维护性规则。
-- `docs/product/traceability.md` 是否记录为已更新或不适用。
-
 如果改动已经提交，或不方便读取 git 工作区，可以传入：
 
 ```bash
@@ -145,7 +91,9 @@ node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id>
 node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --changed-files "src/app/page.tsx,src/lib/demo.ts"
 ```
 
-Maestro 集成入口：
+## Maestro 机器接口
+
+Maestro 应读取 JSON 输出，不要解析普通 Markdown 报告。
 
 ```bash
 node scripts/workflow/automation/doctor.mjs --target <project-root> --json
@@ -154,66 +102,22 @@ node scripts/workflow/automation/handoff-pack.mjs docs/features/<feature-id> --t
 node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --json
 ```
 
-这几个入口用于让 Maestro 读取机器可读状态和交接信息。Maestro 负责多项目 mission、依赖、派发和跨项目集成；document-driven-workflow 只负责单项目文档、门禁、验证和证据。
+这些接口只提供单项目状态、交接和完成证据。跨项目 mission、依赖、联调和集成验收由 Maestro 管理。
 
 ## 高级脚本
 
 这些脚本用于调试、局部流程或维护工作流本身。普通使用者通常不需要直接调用。
 
-路由需求：
-
-```bash
-node scripts/workflow/automation/route.mjs --source docs/requirements/example.md --target <project-root>
-```
-
-体检环境：
-
-```bash
-node scripts/workflow/automation/doctor.mjs --target <project-root> --host all
-```
-
-批准前检查：
-
-```bash
-node scripts/workflow/automation/approval-review.mjs docs/features/<feature-id> --target <project-root>
-```
-
-只写入批准：
-
-```bash
-node scripts/workflow/automation/approve.mjs docs/features/<feature-id> --target <project-root> --user-approved
-```
-
-生成 Context Pack：
-
-```bash
-node scripts/workflow/automation/context-pack.mjs docs/features/<feature-id> --target <project-root> --force
-```
-
-生成 Agent Plan：
-
-```bash
-node scripts/workflow/automation/agent-plan.mjs docs/epics/<epic-id> --target <project-root> --features feature-a,feature-b --force
-```
-
-完成前检查：
-
-```bash
-node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root>
-```
-
-状态快照：
-
-```bash
-node scripts/workflow/automation/status.mjs --target <project-root>
-node scripts/workflow/automation/status.mjs --target <project-root> --json
-```
-
-生成 Feature 交接包：
-
-```bash
-node scripts/workflow/automation/handoff-pack.mjs docs/features/<feature-id> --target <project-root>
-```
+| Script | 用途 |
+| --- | --- |
+| `route.mjs` | 生成路由评审 |
+| `approval-review.mjs` | 检查文档是否可以提交用户批准 |
+| `approve.mjs` | 把批准写入 `00-workflow.yaml` |
+| `context-pack.mjs` | 生成紧凑实现交接上下文 |
+| `agent-plan.mjs` | 生成 Epic agent 分工 |
+| `status.mjs` | 输出 Epic / Feature 状态快照 |
+| `handoff-pack.mjs` | 生成 Feature 交接包 |
+| `init-product.mjs` | 创建产品台账、追溯矩阵和 snapshot 目录 |
 
 ## 文档包
 
@@ -295,11 +199,12 @@ docs/changes/CR-0001.md
 
 然后更新受影响的 Epic 或 Feature 文档，并重新运行相关 gate。
 
-## 回归测试
+## 中文终端提示
 
-```bash
-npm run test:gates
-npm test
+本仓库文档使用 UTF-8。Windows PowerShell 如果没有设置 UTF-8 输出，中文可能显示乱码，但文件本身通常没有损坏。排查时可以先运行：
+
+```powershell
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 ```
 
-修改 gate、模板、技术栈策略或 Skill 入口后运行这些检查。
+然后再读取文档或运行检查。

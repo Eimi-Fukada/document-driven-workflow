@@ -25,7 +25,7 @@ if (!validModes.has(mode)) {
 
 if (!featureArg) {
   console.error("Missing feature path.");
-  console.error("Usage: npm run feature:hydrate -- docs/features/<feature-id>");
+  console.error("Usage: node scripts/workflow/feature/hydrate-feature.mjs docs/features/<feature-id> --target <project-root>");
   process.exit(1);
 }
 

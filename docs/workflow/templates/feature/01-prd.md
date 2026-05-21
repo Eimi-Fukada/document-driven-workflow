@@ -5,18 +5,7 @@
 - 功能名称：
 - 负责人：
 - 创建日期：
-- 状态：Draft / Ready / In Progress / Verified / Released
-
-<!--
-Allowed Status Values
-
-- 状态：Draft / Ready / In Progress / Verified / Released
-- Draft：PRD 草稿，尚未审查。
-- Ready：PRD 已确认，可进入实现计划。
-- In Progress：功能正在实现。
-- Verified：功能已验证。
-- Released：功能已发布。
--->
+- 文档说明：本文件只描述产品需求，不保存批准或实现状态。唯一机器可读状态在 `00-workflow.yaml`。
 
 ## 背景
 

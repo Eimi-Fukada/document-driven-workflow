@@ -20,7 +20,7 @@ const validModes = new Set(["light", "standard", "strict"]);
 
 if (!featureId) {
   console.error("Missing feature id.");
-  console.error("Usage: npm run feature:new -- <feature-id> --stack next-fullstack [--mode light|standard|strict]");
+  console.error("Usage: node scripts/workflow/feature/new-feature.mjs <feature-id> --target <project-root> --stack next-fullstack [--mode light|standard|strict]");
   process.exit(1);
 }
 
@@ -133,4 +133,4 @@ if (mode === "light") {
   console.log(`1. Fill docs/features/${featureId}/00-intake-review.md through 08-context-pack.md`);
 }
 console.log(`2. User reviews and explicitly approves the Feature`);
-console.log(`3. Run workflow:continue for docs/features/${featureId} with --user-approved`);
+console.log(`3. Ask document-driven-workflow to continue docs/features/${featureId} after explicit user approval.`);

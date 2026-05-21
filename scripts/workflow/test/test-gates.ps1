@@ -14,6 +14,7 @@ $tmpPaths = @(
     (Join-Path $featuresRoot "__tmp_light_feature_legacy"),
     (Join-Path $featuresRoot "__tmp_approval_feature"),
     (Join-Path $featuresRoot "__tmp_gate_pages_router"),
+    (Join-Path $featuresRoot "__tmp_performance_feature"),
     (Join-Path $featuresRoot "tmp-new-feature-docs"),
     (Join-Path $featuresRoot "tmp-process-feature"),
     (Join-Path $featuresRoot "tmp-epic-feature-one"),
@@ -125,6 +126,24 @@ function WriteReadyFeature($dir, $id, $stack = "next-fullstack", $pagesRouter = 
         "- TDD required: no",
         "- Debugging required: no",
         "",
+        "## Option Decision",
+        "",
+        "- Selected option: direct implementation",
+        "- User decision recorded: not-applicable",
+        "- ADR required: no",
+        "",
+        "## Performance Plan",
+        "",
+        "- Performance risk: not-applicable",
+        "- Risk trigger: none",
+        "- Verification command or manual check: smoke",
+        "",
+        "## Closure Advisory",
+        "",
+        "- Closure risk: no",
+        "- User warning: none",
+        "- Required document update: none",
+        "",
         "## Maintainability Plan",
         "",
         "- Reuse check: if any structure or logic appears 2 or more times, consider extraction.",
@@ -161,6 +180,21 @@ function WriteReadyFeature($dir, $id, $stack = "next-fullstack", $pagesRouter = 
         "- Reuse threshold: consider extraction when structure or logic appears 2 or more times",
         "- Max single-file size: 1000 lines",
         "- Tailwind CSS preferred for Next.js UI: yes",
+        "",
+        "## Performance Guardrails",
+        "",
+        "- Performance risk: not-applicable",
+        "- Risk trigger: none",
+        "- Required mitigation: none",
+        "- Verification required: smoke",
+        "",
+        "## Option And Closure Notes",
+        "",
+        "- Selected option: direct implementation",
+        "- Option tradeoff: none",
+        "- Closure risk: no",
+        "- User warning: none",
+        "- Required document update: none",
         "",
         "## Test Commands",
         "",
@@ -255,6 +289,24 @@ try {
             "- TDD required: no",
             "- Debugging required: no",
             "",
+            "## Option Decision",
+            "",
+            "- Selected option: direct implementation",
+            "- User decision recorded: not-applicable",
+            "- ADR required: no",
+            "",
+            "## Performance Plan",
+            "",
+            "- Performance risk: not-applicable",
+            "- Risk trigger: none",
+            "- Verification command or manual check: smoke",
+            "",
+            "## Closure Advisory",
+            "",
+            "- Closure risk: no",
+            "- User warning: none",
+            "- Required document update: none",
+            "",
             "## Maintainability Plan",
             "",
             "- Reuse check: if any structure or logic appears 2 or more times, consider extraction.",
@@ -291,6 +343,21 @@ try {
             "- Reuse threshold: consider extraction when structure or logic appears 2 or more times",
             "- Max single-file size: 1000 lines",
             "- Tailwind CSS preferred for Next.js UI: yes",
+            "",
+            "## Performance Guardrails",
+            "",
+            "- Performance risk: not-applicable",
+            "- Risk trigger: none",
+            "- Required mitigation: none",
+            "- Verification required: smoke",
+            "",
+            "## Option And Closure Notes",
+            "",
+            "- Selected option: direct implementation",
+            "- Option tradeoff: none",
+            "- Closure risk: no",
+            "- User warning: none",
+            "- Required document update: none",
             "",
             "## Test Commands",
             "",
@@ -404,8 +471,8 @@ try {
 
     & node (Join-Path $root "scripts\workflow\automation\context-pack.mjs") "docs/features/__tmp_gate_pass" --target $root --force | Out-Host
     $contextPack = Get-Content -LiteralPath (Join-Path $passFeature "08-context-pack.md") -Raw -Encoding utf8
-    if ($contextPack -notmatch "REQ-DEMO-001" -or $contextPack -notmatch "Test Commands" -or $contextPack -notmatch "Execution Discipline" -or $contextPack -notmatch "Maintainability Guardrails") {
-        Write-Host "Gate regression failed: context-pack did not include requirements, execution discipline, and maintainability guardrails." -ForegroundColor Red
+    if ($contextPack -notmatch "REQ-DEMO-001" -or $contextPack -notmatch "Test Commands" -or $contextPack -notmatch "Execution Discipline" -or $contextPack -notmatch "Maintainability Guardrails" -or $contextPack -notmatch "Performance Guardrails" -or $contextPack -notmatch "Option And Closure Notes") {
+        Write-Host "Gate regression failed: context-pack did not include requirements, execution discipline, maintainability, performance, and closure guardrails." -ForegroundColor Red
         exit 1
     }
 
@@ -423,7 +490,7 @@ try {
     & node (Join-Path $root "scripts\workflow\automation\continue.mjs") "docs/features/tmp-process-feature" --target $root --user-approved | Out-Host
     $continuedManifest = Get-Content -LiteralPath (Join-Path $processFeature "00-workflow.yaml") -Raw -Encoding utf8
     if ($continuedManifest -notmatch "approval:\s*approved" -or $continuedManifest -notmatch "readiness:\s*ready") {
-        Write-Host "Gate regression failed: workflow:continue did not approve the Feature manifest." -ForegroundColor Red
+        Write-Host "Gate regression failed: continue.mjs did not approve the Feature manifest." -ForegroundColor Red
         exit 1
     }
 
@@ -484,6 +551,9 @@ try {
         "- Forbidden scope untouched: yes",
         "- Allowed scope followed: yes",
         "- Maintainability guardrails checked: yes",
+        "- Performance risk handled or marked not-applicable: yes",
+        "- Option decision recorded when needed: yes",
+        "- Closure risk reviewed: yes",
         "- Fresh verification evidence recorded: yes",
         "",
         "## Conclusion",
@@ -500,6 +570,64 @@ try {
     $completionJson = $completionJsonRaw | ConvertFrom-Json
     if ($completionJson.kind -ne "workflow_completion_check" -or $completionJson.result -ne "PASS" -or $completionJson.summary.checks -lt 1) {
         Write-Host "Gate regression failed: workflow:completion-check --json did not emit a passing machine-readable payload." -ForegroundColor Red
+        exit 1
+    }
+
+    $performanceFeature = Join-Path $featuresRoot "__tmp_performance_feature"
+    WriteReadyFeature $performanceFeature "__tmp_performance_feature"
+    WriteUtf8 (Join-Path $performanceFeature "01-prd.md") @("# PRD", "", "REQ-DEMO-001 Demo ready requirement with large table pagination and long list rendering risk.")
+    WriteUtf8 (Join-Path $performanceFeature "07-verification-report.md") @(
+        "# Verification Report",
+        "",
+        "## Basic Info",
+        "",
+        "- Result: Passed",
+        "",
+        "## Requirement Trace",
+        "",
+        "| Requirement ID | Acceptance ID | Implementation Evidence | Test Evidence | Result |",
+        "| --- | --- | --- | --- | --- |",
+        "| REQ-DEMO-001 | AC-DEMO-001 | src/perf-demo.ts | workflow verify ok | Passed |",
+        "",
+        "## Changed Files",
+        "",
+        "| File | Purpose | Requirement IDs |",
+        "| --- | --- | --- |",
+        "| src/perf-demo.ts | Demo implementation | REQ-DEMO-001 |",
+        "",
+        "## Commands Run",
+        "",
+        '```bash',
+        "cmd /c echo workflow verify ok",
+        '```',
+        "",
+        "## Product Traceability Update",
+        "",
+        '- Updated `docs/product/traceability.md`: not-applicable',
+        "",
+        "## Self Review",
+        "",
+        "- Requirement coverage checked: yes",
+        "- Acceptance coverage checked: yes",
+        "- Changed files mapped to requirements: yes",
+        "- No unrelated refactor: yes",
+        "- Maintainability guardrails checked: yes",
+        "- Performance risk handled or marked not-applicable: yes",
+        "- Option decision recorded when needed: yes",
+        "- Closure risk reviewed: yes",
+        "- Fresh verification evidence recorded: yes",
+        "",
+        "## Conclusion",
+        "",
+        "Ready to release: yes"
+    )
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    & node (Join-Path $root "scripts\workflow\automation\completion-check.mjs") "docs/features/__tmp_performance_feature" --target $root --changed-files "src/perf-demo.ts" *> $null
+    $performanceCheckCode = $LASTEXITCODE
+    $ErrorActionPreference = $previousErrorActionPreference
+    if ($performanceCheckCode -eq 0) {
+        Write-Host "Gate regression failed: performance-risk feature passed without performance evidence." -ForegroundColor Red
         exit 1
     }
 

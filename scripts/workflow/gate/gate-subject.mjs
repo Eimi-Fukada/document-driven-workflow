@@ -183,11 +183,16 @@ function gateFeature() {
   }
   requireSection("06-implementation-plan.md", content["06-implementation-plan.md"], "Scope Lock");
   requireSection("06-implementation-plan.md", content["06-implementation-plan.md"], "TDD / Debugging Triggers");
+  requireSection("06-implementation-plan.md", content["06-implementation-plan.md"], "Option Decision");
+  requireSection("06-implementation-plan.md", content["06-implementation-plan.md"], "Performance Plan");
+  requireSection("06-implementation-plan.md", content["06-implementation-plan.md"], "Closure Advisory");
   requireSection("06-implementation-plan.md", content["06-implementation-plan.md"], "Maintainability Plan");
   requireSection("06-implementation-plan.md", content["06-implementation-plan.md"], "Self Review Checklist");
   requireSection("08-context-pack.md", content["08-context-pack.md"], "Scope Lock");
   requireSection("08-context-pack.md", content["08-context-pack.md"], "Execution Discipline");
   requireSection("08-context-pack.md", content["08-context-pack.md"], "Maintainability Guardrails");
+  requireSection("08-context-pack.md", content["08-context-pack.md"], "Performance Guardrails");
+  requireSection("08-context-pack.md", content["08-context-pack.md"], "Option And Closure Notes");
   if (!/TDD required:\s*(yes|no)/i.test(content["08-context-pack.md"])) {
     failures.push("Context Pack must state whether TDD is required.");
   }
@@ -205,6 +210,12 @@ function gateFeature() {
   }
   if (manifest?.stack_preset === "next-fullstack" && !/Tailwind CSS preferred for Next\.js UI:\s*yes/i.test(content["08-context-pack.md"])) {
     failures.push("next-fullstack Context Pack must prefer Tailwind CSS for UI styling or document an exception.");
+  }
+  if (!/Performance risk:\s*(yes|no|not-applicable)/i.test(content["08-context-pack.md"])) {
+    failures.push("Context Pack must state whether performance risk applies.");
+  }
+  if (!/Closure risk:\s*(yes|no)/i.test(content["08-context-pack.md"])) {
+    failures.push("Context Pack must state whether closure risk applies.");
   }
   checkStack(manifest?.stack_preset, content["03-technical-contract.md"]);
 }

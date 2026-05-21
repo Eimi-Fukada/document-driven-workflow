@@ -70,6 +70,22 @@ const debuggingReason = sectionLine(/Bug fix:\s*(.*)$/im, plan, "-");
 const tailwindPreferred = /Stack Preset:\s*next-fullstack/i.test(technical) ? "yes" : "not-applicable";
 const plannedExtractions = sectionLine(/Planned extractions:\s*([\s\S]*?)(?:\n##|\nFiles expected|$)/i, plan);
 const cssExceptionReason = sectionLine(/CSS exception reason:\s*(.*)$/im, plan);
+const performanceRisk = sectionLine(/Performance risk:\s*(.*)$/im, plan, "not-applicable");
+const performanceTrigger = sectionLine(/Risk trigger:\s*(.*)$/im, plan);
+const performanceMitigation = [
+  sectionLine(/Backend mitigation:\s*(.*)$/im, plan),
+  sectionLine(/Frontend mitigation:\s*(.*)$/im, plan),
+  sectionLine(/Database\/index mitigation:\s*(.*)$/im, plan),
+  sectionLine(/Cache\/async\/batch strategy:\s*(.*)$/im, plan),
+]
+  .filter((item) => item && item !== "-")
+  .join("; ") || "-";
+const performanceVerification = sectionLine(/Verification command or manual check:\s*(.*)$/im, plan);
+const selectedOption = sectionLine(/Selected option:\s*(.*)$/im, plan);
+const optionTradeoff = sectionLine(/Selection reason:\s*(.*)$/im, plan);
+const closureRisk = sectionLine(/Closure risk:\s*(.*)$/im, plan, "no");
+const userWarning = sectionLine(/User warning:\s*(.*)$/im, plan);
+const requiredDocumentUpdate = sectionLine(/Required document update:\s*(.*)$/im, plan);
 
 const content = `# Context Pack
 
@@ -134,6 +150,21 @@ ${sectionLine(/Code Entry Points:\s*\n+([\s\S]*?)(?:\n##|$)/i, technical)}
 - Tailwind CSS preferred for Next.js UI: ${tailwindPreferred}
 - Planned component / hook / helper extraction: ${plannedExtractions}
 - CSS exception reason: ${cssExceptionReason}
+
+## Performance Guardrails
+
+- Performance risk: ${performanceRisk}
+- Risk trigger: ${performanceTrigger}
+- Required mitigation: ${performanceMitigation}
+- Verification required: ${performanceVerification}
+
+## Option And Closure Notes
+
+- Selected option: ${selectedOption}
+- Option tradeoff: ${optionTradeoff}
+- Closure risk: ${closureRisk}
+- User warning: ${userWarning}
+- Required document update: ${requiredDocumentUpdate}
 
 ## Test Commands
 

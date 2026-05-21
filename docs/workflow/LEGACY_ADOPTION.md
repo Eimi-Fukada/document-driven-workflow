@@ -18,7 +18,7 @@
 -> 生成 Compatibility Contract
 -> 识别测试和部署命令
 -> 创建第一个功能文档包
--> 通过 gate:dev
+-> 通过 Feature gate
 -> 实现小功能
 -> 输出验证报告和复盘
 ```
@@ -57,4 +57,3 @@ docs/legacy/MODERNIZATION_PLAN.md
 - 数据迁移。
 - 框架升级。
 - 路由体系迁移。
-

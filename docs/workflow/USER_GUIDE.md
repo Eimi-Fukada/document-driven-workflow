@@ -102,19 +102,19 @@ Level 4：Strict / Legacy
 新项目：
 
 ```text
-Stack Preset -> Feature -> gate:dev -> implementation -> verification report
+Stack Preset -> Feature -> Feature gate -> implementation -> verification report
 ```
 
 老项目：
 
 ```text
-Legacy Baseline -> Compatibility Contract -> Feature -> gate:dev -> implementation -> verification report
+Legacy Baseline -> Compatibility Contract -> Feature -> Feature gate -> implementation -> verification report
 ```
 
 产品迭代：
 
 ```text
-Epic -> gate:epic -> Features -> gate:dev per Feature -> implementation -> verification -> retrospective
+Epic -> Epic gate -> Features -> Feature gate per Feature -> implementation -> verification -> retrospective
 ```
 
 长期产品追溯：
@@ -126,7 +126,7 @@ Requirement Ledger -> Epic/Feature -> Traceability Matrix -> Verification Report
 Feature 实现防跑偏：
 
 ```text
-gate:dev -> Scope Lock -> implementation -> self review -> verification report -> traceability update
+Feature gate -> Scope Lock -> implementation -> self review -> verification report -> traceability update
 ```
 
 ## 长期演进原则

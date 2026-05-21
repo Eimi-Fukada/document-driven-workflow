@@ -14,6 +14,6 @@
 
 ## 拆分原则
 
-- 每个 Feature 应该能独立通过 `gate:dev`。
+- 每个 Feature 应该能独立通过 Feature gate。
 - 高风险需求不要和低风险 UI 调整混在同一个 Feature 里。
 - 涉及支付、登录、数据库、权限、任务状态的需求必须独立成 Feature。

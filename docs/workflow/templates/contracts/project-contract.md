@@ -36,7 +36,7 @@
 
 - Before implementation:
   - `workflow:doctor --target <project-root> --json`
-  - `gate:dev docs/features/<feature-id> --target <project-root>`
+  - Feature gate for `docs/features/<feature-id>`
 - Before reporting done:
   - `workflow:verify docs/features/<feature-id> --target <project-root>`
   - `workflow:completion-check docs/features/<feature-id> --target <project-root> --json`

@@ -198,7 +198,7 @@ $contentChecks = @(
     @{ Name = "USAGE.md documents Skill-owned target execution"; Pass = $usage -match "--target <project-root>" },
     @{ Name = "USAGE.md documents agent plan"; Pass = $usage -match "09-agent-plan.md" },
     @{ Name = "USAGE.md documents legacy and change flow"; Pass = $usage -match "BASELINE.md" -and $usage -match "COMPATIBILITY_CONTRACT.md" -and $usage -match "CR-0001" },
-    @{ Name = "EPIC_WORKFLOW.md mentions Epic gate"; Pass = $epicWorkflow -match "gate:epic|gate-epic.mjs" },
+    @{ Name = "EPIC_WORKFLOW.md mentions Epic gate"; Pass = $epicWorkflow -match "Epic gate" },
     @{ Name = "GATES.md defines unified manifest gate"; Pass = $gates -match "00-workflow.yaml" -and $gates -match "approval: approved" },
     @{ Name = "GATES.md requires context pack"; Pass = $gates -match "00-intake-review.md" -and $gates -match "08-context-pack.md" },
     @{ Name = "GATES.md requires execution discipline"; Pass = $gates -match "Scope Lock" -and $gates -match "execution discipline" },

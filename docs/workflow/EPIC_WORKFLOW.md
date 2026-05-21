@@ -33,9 +33,9 @@ docs/epics/<epic-id>/
 
 ## Gate 含义
 
-`gate:epic` 表示 Epic 可以进入 Feature 拆分。
+Epic gate 表示 Epic 可以进入 Feature 拆分。
 
-它不表示可以直接从 Epic 写代码。代码实现必须走 Feature 级 `gate:dev`。
+它不表示可以直接从 Epic 写代码。代码实现必须走 Feature gate。
 
 ## 批次策略
 

@@ -39,10 +39,10 @@
   - Feature gate for `docs/features/<feature-id>`
 - Before reporting done:
   - `workflow:verify docs/features/<feature-id> --target <project-root>`
-  - `workflow:completion-check docs/features/<feature-id> --target <project-root> --json`
+  - `finish-feature docs/features/<feature-id> --target <project-root> --json`
 
 ## Maestro Notes
 
 - Maestro may schedule Features from this project only after the Feature is approved and ready.
 - Maestro should treat `handoff-pack.json` as the machine-readable worker input.
-- Maestro should not bypass Feature gate or completion-check.
+- Maestro should not bypass Feature gate or finish-feature.

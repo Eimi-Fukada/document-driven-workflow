@@ -3,7 +3,7 @@ import path from "path";
 import { spawnSync } from "child_process";
 import { createWorkflowContext, parseOption } from "../../shared/workflow-context.mjs";
 import { readText, stripHtmlComments } from "../../shared/document-utils.mjs";
-import { readManifest, writeManifest } from "../../shared/workflow-manifest.mjs";
+import { readManifest } from "../../shared/workflow-manifest.mjs";
 
 const args = process.argv.slice(2);
 const workflow = createWorkflowContext(args);
@@ -460,13 +460,6 @@ const payload = {
   completion_report_path: outputPath,
   verification_report_path: path.join(subjectPath, reportFile),
 };
-
-if (!failures.length) {
-  writeManifest(subjectPath, {
-    ...manifest,
-    status: "verified",
-  });
-}
 
 if (jsonOutput) {
   console.log(JSON.stringify(payload, null, 2));

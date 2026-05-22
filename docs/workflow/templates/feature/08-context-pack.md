@@ -50,6 +50,12 @@
 - Debugging required: yes / no
 - Debugging reason:
 - Self review required: yes
+- Single Feature closure required: yes
+- Finish-feature required before next Feature: yes
+- Completion proof required: yes
+- Build/typecheck alone is completion evidence: no
+
+如果实现路径与推荐方案、已拒绝方案、allowed scope、forbidden scope 或验收标准冲突，必须先停下来让用户确认，不要擅自降级实现或扩大范围。
 
 ## Maintainability Guardrails
 

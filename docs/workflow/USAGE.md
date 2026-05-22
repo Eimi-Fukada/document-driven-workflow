@@ -78,18 +78,20 @@ node scripts/workflow/automation/verify.mjs docs/features/<feature-id> --target 
 node scripts/workflow/automation/verify.mjs docs/features/<feature-id> --target <project-root> --command "npm run build"
 ```
 
-完成前门禁：
+唯一完成出口：
 
 ```bash
-node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root>
+node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> --target <project-root>
 ```
 
 如果改动已经提交，或不方便读取 git 工作区，可以传入：
 
 ```bash
-node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --base origin/main
-node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --changed-files "src/app/page.tsx,src/lib/demo.ts"
+node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> --target <project-root> --base origin/main
+node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> --target <project-root> --changed-files "src/app/page.tsx,src/lib/demo.ts"
 ```
+
+`finish-feature.mjs` 会运行 Feature gate、验证命令、completion-check，并在全部通过后写入 `COMPLETION_PROOF.json` 和 `status: verified`。`completion-check.mjs` 仍可用于诊断，但不是正式完成出口。
 
 ## Maestro 机器接口
 
@@ -99,7 +101,7 @@ Maestro 应读取 JSON 输出，不要解析普通 Markdown 报告。
 node scripts/workflow/automation/doctor.mjs --target <project-root> --json
 node scripts/workflow/automation/status.mjs --target <project-root> --json
 node scripts/workflow/automation/handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json
-node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --json
+node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> --target <project-root> --json
 ```
 
 这些接口只提供单项目状态、交接和完成证据。跨项目 mission、依赖、联调和集成验收由 Maestro 管理。
@@ -115,6 +117,8 @@ node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id>
 | `approve.mjs` | 把批准写入 `00-workflow.yaml` |
 | `context-pack.mjs` | 生成紧凑实现交接上下文 |
 | `agent-plan.mjs` | 生成 Epic agent 分工 |
+| `completion-check.mjs` | 底层完成检查和诊断 |
+| `finish-feature.mjs` | 唯一完成出口 |
 | `status.mjs` | 输出 Epic / Feature 状态快照 |
 | `handoff-pack.mjs` | 生成 Feature 交接包 |
 | `init-product.mjs` | 创建产品台账、追溯矩阵和 snapshot 目录 |

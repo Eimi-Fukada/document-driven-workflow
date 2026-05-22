@@ -127,31 +127,39 @@ AI 不能绕过 gate 去写实现代码。
 
 ## Completion Gate
 
-Feature 实现和验证后，AI 声称“完成”前必须运行完成前门禁：
+Feature 实现和验证后，AI 声称“完成”前必须运行唯一完成出口：
 
 ```bash
-node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root>
+node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> --target <project-root>
 ```
 
 如果需要和某个基线分支比较：
 
 ```bash
-node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --base origin/main
+node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> --target <project-root> --base origin/main
 ```
 
 如果当前改动已经提交，或者目标项目没有 git，可以显式传入变更文件：
 
 ```bash
-node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --changed-files "src/app/page.tsx,src/lib/demo.ts"
+node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> --target <project-root> --changed-files "src/app/page.tsx,src/lib/demo.ts"
 ```
 
 Maestro 或其他编排器需要机器可读结果时使用：
 
 ```bash
-node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --json
+node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> --target <project-root> --json
 ```
 
-Completion gate 检查：
+`finish-feature.mjs` 会依次运行：
+
+- Feature gate。
+- 验证命令。
+- completion-check。
+- 写入 `COMPLETION_PROOF.json`。
+- 最后写入 `00-workflow.yaml` 的 `status: verified`。
+
+底层 `completion-check.mjs` 检查：
 
 - Feature gate 仍然通过。
 - `07-verification-report.md` 或 Light Feature 验证区包含所有 `REQ-*` 和 `AC-*` 的证据。
@@ -167,6 +175,34 @@ Completion gate 检查：
 - 如果 Feature 文档要求方案选择，验证报告必须记录最终选择证据。
 - `docs/product/traceability.md` 更新状态必须写明 `yes` 或 `not-applicable`。
 
-completion gate 失败时，AI 不能声称完成，只能继续补验证、修实现或回到文档阶段修正范围。
+finish-feature 失败时，AI 不能声称完成，只能继续补验证、修实现或回到文档阶段修正范围。
 
 Completion gate 只判断单个 Feature 是否具备完成证据。跨项目联调、接口兼容和集成验收属于 Maestro 或其他上层编排器的职责，不应该被塞进单个 Feature 的完成状态里。
+
+## 假完成状态
+
+`00-workflow.yaml` 中的 `status: verified` 不能单独作为完成依据。它只是状态字段，可能被人或 AI 手动修改。
+
+真正的完成依据是：
+
+- `finish-feature.mjs` 返回 `PASS`。
+- `COMPLETION_PROOF.json` 记录 `result: PASS`。
+- 验证报告包含当前 Feature 的 REQ / AC、变更文件、测试或人工验证证据。
+
+如果 `status: verified` 但没有 `COMPLETION_PROOF.json` 的 PASS 证明，Maestro、status 快照和后续 AI 都应把它视为未完成或验证阻塞，而不是可发布状态。
+
+## 单 Feature 闭环
+
+Epic 批准或多个 Feature 同时准备就绪，不代表可以批量实现后统一验收。
+
+正式执行时必须：
+
+1. 选择一个 Feature。
+2. 生成或读取该 Feature 的 handoff pack。
+3. 运行 Feature gate。
+4. 实现该 Feature。
+5. 更新该 Feature 的 `07-verification-report.md`。
+6. 运行该 Feature 的 finish-feature。
+7. finish-feature 通过并写入 `COMPLETION_PROOF.json` 后，才开始下一个 Feature。
+
+如果某个 Feature 的实现需要偏离推荐方案、采用已拒绝方案、扩大 allowed scope 或降低验收标准，必须先回到文档阶段更新 Feature 文档并获得用户确认。

@@ -40,6 +40,23 @@ function parseCompletionResult(subjectPath) {
   return match ? match[1].toUpperCase() : "missing";
 }
 
+function parseCompletionProof(subjectPath) {
+  const proofPath = path.join(subjectPath, "COMPLETION_PROOF.json");
+  if (!existsSync(proofPath)) {
+    return { result: "missing", path: proofPath };
+  }
+  try {
+    const proof = JSON.parse(readClean(proofPath));
+    return {
+      result: proof.result === "PASS" ? "PASS" : "BLOCKED",
+      path: proofPath,
+      generated_at: proof.generated_at || "unknown",
+    };
+  } catch {
+    return { result: "invalid", path: proofPath };
+  }
+}
+
 function parseVerificationResult(subjectPath, manifest) {
   const reportFile = manifest.mode === "light" ? "01-light-feature.md" : "07-verification-report.md";
   const content = readClean(path.join(subjectPath, reportFile));
@@ -58,7 +75,7 @@ function parseVerificationResult(subjectPath, manifest) {
   return "partial";
 }
 
-function blockerEntriesForFeature(manifest, completionResult) {
+function blockerEntriesForFeature(manifest, completionResult, completionProof) {
   const blockers = [];
   const approvalOk = ["approved", "inherited"].includes(manifest.approval);
   if (!approvalOk) {
@@ -76,21 +93,30 @@ function blockerEntriesForFeature(manifest, completionResult) {
   if (completionResult === "BLOCKED") {
     blockers.push({ type: "verification_blocker", detail: "Completion check is blocked" });
   }
+  if (["verified", "released"].includes(manifest.status) && completionProof.result !== "PASS") {
+    blockers.push({
+      type: "verification_blocker",
+      detail: "Manifest status is verified/released but finish-feature completion proof is missing",
+    });
+  }
   return blockers;
 }
 
-function nextActionForFeature({ manifest, blockers, completionResult, verificationResult }) {
+function nextActionForFeature({ manifest, blockers, completionResult, completionProof, verificationResult }) {
   if (blockers.some((item) => item.type === "approval_blocker")) {
     return "用户审查文档后运行 workflow:approve / continue 写入一次批准";
   }
   if (blockers.some((item) => item.type === "doc_blocker")) {
     return "补全文档、解决未决问题，然后重新运行 Feature gate";
   }
-  if (completionResult === "PASS" || ["verified", "released"].includes(manifest.status)) {
+  if (completionProof.result === "PASS") {
     return "可交给 Maestro 做跨项目集成状态汇总或发布排期";
   }
+  if (["verified", "released"].includes(manifest.status)) {
+    return "重新运行 finish-feature；没有 COMPLETION_PROOF.json 的 PASS 证据时不能视为完成";
+  }
   if (verificationResult === "passed") {
-    return "运行 completion-check 作为完成前门禁";
+    return "运行 finish-feature 作为唯一完成出口";
   }
   if (manifest.status === "ready") {
     return "运行 Feature gate，通过后交给 Codex 实现";
@@ -103,13 +129,15 @@ function nextActionForFeature({ manifest, blockers, completionResult, verificati
 
 function summarizeFeature(subjectPath, manifest) {
   const completionResult = parseCompletionResult(subjectPath);
+  const completionProof = parseCompletionProof(subjectPath);
   const verificationResult = parseVerificationResult(subjectPath, manifest);
-  const blockers = blockerEntriesForFeature(manifest, completionResult);
+  const blockers = blockerEntriesForFeature(manifest, completionResult, completionProof);
   const readyForImplementation =
     blockers.length === 0 &&
     ["ready", "in_progress"].includes(manifest.status) &&
-    completionResult !== "PASS";
-  const verified = completionResult === "PASS" || ["verified", "released"].includes(manifest.status);
+    completionProof.result !== "PASS";
+  const verified = completionProof.result === "PASS";
+  const manifestVerifiedWithoutProof = ["verified", "released"].includes(manifest.status) && completionProof.result !== "PASS";
   const docs = {
     intake_review: hasFile(subjectPath, "00-intake-review.md"),
     light_feature: hasFile(subjectPath, "01-light-feature.md"),
@@ -137,12 +165,15 @@ function summarizeFeature(subjectPath, manifest) {
     assumptions_accepted: String(manifest.assumptions_accepted) === "true",
     completion_result: completionResult,
     verification_result: verificationResult,
+    completion_proof_result: completionProof.result,
+    completion_proof_path: existsSync(completionProof.path) ? workflow.relativeToTarget(completionProof.path) : "missing",
     ready_for_implementation: readyForImplementation,
     verified,
+    manifest_verified_without_proof: manifestVerifiedWithoutProof,
     blocked: blockers.length > 0,
     blockers,
     docs,
-    next_action: nextActionForFeature({ manifest, blockers, completionResult, verificationResult }),
+    next_action: nextActionForFeature({ manifest, blockers, completionResult, completionProof, verificationResult }),
   };
 }
 
@@ -258,11 +289,11 @@ ${epics
 
 ## Features
 
-| Feature | Status | Approval | Readiness | Verification | Completion | Next Action |
-| --- | --- | --- | --- | --- | --- | --- |
+| Feature | Status | Approval | Readiness | Verification | Completion | Finish Proof | Next Action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
 ${features
-  .map((feature) => `| ${feature.id} | ${feature.status} | ${feature.approval} | ${feature.readiness} | ${feature.verification_result} | ${feature.completion_result} | ${feature.next_action.replaceAll("|", "\\|")} |`)
-  .join("\n") || "| none | - | - | - | - | - | - |"}
+  .map((feature) => `| ${feature.id} | ${feature.status} | ${feature.approval} | ${feature.readiness} | ${feature.verification_result} | ${feature.completion_result} | ${feature.completion_proof_result} | ${feature.next_action.replaceAll("|", "\\|")} |`)
+  .join("\n") || "| none | - | - | - | - | - | - | - |"}
 `;
   mkdirSync(path.dirname(reportPath), { recursive: true });
   writeFileSync(reportPath, report, "utf8");

@@ -13,6 +13,7 @@
     "workflow:context-pack": "node scripts/workflow/automation/context-pack.mjs",
     "workflow:continue": "node scripts/workflow/automation/continue.mjs",
     "workflow:doctor": "node scripts/workflow/automation/doctor.mjs",
+    "workflow:finish-feature": "node scripts/workflow/automation/finish-feature.mjs",
     "workflow:handoff-pack": "node scripts/workflow/automation/handoff-pack.mjs",
     "workflow:init-product": "node scripts/workflow/product/init-product.mjs",
     "workflow:process": "node scripts/workflow/automation/process.mjs",

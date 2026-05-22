@@ -126,15 +126,21 @@ Standard 和 Strict Feature 的实现交接上下文来自：
 
 同时要遵守可维护性规则：当结构或逻辑出现 2 or more times 时考虑抽取；触碰的单文件尽量保持在 1000 lines 以下；新的 Next.js UI 样式优先使用 Tailwind CSS。
 
+用户批准进入开发不等于允许自由落地。实现 agent 一次只能执行一个 Feature，并且必须在开工前重新锁定 `08-context-pack.md`、`04-acceptance-criteria.md` 和 `06-implementation-plan.md`。
+
+如果最快实现路径会偏离推荐方案、采用 rejected/fallback 方案、扩大 allowed scope、降低验收标准或只完成部分保护，必须先停下来让用户确认并更新文档，不能先实现后解释。
+
 ## Completion Check
 
-Feature 实现和验证后，AI 不能只凭口头总结声称完成。完成前需要运行：
+Feature 实现和验证后，AI 不能只凭口头总结声称完成。正式完成只能通过唯一完成出口：
 
 ```bash
-node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root>
+node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> --target <project-root>
 ```
 
-它会检查需求 ID 覆盖、验收覆盖、验证报告、变更文件映射、禁止范围、可维护性、性能风险、闭环风险和产品追溯。通过后生成 `COMPLETION_CHECK.md`，作为验证报告之外的完成证据。
+它会依次运行 Feature gate、验证命令、completion-check，检查需求 ID 覆盖、验收覆盖、验证报告、变更文件映射、禁止范围、可维护性、性能风险、闭环风险和产品追溯。通过后生成 `COMPLETION_PROOF.json`，并由脚本写入 `status: verified`。
+
+`completion-check.mjs` 是底层检查，不是正式完成出口。`00-workflow.yaml` 里的 `status: verified` 不能单独证明完成。真正完成以 `finish-feature.mjs` 返回 PASS 和 `COMPLETION_PROOF.json` 为准。没有完成证明时，不能开始下一个 Feature，也不能交给 Maestro 关闭任务。
 
 ## Maestro Integration
 
@@ -146,7 +152,7 @@ Maestro 可使用这些机器接口：
 node scripts/workflow/automation/doctor.mjs --target <project-root> --json
 node scripts/workflow/automation/status.mjs --target <project-root> --json
 node scripts/workflow/automation/handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json
-node scripts/workflow/automation/completion-check.mjs docs/features/<feature-id> --target <project-root> --json
+node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> --target <project-root> --json
 ```
 
 跨项目接口和联调验收使用 `templates/contracts/project-contract.md` 与 `templates/contracts/integration-contract.md`，不要让单个 Feature 承担多项目编排职责。

@@ -121,13 +121,18 @@ const workflowScripts = {
   gate: `node ${path.join(workflow.packageRoot, "scripts/workflow/feature/gate-feature.mjs")} ${subjectRel} --target ${workflow.targetRoot}`,
   verify: `node ${path.join(workflow.packageRoot, "scripts/workflow/automation/verify.mjs")} ${subjectRel} --target ${workflow.targetRoot}`,
   completion_check: `node ${path.join(workflow.packageRoot, "scripts/workflow/automation/completion-check.mjs")} ${subjectRel} --target ${workflow.targetRoot}`,
+  finish_feature: `node ${path.join(workflow.packageRoot, "scripts/workflow/automation/finish-feature.mjs")} ${subjectRel} --target ${workflow.targetRoot}`,
 };
 
 const codexPrompt = `Use document-driven-workflow in ${workflow.targetRoot}.
-Implement ${subjectRel} only after the Feature gate passes.
-Read HANDOFF_PACK.md, 00-workflow.yaml, requirement docs, acceptance criteria, implementation plan, and context pack.
-Respect allowed scope, forbidden scope, non-goals, and maintainability guardrails.
-Update the verification report, run verification, then run completion-check before reporting done.`;
+You are implementing exactly one Feature: ${subjectRel}.
+Do not implement sibling Features, Epic-level extras, or unrelated cleanup.
+Run the Feature gate before editing code.
+Read HANDOFF_PACK.md, 00-workflow.yaml, requirement docs, acceptance criteria, implementation plan, and 08-context-pack.md.
+Lock to the approved REQ IDs, AC IDs, allowed scope, forbidden scope, non-goals, selected option, and maintainability guardrails.
+If the fastest implementation conflicts with the selected option, uses a rejected/fallback option, expands allowed scope, weakens an acceptance criterion, or only implements partial coverage, stop and ask the user to update/approve the Feature docs before editing further.
+Build/typecheck/lint passing is not completion. Update 07-verification-report.md with REQ/AC evidence, changed-file mapping, scope review, performance/closure review, and test/manual verification evidence.
+Use finish-feature as the only completion exit. Do not manually mark 00-workflow.yaml as verified. Only report done when finish-feature returns PASS and writes COMPLETION_PROOF.json. Do not start another Feature before this Feature passes finish-feature.`;
 
 const payload = {
   schema_version: "1",
@@ -209,12 +214,23 @@ ${forbiddenScope.map((item) => `- ${item}`).join("\n") || "- See Feature documen
 
 ${testCommands.map((item) => `- ${item.label}: ${item.command}`).join("\n") || "- No machine-readable command found. Use Feature verification plan."}
 
+## Worker Guardrails
+
+- 一次只实现这个 Feature，不要顺手实现同一 Epic 下的其他 Feature。
+- 开工前运行 Feature gate。
+- 实现前锁定 08-context-pack.md、04-acceptance-criteria.md 和 06-implementation-plan.md。
+- 如果最快实现路径会偏离推荐方案、采用 rejected/fallback 方案、扩大 allowed scope、降低验收标准或只做部分保护，必须停下来让用户确认。
+- 构建、typecheck 或 lint 通过不能代表完成。
+- 完成后先更新 07-verification-report.md，再运行 finish-feature。
+- 不要手动把 00-workflow.yaml 标记为 verified。
+- finish-feature 没有 PASS 并写入 COMPLETION_PROOF.json 前，不要报告完成，也不要开始下一个 Feature。
+
 ## Workflow Commands
 
 \`\`\`bash
 ${workflowScripts.gate}
 ${workflowScripts.verify}
-${workflowScripts.completion_check}
+${workflowScripts.finish_feature}
 \`\`\`
 
 ## Codex Worker Prompt

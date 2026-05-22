@@ -44,6 +44,7 @@ const requiredSkillFiles = [
   "scripts/workflow/automation/verify.mjs",
   "scripts/workflow/automation/doctor.mjs",
   "scripts/workflow/automation/completion-check.mjs",
+  "scripts/workflow/automation/finish-feature.mjs",
   "scripts/workflow/automation/status.mjs",
   "scripts/workflow/automation/handoff-pack.mjs",
   "scripts/workflow/feature/gate-feature.mjs",

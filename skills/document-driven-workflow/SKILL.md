@@ -15,10 +15,13 @@ description: "Use when a project should be delivered from product documents, UI 
 - 每个 Epic、Feature、Light Feature 只使用 `00-workflow.yaml` 作为机器可读状态源。
 - 代码实现前必须通过对应 gate。
 - 实现时遵守 `EXECUTION_DISCIPLINE.md`：Scope Lock、TDD / debugging 触发条件、自审、证据规则。
+- 用户批准进入开发不等于允许自由落地。实现 agent 只能按当前 Feature 的 `08-context-pack.md`、验收标准和 handoff pack 执行，不能把最快实现路径替代已批准方案。
+- 每个 Feature 必须单独闭环：实现、补 `07-verification-report.md`、运行 `finish-feature.mjs`，通过并写入 `COMPLETION_PROOF.json` 后才能继续下一个 Feature。不要批量实现多个 Feature 后统一验收。
 - 实现时考虑可维护性：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；Next.js UI 优先使用 Tailwind CSS。
 - Performance：命中大表、长列表、轮询、批处理、缓存、索引、并发或大文件等场景时，必须记录性能风险、缓解方案和验证证据。
 - Closure：当实现方案不唯一、用户方案可能不闭环、或技术路线明显老旧时，先给出方案对比和闭环提醒，再实施。
-- 声称 Feature 完成前，必须运行 `completion-check.mjs` 或完成等价检查。
+- 当实现路径与推荐方案、已拒绝方案、allowed scope、forbidden scope、非目标或验收标准冲突时，必须停下来报告冲突并等待用户确认，不能擅自降级成 MVP 或兜底方案。
+- `pnpm build`、`npm run build` 或类型检查通过不是完成信号。`finish-feature.mjs` 是唯一完成出口；不要手动把 `00-workflow.yaml` 标记为 `verified`。
 - 如果文档与代码现状冲突，先报告冲突和方案，不要直接改代码绕过文档。
 
 ## 执行顺序
@@ -31,8 +34,8 @@ description: "Use when a project should be delivered from product documents, UI 
 6. 只有用户明确批准后，才用 `approve.mjs` 或 `continue.mjs --user-approved` 写入批准状态。
 7. 运行内置 gate。
 8. gate 通过后，按已批准范围、`08-context-pack.md` 和 `EXECUTION_DISCIPLINE.md` 实现。
-9. 完成自审、验证、产品追溯更新，并更新验证报告。
-10. 声称完成前运行 `completion-check.mjs`，把结果作为交付证据。
+9. 每个 Feature 独立完成自审、验证、产品追溯更新，并更新验证报告。
+10. 声称完成前运行 `finish-feature.mjs`，把 `COMPLETION_PROOF.json` 作为交付证据；只有该 Feature 通过后才继续下一个 Feature。
 
 ## 入口规则
 
@@ -45,7 +48,8 @@ description: "Use when a project should be delivered from product documents, UI 
 1. `doctor.mjs --target <project-root> --json`：检查环境、Skill 安装和项目接入状态。
 2. `status.mjs --target <project-root> --json`：生成项目状态快照，不运行 gate。
 3. `handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json`：生成 `HANDOFF_PACK.md` 和 `handoff-pack.json`，交给 Codex worker。
-4. `completion-check.mjs docs/features/<feature-id> --target <project-root> --json`：Feature 完成前的机器可读门禁。
+4. `finish-feature.mjs docs/features/<feature-id> --target <project-root> --json`：Feature 唯一完成出口，内部执行 gate、验证、completion-check，并写入 `COMPLETION_PROOF.json`。
+5. `completion-check.mjs docs/features/<feature-id> --target <project-root> --json`：底层完成检查，供诊断使用，不作为唯一完成出口。
 
 不要把本 Skill 当成多项目调度器。Maestro 负责 mission 状态、依赖、派发和跨项目集成证据；document-driven-workflow 负责单项目文档、门禁、验证和交接输入。
 

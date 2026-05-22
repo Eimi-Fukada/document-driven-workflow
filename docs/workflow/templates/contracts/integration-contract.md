@@ -27,7 +27,7 @@
 
 | Step | Project | Feature ID | Depends On | Exit Criteria |
 | --- | --- | --- | --- | --- |
-| 1 | TODO | TODO | none | Feature completion-check PASS |
+| 1 | TODO | TODO | none | Feature finish-feature PASS with COMPLETION_PROOF.json |
 
 ## Cross-project Acceptance
 
@@ -44,5 +44,5 @@
 ## Maestro Execution Notes
 
 - Maestro owns mission state, task dependencies, cross-project dispatch, and final synthesis.
-- Each project still uses document-driven-workflow for its own Feature docs, gates, handoff pack, verification report, and completion-check.
+- Each project still uses document-driven-workflow for its own Feature docs, gates, handoff pack, verification report, and finish-feature completion proof.
 - Cross-project acceptance must be recorded here or in Maestro mission evidence; do not hide it inside a single Feature verification report.

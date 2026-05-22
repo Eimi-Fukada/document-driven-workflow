@@ -15,6 +15,7 @@ $tmpPaths = @(
     (Join-Path $featuresRoot "__tmp_approval_feature"),
     (Join-Path $featuresRoot "__tmp_gate_pages_router"),
     (Join-Path $featuresRoot "__tmp_performance_feature"),
+    (Join-Path $featuresRoot "__tmp_fake_verified"),
     (Join-Path $featuresRoot "tmp-new-feature-docs"),
     (Join-Path $featuresRoot "tmp-process-feature"),
     (Join-Path $featuresRoot "tmp-epic-feature-one"),
@@ -572,6 +573,27 @@ try {
         Write-Host "Gate regression failed: workflow:completion-check --json did not emit a passing machine-readable payload." -ForegroundColor Red
         exit 1
     }
+    $manifestAfterCompletionCheck = Get-Content -LiteralPath (Join-Path $processFeature "00-workflow.yaml") -Raw -Encoding utf8
+    if ($manifestAfterCompletionCheck -match "status: verified") {
+        Write-Host "Gate regression failed: workflow:completion-check wrote verified status directly." -ForegroundColor Red
+        exit 1
+    }
+    $finishJsonRaw = & node (Join-Path $root "scripts\workflow\automation\finish-feature.mjs") "docs/features/tmp-process-feature" --target $root --changed-files "src/demo.ts" --skip-verify --json
+    $finishJson = $finishJsonRaw | ConvertFrom-Json
+    if ($finishJson.kind -ne "workflow_finish_feature" -or $finishJson.result -ne "PASS" -or -not (Test-Path (Join-Path $processFeature "COMPLETION_PROOF.json"))) {
+        Write-Host "Gate regression failed: workflow:finish-feature did not create completion proof." -ForegroundColor Red
+        exit 1
+    }
+    $completionProof = Get-Content -LiteralPath (Join-Path $processFeature "COMPLETION_PROOF.json") -Raw -Encoding utf8 | ConvertFrom-Json
+    if ($completionProof.kind -ne "workflow_completion_proof" -or $completionProof.result -ne "PASS") {
+        Write-Host "Gate regression failed: workflow:finish-feature wrote invalid completion proof." -ForegroundColor Red
+        exit 1
+    }
+    $manifestAfterFinish = Get-Content -LiteralPath (Join-Path $processFeature "00-workflow.yaml") -Raw -Encoding utf8
+    if ($manifestAfterFinish -notmatch "status: verified") {
+        Write-Host "Gate regression failed: workflow:finish-feature did not write verified status." -ForegroundColor Red
+        exit 1
+    }
 
     $performanceFeature = Join-Path $featuresRoot "__tmp_performance_feature"
     WriteReadyFeature $performanceFeature "__tmp_performance_feature"
@@ -657,6 +679,20 @@ try {
         exit 1
     }
 
+    $fakeVerifiedFeature = Join-Path $featuresRoot "__tmp_fake_verified"
+    WriteReadyFeature $fakeVerifiedFeature "__tmp_fake_verified"
+    $fakeManifestPath = Join-Path $fakeVerifiedFeature "00-workflow.yaml"
+    $fakeManifest = Get-Content -LiteralPath $fakeManifestPath -Raw -Encoding utf8
+    $fakeManifest = $fakeManifest -replace "status: draft", "status: verified"
+    Set-Content -LiteralPath $fakeManifestPath -Value $fakeManifest -Encoding utf8
+    $statusJsonRaw = & node (Join-Path $root "scripts\workflow\automation\status.mjs") --target $root --json
+    $statusJson = $statusJsonRaw | ConvertFrom-Json
+    $fakeStatus = $statusJson.features | Where-Object { $_.id -eq "__tmp_fake_verified" } | Select-Object -First 1
+    if (-not $fakeStatus -or $fakeStatus.verified -ne $false -or $fakeStatus.manifest_verified_without_proof -ne $true -or $fakeStatus.completion_proof_result -ne "missing") {
+        Write-Host "Gate regression failed: workflow:status trusted manifest-only verified status." -ForegroundColor Red
+        exit 1
+    }
+
     $handoffJsonRaw = & node (Join-Path $root "scripts\workflow\automation\handoff-pack.mjs") "docs/features/tmp-process-feature" --target $root --json
     $handoffJson = $handoffJsonRaw | ConvertFrom-Json
     if ($handoffJson.kind -ne "workflow_handoff_pack" -or $handoffJson.feature.id -ne "tmp-process-feature" -or -not (Test-Path (Join-Path $processFeature "HANDOFF_PACK.md")) -or -not (Test-Path (Join-Path $processFeature "handoff-pack.json"))) {
@@ -665,6 +701,10 @@ try {
     }
     if (-not ($handoffJson.requirement_ids -contains "REQ-DEMO-001") -or -not ($handoffJson.acceptance_ids -contains "AC-DEMO-001")) {
         Write-Host "Gate regression failed: workflow:handoff-pack did not include requirement and acceptance IDs." -ForegroundColor Red
+        exit 1
+    }
+    if ($handoffJson.codex_prompt -notmatch "exactly one Feature" -or $handoffJson.codex_prompt -notmatch "Build/typecheck/lint passing is not completion" -or $handoffJson.codex_prompt -notmatch "finish-feature") {
+        Write-Host "Gate regression failed: workflow:handoff-pack did not include anti-drift worker guardrails." -ForegroundColor Red
         exit 1
     }
 

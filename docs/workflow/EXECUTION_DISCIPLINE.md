@@ -2,6 +2,20 @@
 
 这份规则用于防止 AI 在 Feature gate 通过后实现跑偏。它不是要复制一套很重的通用工程方法，而是让实现持续绑定到已批准的 Feature 文档。
 
+## Feature Execution Contract
+
+用户批准进入开发，只表示当前 Feature 可以按已批准文档进入实现，不表示实现 agent 可以按最快路径自由落地。
+
+实现 agent 必须遵守：
+
+- 一次只执行一个 Feature。即使一个 Epic 下有多个 Feature，也不能连续实现多个模块后再统一验收。
+- 每个 Feature 开工前重新锁定 `08-context-pack.md`、`04-acceptance-criteria.md` 和 `06-implementation-plan.md`。
+- 每个 Feature 完成后必须立即更新 `07-verification-report.md`，运行 `finish-feature.mjs`，并确认结果为 `PASS`。
+- 当前 Feature 没有通过 `finish-feature.mjs` 并写入 `COMPLETION_PROOF.json` 前，不得开始下一个 Feature。
+- 构建、类型检查或 lint 通过，只能作为验证证据的一部分，不能替代需求 ID、验收 ID、范围和变更文件映射。
+- Build/typecheck alone is not completion evidence.
+- 不要手动把 `00-workflow.yaml` 标记为 `verified`；真正完成以 `finish-feature.mjs` 的 PASS 结果、`COMPLETION_PROOF.json` 和验证报告为准。
+
 ## 必读输入
 
 代码修改前，实现 agent 必须阅读：
@@ -37,6 +51,30 @@ Light Feature 使用 `01-light-feature.md`，不强制使用完整 Feature 文�
 - 无关 UI、文案、行为或重构
 
 如果代码现状与已批准文档冲突，先停下来报告冲突，再继续编辑。
+
+## Implementation Deviation Stop Rule
+
+当实现路径与文档不一致时，必须停下来报告，不得自行用更快、更简单或更小改动的方案替代。
+
+必须暂停并让用户确认的情况包括：
+
+- 文档有推荐方案，而实现 agent 想采用另一个方案。
+- 文档把某个方案标为 rejected、fallback、仅小规模可用或非推荐方案，而实现 agent 想采用它。
+- 为了少改后端、少改接口或快速上线，准备把服务端方案降级为前端兜底方案。
+- 计划只实现部分保护、部分接口、部分状态或部分验收项。
+- 需要修改 allowed scope 之外的文件或模块。
+- 需要触碰 forbidden scope、非目标、兼容契约、认证、支付、权限、额度、会员、任务状态、数据库、部署或迁移边界。
+- 只能证明 build/typecheck 通过，但还没有证明 REQ / AC 逐项满足。
+
+暂停时，输出应包含：
+
+- 冲突的文档位置。
+- 原批准方案。
+- 准备采用的新方案。
+- 差异、风险和影响的验收项。
+- 是否需要更新 Feature 文档、ADR 或重新获得用户批准。
+
+用户没有确认前，不能继续实现偏离方案。
 
 ## TDD Trigger
 

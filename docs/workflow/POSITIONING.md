@@ -44,7 +44,7 @@
    老项目先建立 baseline 和 compatibility contract，再进入 Feature 开发，减少 AI 误改已有行为。
 
 8. 可被 Maestro 驾驭  
-   通过 `doctor --json`、`status --json`、`handoff-pack --json` 和 `completion-check --json`，让 Maestro 读取项目状态、派发单 Feature 任务、收集完成证据，而不需要目标项目复制 workflow scripts。
+   通过 `doctor --json`、`status --json`、`handoff-pack --json` 和 `finish-feature --json`，让 Maestro 读取项目状态、派发单 Feature 任务、收集完成证据，而不需要目标项目复制 workflow scripts。
 
 9. 适合多项目并行的单项目协议  
    它不自己调度多个项目，而是把每个项目的状态、边界、交接输入和完成证据标准化。Maestro 可以据此判断哪些项目能并行、哪些 Feature 必须等待依赖完成。
@@ -116,4 +116,4 @@ Superpowers 的问题不是能力不足，而是对本工作流目标来说过�
 - Codex / Claude Code 执行具体 Feature，实现代码、跑测试、修复问题并更新验证报告。
 - Maestro 负责多个项目之间的 mission、依赖、派发、状态汇总和跨项目集成验收。
 
-这意味着它适合同时推进多个项目，但稳定运行的前提是：每个目标项目先通过 `doctor --json`，每个可开发 Feature 都有 `handoff-pack.json`，worker 完成后 `completion-check --json` 通过，跨项目接口和联调风险由 Maestro 的 mission 或 Integration Contract 管理。
+这意味着它适合同时推进多个项目，但稳定运行的前提是：每个目标项目先通过 `doctor --json`，每个可开发 Feature 都有 `handoff-pack.json`，worker 完成后 `finish-feature --json` 通过并生成 `COMPLETION_PROOF.json`，跨项目接口和联调风险由 Maestro 的 mission 或 Integration Contract 管理。

@@ -13,6 +13,8 @@
 5. 如果 gate 失败，停在文档模式。
 6. Standard 或 Strict Feature 先读 `08-context-pack.md`。
 7. 编辑文件前确认 Scope Lock。
+8. 确认本次只实现一个 Feature，并记录 base ref 或当前 diff 边界。
+9. 如果实现方案、文件范围或验收标准与文档冲突，先停下来报告，不要降级实现。
 
 ## Execution Modes
 
@@ -28,9 +30,10 @@ Standard：
 - 使用一个主 agent。
 - 遵守 `06-implementation-plan.md`。
 - 遵守 `08-context-pack.md`。
+- 不得把一个 Epic 下的多个 Feature 连续实现后再统一验收。
 - 执行 `EXECUTION_DISCIPLINE.md` 中的 Scope Lock 和 Self Review。
 - 应用 `EXECUTION_DISCIPLINE.md` 中的可维护性规则。
-- 测试后更新 `07-verification-report.md`。
+- 测试后更新 `07-verification-report.md`，并立即运行 `finish-feature.mjs`。
 
 Epic：
 
@@ -45,6 +48,7 @@ Strict：
 - 触发条件成立时使用 TDD 和 systematic debugging。
 - 在 `07-verification-report.md` 记录执行证据。
 - 根据风险扩大验证范围。
+- 每个 Feature 都必须独立通过 `finish-feature.mjs` 后才能继续下一个 Feature。
 
 ## Verification
 
@@ -62,3 +66,12 @@ Strict：
 验证报告必须包含执行命令、结果、未验证项和剩余风险。
 
 没有新的验证证据时，不要声称完成。
+
+构建通过、类型检查通过或 lint 通过不能单独代表完成。完成必须同时满足：
+
+- 需求 ID 有实现证据。
+- 验收 ID 有测试或人工验证证据。
+- 变更文件能映射到需求或测试。
+- Scope Lock 没有被突破。
+- 性能、闭环、可维护性风险已记录或标记为不适用。
+- `finish-feature.mjs` 返回 PASS，并写入 `COMPLETION_PROOF.json`。

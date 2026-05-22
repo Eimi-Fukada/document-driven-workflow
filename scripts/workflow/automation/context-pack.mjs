@@ -142,6 +142,12 @@ ${sectionLine(/Code Entry Points:\s*\n+([\s\S]*?)(?:\n##|$)/i, technical)}
 - Debugging required: ${debuggingRequired}
 - Debugging reason: ${debuggingReason}
 - Self review required: yes
+- Single Feature closure required: yes
+- Finish-feature required before next Feature: yes
+- Completion proof required: yes
+- Build/typecheck alone is completion evidence: no
+
+If implementation conflicts with the selected option, rejected option, allowed scope, forbidden scope, non-goals, or acceptance criteria, stop and ask for user confirmation before changing code.
 
 ## Maintainability Guardrails
 

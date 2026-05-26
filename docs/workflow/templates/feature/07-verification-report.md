@@ -24,6 +24,21 @@ Allowed values:
 | --- | --- | --- | --- | --- |
 | REQ-AREA-001 | AC-AREA-001 |  |  | Not Tested |
 
+## Coverage Matrix Verification
+
+<!--
+如果 04-acceptance-criteria.md 中 Coverage required: yes，这里必须逐项填写。
+每个 Coverage ID 都必须能对应到实现证据、验证证据和 Passed 状态。
+不要用整体 build / typecheck 替代单项覆盖证据。
+-->
+
+- Coverage required: no
+- Expected coverage items: 0
+
+| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Implementation Evidence | Verification Evidence | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| COV-AREA-001 |  | REQ-AREA-001 | AC-AREA-001 |  |  | Not Tested |
+
 ## Scope Lock Review
 
 - Approved scope followed: yes / no

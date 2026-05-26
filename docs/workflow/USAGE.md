@@ -93,6 +93,10 @@ node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> -
 
 `finish-feature.mjs` 会运行 Feature gate、验证命令、completion-check，并在全部通过后写入 `COMPLETION_PROOF.json` 和 `status: verified`。`completion-check.mjs` 仍可用于诊断，但不是正式完成出口。
 
+如果一个 Feature 明确包含多个模块、页面、工具、状态、接口或枚举项，请在 `04-acceptance-criteria.md` 启用 Coverage Matrix，并填写 `Expected coverage items`。覆盖项很多时，AI 可以按 3-5 个一批实现，但 `finish-feature.mjs` 会要求每个 `COV-*` 都在 `07-verification-report.md` 中有实现证据、验证证据和 Passed 状态。
+
+长时间执行时使用 Stall Guard：短任务不需要额外汇报；当 Feature 预计超过 30 分钟、Coverage Matrix 较大、命令长时间无输出，或 15 分钟没有文件变更、命令输出、验证证据时，AI worker 应暂停并说明当前 REQ / AC / COV、已改文件、正在运行的命令、验证证据和下一步。它是执行可观测性规则，不是完成门禁。
+
 ## Maestro 机器接口
 
 Maestro 应读取 JSON 输出，不要解析普通 Markdown 报告。

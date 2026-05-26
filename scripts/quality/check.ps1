@@ -62,6 +62,7 @@ $required = @(
     "scripts/build/build-skills.mjs",
     "scripts/install/setup.mjs",
     "scripts/shared/agent-runner.mjs",
+    "scripts/shared/coverage-matrix.mjs",
     "scripts/shared/document-utils.mjs",
     "scripts/shared/file-utils.mjs",
     "scripts/shared/workflow-context.mjs",
@@ -129,6 +130,7 @@ $skill = ReadText "skills/document-driven-workflow/SKILL.md"
 $package = ReadText "package.json"
 $buildScript = ReadText "scripts/build/build-skills.mjs"
 $agentRunnerScript = ReadText "scripts/shared/agent-runner.mjs"
+$coverageMatrixScript = ReadText "scripts/shared/coverage-matrix.mjs"
 $epicHydrateScript = ReadText "scripts/workflow/epic/hydrate-epic.mjs"
 $featureHydrateScript = ReadText "scripts/workflow/feature/hydrate-feature.mjs"
 $featureNewScript = ReadText "scripts/workflow/feature/new-feature.mjs"
@@ -177,6 +179,8 @@ $contentChecks = @(
     @{ Name = "EXECUTION_PROTOCOL.md defines lightweight execution"; Pass = $executionProtocol -match "Execution Mode" -and $executionProtocol -match "light" -and $executionProtocol -match "standard" -and $executionProtocol -match "strict" },
     @{ Name = "EXECUTION_DISCIPLINE.md defines implementation guardrails"; Pass = $executionDiscipline -match "Scope Lock" -and $executionDiscipline -match "TDD Trigger" -and $executionDiscipline -match "Debugging Trigger" -and $executionDiscipline -match "Self Review" },
     @{ Name = "EXECUTION_DISCIPLINE.md prevents implementation drift"; Pass = $executionDiscipline -match "Feature Execution Contract" -and $executionDiscipline -match "Implementation Deviation Stop Rule" -and $executionDiscipline -match "Build/typecheck alone" },
+    @{ Name = "EXECUTION_DISCIPLINE.md defines coverage matrix discipline"; Pass = $executionDiscipline -match "Coverage Matrix" -and $executionDiscipline -match "COV-\\*" -and $executionDiscipline -match "3-5" },
+    @{ Name = "EXECUTION_DISCIPLINE.md defines soft Stall Guard"; Pass = $executionDiscipline -match "Stall Guard" -and $executionDiscipline -match "30" -and $executionDiscipline -match "60-90" -and $executionDiscipline -match "finish-feature.mjs" },
     @{ Name = "EXECUTION_DISCIPLINE.md defines maintainability guardrails"; Pass = $executionDiscipline -match "2 or more times" -and $executionDiscipline -match "1000 lines" -and $executionDiscipline -match "Tailwind CSS" },
     @{ Name = "EXECUTION_DISCIPLINE.md defines performance and closure guardrails"; Pass = $executionDiscipline -match "Performance Discipline" -and $executionDiscipline -match "Option And Closure Advisory" -and $executionDiscipline -match "explain plan" },
     @{ Name = "PRODUCT_TRACEABILITY.md defines product layer"; Pass = $productTraceability -match "requirement-ledger.md" -and $productTraceability -match "traceability.md" -and $productTraceability -match "snapshots" },
@@ -209,6 +213,7 @@ $contentChecks = @(
     @{ Name = "GATES.md requires maintainability guardrails"; Pass = $gates -match "reuse threshold" -and $gates -match "1000-line" -and $gates -match "Tailwind CSS" },
     @{ Name = "GATES.md requires performance and closure guardrails"; Pass = $gates -match "Performance Guardrails" -and $gates -match "Option And Closure Notes" -and $gates -match "Performance Review" },
     @{ Name = "GATES.md documents completion gate"; Pass = $gates -match "Completion Gate" -and $gates -match "completion-check.mjs" -and $gates -match "traceability.md" },
+    @{ Name = "GATES.md documents coverage matrix gate"; Pass = $gates -match "Coverage Matrix Gate" -and $gates -match "Expected coverage items" -and $gates -match "COV-\\*" },
     @{ Name = "GATES.md documents fake completion handling"; Pass = $gates -match "status: verified" -and $gates -match "COMPLETION_PROOF.json" -and $gates -match "finish-feature.mjs" },
     @{ Name = "GATES.md documents machine-readable completion gate"; Pass = $gates -match "--json" -and $gates -match "Maestro" },
     @{ Name = "STACK_POLICY.md bans Pages Router"; Pass = $stackPolicy -match "Pages Router" -and $stackPolicy -match "App Router" },
@@ -220,6 +225,8 @@ $contentChecks = @(
     @{ Name = "Skill mentions execution discipline"; Pass = $skill -match "EXECUTION_DISCIPLINE.md" -and $skill -match "Scope Lock" },
     @{ Name = "Skill mentions single Feature closure"; Pass = $skill -match "Feature" -and $skill -match "finish-feature.mjs" -and $skill -match "MVP" },
     @{ Name = "Skill mentions maintainability guardrails"; Pass = $skill -match "2 repeated uses" -and $skill -match "1000 lines" -and $skill -match "Tailwind CSS" },
+    @{ Name = "Skill mentions coverage matrix guardrail"; Pass = $skill -match "Coverage Matrix" -and $skill -match "COV-\\*" -and $skill -match "finish-feature.mjs" },
+    @{ Name = "Skill mentions soft Stall Guard"; Pass = $skill -match "Stall Guard" -and $skill -match "30" -and $skill -match "15" -and $skill -match "finish-feature.mjs" },
     @{ Name = "Skill mentions performance and closure guardrails"; Pass = $skill -match "Performance" -and $skill -match "Closure" },
     @{ Name = "Skill mentions completion check"; Pass = $skill -match "completion-check.mjs" -and $skill -match "Feature" },
     @{ Name = "Skill mentions Maestro integration"; Pass = $skill -match "Maestro" -and $skill -match "handoff-pack.mjs" -and $skill -match "status.mjs" },
@@ -231,10 +238,14 @@ $contentChecks = @(
     @{ Name = "Build script generates workflow scripts"; Pass = $buildScript -match "scripts" -and $buildScript -match "workflow" },
     @{ Name = "Hydrate scripts use manifest state"; Pass = $epicHydrateScript -match "00-workflow.yaml" -and $featureHydrateScript -match "00-workflow.yaml" -and $epicFeaturesScript -match "writeManifest" },
     @{ Name = "Hydrate agent supports Codex and Claude"; Pass = $agentRunnerScript -match "claude" -and $agentRunnerScript -match "codex" -and $agentRunnerScript -match "none" },
+    @{ Name = "Coverage matrix helper exists"; Pass = $coverageMatrixScript -match "evaluateCoverageMatrix" -and $coverageMatrixScript -match "readCoverageMatrix" -and $coverageMatrixScript -match "Expected coverage items" },
     @{ Name = "Gate subject does not keep legacy path options"; Pass = -not ($gateSubjectScript -match "FeaturePath|EpicPath") },
     @{ Name = "Feature scripts support light mode"; Pass = $featureNewScript -match "--mode" -and $gateSubjectScript -match "01-light-feature.md" },
     @{ Name = "Automation scripts exist"; Pass = $routeScript -match "Recommended Mode" -and $approvalReviewScript -match "Approval Review" -and $approveScript -match "--user-approved" -and $agentPlanScript -match "Assignment Matrix" -and $doctorScript -match "Workflow Doctor Report" -and $completionCheckScript -match "Completion Check" },
     @{ Name = "Automation scripts check performance and closure risks"; Pass = $completionCheckScript -match "Performance evidence" -and $completionCheckScript -match "Closure risk review" -and $contextPackScript -match "Performance Guardrails" },
+    @{ Name = "Automation scripts check coverage matrix"; Pass = $completionCheckScript -match "evaluateCoverageMatrix" -and $coverageMatrixScript -match "Coverage item evidence" -and $handoffPackScript -match "Coverage Matrix" },
+    @{ Name = "Handoff pack includes soft Stall Guard"; Pass = $handoffPackScript -match "stall_guard" -and $handoffPackScript -match "hard_gate" -and $handoffPackScript -match "Use Stall Guard only" },
+    @{ Name = "Verify script sanitizes markdown commands"; Pass = $verifyScript -match "sanitizeCommand" -and $verifyScript -match "markdown-wrapped command" },
     @{ Name = "Maestro support scripts exist"; Pass = $doctorScript -match "workflow_doctor" -and $completionCheckScript -match "workflow_completion_check" -and $statusScript -match "workflow_status" -and $handoffPackScript -match "workflow_handoff_pack" -and $finishFeatureScript -match "workflow_finish_feature" },
     @{ Name = "Finish feature script is unique completion exit"; Pass = $finishFeatureScript -match "COMPLETION_PROOF.json" -and $finishFeatureScript -match "finish-feature" -and $finishFeatureScript -match "status" -and $finishFeatureScript -match "verified" },
     @{ Name = "Status script rejects manifest-only verified"; Pass = $statusScript -match "manifest_verified_without_proof" -and $statusScript -match "finish-feature completion proof is missing" },

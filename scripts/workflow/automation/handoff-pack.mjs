@@ -3,6 +3,7 @@ import path from "path";
 import { createWorkflowContext, parseOption } from "../../shared/workflow-context.mjs";
 import { readText, stripHtmlComments } from "../../shared/document-utils.mjs";
 import { readManifest } from "../../shared/workflow-manifest.mjs";
+import { readCoverageMatrix } from "../../shared/coverage-matrix.mjs";
 
 const args = process.argv.slice(2);
 const workflow = createWorkflowContext(args);
@@ -102,6 +103,7 @@ const plan = light ? readClean("01-light-feature.md") : readClean("06-implementa
 const context = light ? readClean("01-light-feature.md") : readClean("08-context-pack.md");
 const requirementIds = collectIds(/\bREQ-[A-Z0-9-]+\b/g, prd, acceptance, plan, context);
 const acceptanceIds = collectIds(/\bAC-[A-Z0-9-]+\b/g, acceptance, plan, context);
+const coverageMatrix = readCoverageMatrix(acceptance);
 const approvedScope = bulletLines(section(/## Scope Lock\s*([\s\S]*?)(?:\n##|$)/i, context) || section(/## Scope Lock\s*([\s\S]*?)(?:\n##|$)/i, plan));
 const allowedScope = bulletLines(
   section(/## Allowed Scope\s*([\s\S]*?)(?:\n##|$)/i, context) ||
@@ -123,6 +125,15 @@ const workflowScripts = {
   completion_check: `node ${path.join(workflow.packageRoot, "scripts/workflow/automation/completion-check.mjs")} ${subjectRel} --target ${workflow.targetRoot}`,
   finish_feature: `node ${path.join(workflow.packageRoot, "scripts/workflow/automation/finish-feature.mjs")} ${subjectRel} --target ${workflow.targetRoot}`,
 };
+const stallGuard = {
+  applies_to: ["expected_feature_runtime_over_30_minutes", "coverage_items_over_5", "long_running_command", "maestro_multi_worker_dispatch", "no_progress_for_15_minutes"],
+  progress_update_interval_minutes: "15-30 when triggered",
+  stall_threshold_minutes: 15,
+  silent_command_threshold_minutes: 15,
+  split_expected_after_minutes: "60-90",
+  hard_gate: false,
+  required_progress_fields: ["current_req_ac_cov", "changed_files", "running_command", "verification_evidence", "next_step"],
+};
 
 const codexPrompt = `Use document-driven-workflow in ${workflow.targetRoot}.
 You are implementing exactly one Feature: ${subjectRel}.
@@ -130,6 +141,8 @@ Do not implement sibling Features, Epic-level extras, or unrelated cleanup.
 Run the Feature gate before editing code.
 Read HANDOFF_PACK.md, 00-workflow.yaml, requirement docs, acceptance criteria, implementation plan, and 08-context-pack.md.
 Lock to the approved REQ IDs, AC IDs, allowed scope, forbidden scope, non-goals, selected option, and maintainability guardrails.
+If this Feature has a Coverage Matrix, every COV-* row is required completion scope. For large coverage lists, work in batches of 3-5 coverage items, update evidence after each batch, and continue until every coverage row has implementation evidence, verification evidence, and Passed status.
+Use Stall Guard only for long tasks and no-output situations. It is not a completion gate. If the Feature is expected to exceed 30 minutes, has more than 5 coverage items, runs a long command, is part of Maestro multi-worker dispatch, or 15 minutes pass without file changes, command output, verification evidence, or a clear phase result, pause and report current REQ/AC/COV, changed files, running command, verification evidence, blocker, and next step. Short tasks do not need extra progress reports.
 If the fastest implementation conflicts with the selected option, uses a rejected/fallback option, expands allowed scope, weakens an acceptance criterion, or only implements partial coverage, stop and ask the user to update/approve the Feature docs before editing further.
 Build/typecheck/lint passing is not completion. Update 07-verification-report.md with REQ/AC evidence, changed-file mapping, scope review, performance/closure review, and test/manual verification evidence.
 Use finish-feature as the only completion exit. Do not manually mark 00-workflow.yaml as verified. Only report done when finish-feature returns PASS and writes COMPLETION_PROOF.json. Do not start another Feature before this Feature passes finish-feature.`;
@@ -151,6 +164,14 @@ const payload = {
   },
   requirement_ids: requirementIds,
   acceptance_ids: acceptanceIds,
+  coverage: {
+    required: coverageMatrix.required,
+    expected_count: coverageMatrix.expectedCount,
+    declared_count: coverageMatrix.rows.length,
+    ids: coverageMatrix.rows.map((row) => row.id),
+    batch_size_recommendation: coverageMatrix.expectedCount > 5 ? "3-5 coverage items per execution pass" : "single pass is acceptable",
+  },
+  stall_guard: stallGuard,
   source_docs: detectFiles().map((file) => `${subjectRel}/${file}`),
   scope: {
     approved: approvedScope,
@@ -198,6 +219,25 @@ ${requirementIds.map((id) => `- ${id}`).join("\n") || "- none"}
 
 ${acceptanceIds.map((id) => `- ${id}`).join("\n") || "- none"}
 
+## Coverage Matrix
+
+- Required: ${payload.coverage.required ? "yes" : "no"}
+- Expected coverage items: ${payload.coverage.expected_count}
+- Declared coverage rows: ${payload.coverage.declared_count}
+- Batch recommendation: ${payload.coverage.batch_size_recommendation}
+
+${payload.coverage.ids.map((id) => `- ${id}`).join("\n") || "- none"}
+
+## Stall Guard
+
+- Applies to: ${payload.stall_guard.applies_to.join(", ")}
+- Progress update interval: ${payload.stall_guard.progress_update_interval_minutes}
+- Stall threshold: ${payload.stall_guard.stall_threshold_minutes} minutes without file changes, command output, verification evidence, or a phase result
+- Silent command threshold: ${payload.stall_guard.silent_command_threshold_minutes} minutes
+- Split expected after: ${payload.stall_guard.split_expected_after_minutes} minutes
+- Hard gate: ${payload.stall_guard.hard_gate ? "yes" : "no"}
+- Required progress fields: ${payload.stall_guard.required_progress_fields.join(", ")}
+
 ## Approved Scope
 
 ${approvedScope.map((item) => `- ${item}`).join("\n") || "- See Feature documents."}
@@ -224,6 +264,8 @@ ${testCommands.map((item) => `- ${item.label}: ${item.command}`).join("\n") || "
 - 完成后先更新 07-verification-report.md，再运行 finish-feature。
 - 不要手动把 00-workflow.yaml 标记为 verified。
 - finish-feature 没有 PASS 并写入 COMPLETION_PROOF.json 前，不要报告完成，也不要开始下一个 Feature。
+- 如果 Coverage Matrix 启用，每个 COV-* 都是完成范围；覆盖项多于 5 个时可以按 3-5 个一批执行，但不能在全部 COV-* 通过前报告完成。
+- Stall Guard 只用于长任务和无输出场景，不是完成门禁；预计超过 30 分钟、覆盖项多于 5 个、长命令无输出或 15 分钟没有可验证进展时，暂停并报告卡点。
 
 ## Workflow Commands
 

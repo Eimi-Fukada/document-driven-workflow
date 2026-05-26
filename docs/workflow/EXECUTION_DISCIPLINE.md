@@ -14,6 +14,8 @@
 - 当前 Feature 没有通过 `finish-feature.mjs` 并写入 `COMPLETION_PROOF.json` 前，不得开始下一个 Feature。
 - 构建、类型检查或 lint 通过，只能作为验证证据的一部分，不能替代需求 ID、验收 ID、范围和变更文件映射。
 - Build/typecheck alone is not completion evidence.
+- 如果 `04-acceptance-criteria.md` 启用了 Coverage Matrix，每个 `COV-*` 都是完成范围。实现 agent 可以按 3-5 个覆盖项分批推进，但每批完成后都要补充验证证据；全部覆盖项没有实现证据、验证证据和 Passed 状态前，不得报告完成。
+- 使用 Stall Guard 观察长任务：短任务不要求定时汇报；长时间无输出或无进展时才暂停报告卡点。
 - 不要手动把 `00-workflow.yaml` 标记为 `verified`；真正完成以 `finish-feature.mjs` 的 PASS 结果、`COMPLETION_PROOF.json` 和验证报告为准。
 
 ## 必读输入
@@ -62,6 +64,7 @@ Light Feature 使用 `01-light-feature.md`，不强制使用完整 Feature 文�
 - 文档把某个方案标为 rejected、fallback、仅小规模可用或非推荐方案，而实现 agent 想采用它。
 - 为了少改后端、少改接口或快速上线，准备把服务端方案降级为前端兜底方案。
 - 计划只实现部分保护、部分接口、部分状态或部分验收项。
+- Feature 文档声明了 Coverage Matrix，但计划只实现其中一部分 `COV-*` 覆盖项。
 - 需要修改 allowed scope 之外的文件或模块。
 - 需要触碰 forbidden scope、非目标、兼容契约、认证、支付、权限、额度、会员、任务状态、数据库、部署或迁移边界。
 - 只能证明 build/typecheck 通过，但还没有证明 REQ / AC 逐项满足。
@@ -75,6 +78,37 @@ Light Feature 使用 `01-light-feature.md`，不强制使用完整 Feature 文�
 - 是否需要更新 Feature 文档、ADR 或重新获得用户批准。
 
 用户没有确认前，不能继续实现偏离方案。
+
+## Stall Guard
+
+Stall Guard 用于防止 AI worker 长时间运行但没有任务推进。它不是新的审批流程，不是完成门禁，也不替代 `finish-feature.mjs`；它只提供长任务的执行可观测性。
+
+短任务不需要额外汇报。只有出现下面任一情况时才触发 Stall Guard：
+
+- Feature 预计执行时间超过 30 分钟。
+- Coverage Matrix 超过 5 个覆盖项，需要分批执行。
+- 单个命令、构建、测试或调试过程预计较长。
+- Maestro 或其他上层编排器正在派发多个 worker。
+- 实际已经超过 15 分钟，但没有文件变更、命令输出、验证证据或明确阶段结果。
+
+触发后，agent 应遵守：
+
+- 每 15-30 分钟向用户或上层编排器报告一次进展。
+- 进展报告必须包含当前处理的 `REQ-*` / `AC-*` / `COV-*`、已修改文件、正在运行的命令、已获得的验证证据和下一步。
+- 如果 15 分钟内没有文件变更、没有命令输出、没有验证证据或没有明确阶段结果，必须暂停并报告卡点。
+- 如果单个命令 15 分钟没有任何输出，应检查进程、日志或中止后报告原因；不要无限等待。
+- 如果预计单个 Feature 会超过 60-90 分钟，应按 Coverage Matrix、模块或执行批次拆分推进；这不代表拆成多个 Feature，除非业务闭环本身应该拆。
+- 不能用“仍在处理”“继续实现中”作为有效进展。有效进展必须能映射到文档、文件、命令或验证证据。
+
+Stall Guard 触发时，agent 应输出：
+
+- 当前 Feature 路径和本批次目标。
+- 已完成的 REQ / AC / COV。
+- 已修改或计划修改的文件。
+- 卡住的命令、文件、接口或不确定点。
+- 下一步建议：继续等待、缩小批次、补充文档、请求用户决策，或中止当前命令。
+
+Stall Guard 只影响执行过程透明度，不影响完成判定。没有触发或没有记录 Stall Guard，不应导致 `finish-feature.mjs` 失败；但触发后仍沉默运行时，agent 应先报告卡点，再继续。
 
 ## TDD Trigger
 
@@ -119,6 +153,7 @@ Feature 是 bug 修复，或实现过程中发现非预期行为时，需要 sys
 - 每个改动文件都能映射到需求或测试
 - 每个需求都有实现证据
 - 每个验收项都有验证证据
+- 启用 Coverage Matrix 时，每个 `COV-*` 都有实现证据、验证证据和 Passed 状态
 - 禁止范围没有被触碰
 - 非目标仍然保持不变
 - 适用时已更新产品追溯

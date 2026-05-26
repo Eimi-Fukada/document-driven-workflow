@@ -15,6 +15,7 @@ $tmpPaths = @(
     (Join-Path $featuresRoot "__tmp_approval_feature"),
     (Join-Path $featuresRoot "__tmp_gate_pages_router"),
     (Join-Path $featuresRoot "__tmp_performance_feature"),
+    (Join-Path $featuresRoot "__tmp_coverage_feature"),
     (Join-Path $featuresRoot "__tmp_fake_verified"),
     (Join-Path $featuresRoot "tmp-new-feature-docs"),
     (Join-Path $featuresRoot "tmp-process-feature"),
@@ -501,6 +502,12 @@ try {
         Write-Host "Gate regression failed: workflow:verify did not append command evidence." -ForegroundColor Red
         exit 1
     }
+    & node (Join-Path $root "scripts\workflow\automation\verify.mjs") "docs/features/tmp-process-feature" --target $root --command '`cmd /c echo workflow verify sanitized ok`' | Out-Host
+    $verificationReport = Get-Content -LiteralPath (Join-Path $processFeature "07-verification-report.md") -Raw -Encoding utf8
+    if ($verificationReport -notmatch "workflow verify sanitized ok" -or $verificationReport -notmatch "Sanitized from markdown-wrapped command") {
+        Write-Host "Gate regression failed: workflow:verify did not sanitize markdown-wrapped command evidence." -ForegroundColor Red
+        exit 1
+    }
     WriteUtf8 (Join-Path $processFeature "07-verification-report.md") @(
         "# Verification Report",
         "",
@@ -653,6 +660,151 @@ try {
         exit 1
     }
 
+    $coverageFeature = Join-Path $featuresRoot "__tmp_coverage_feature"
+    WriteReadyFeature $coverageFeature "__tmp_coverage_feature"
+    WriteUtf8 (Join-Path $coverageFeature "04-acceptance-criteria.md") @(
+        "# Acceptance",
+        "",
+        "AC-DEMO-001 covers REQ-DEMO-001",
+        "",
+        "## Coverage Matrix",
+        "",
+        "- Coverage required: yes",
+        "- Expected coverage items: 2",
+        "- Execution pass recommendation: 3-5 coverage items when Expected coverage items is greater than 5",
+        "",
+        "| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Notes |",
+        "| --- | --- | --- | --- | --- |",
+        "| COV-DEMO-001 | Module A | REQ-DEMO-001 | AC-DEMO-001 | state recovery |",
+        "| COV-DEMO-002 | Module B | REQ-DEMO-001 | AC-DEMO-001 | state recovery |"
+    )
+    WriteUtf8 (Join-Path $coverageFeature "07-verification-report.md") @(
+        "# Verification Report",
+        "",
+        "## Basic Info",
+        "",
+        "- Result: Passed",
+        "",
+        "## Requirement Trace",
+        "",
+        "| Requirement ID | Acceptance ID | Implementation Evidence | Test Evidence | Result |",
+        "| --- | --- | --- | --- | --- |",
+        "| REQ-DEMO-001 | AC-DEMO-001 | src/cov-a.ts, src/cov-b.ts | workflow verify ok | Passed |",
+        "",
+        "## Coverage Matrix Verification",
+        "",
+        "- Coverage required: yes",
+        "- Expected coverage items: 2",
+        "",
+        "| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Implementation Evidence | Verification Evidence | Status |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| COV-DEMO-001 | Module A | REQ-DEMO-001 | AC-DEMO-001 | src/cov-a.ts | workflow verify ok | Passed |",
+        "",
+        "## Changed Files",
+        "",
+        "| File | Purpose | Requirement IDs |",
+        "| --- | --- | --- |",
+        "| src/cov-a.ts | Module A implementation | REQ-DEMO-001 |",
+        "| src/cov-b.ts | Module B implementation | REQ-DEMO-001 |",
+        "",
+        "## Commands Run",
+        "",
+        '```bash',
+        "cmd /c echo workflow verify ok",
+        '```',
+        "",
+        "## Product Traceability Update",
+        "",
+        '- Updated `docs/product/traceability.md`: not-applicable',
+        "",
+        "## Self Review",
+        "",
+        "- Requirement coverage checked: yes",
+        "- Acceptance coverage checked: yes",
+        "- Changed files mapped to requirements: yes",
+        "- No unrelated refactor: yes",
+        "- Maintainability guardrails checked: yes",
+        "- Performance risk handled or marked not-applicable: yes",
+        "- Option decision recorded when needed: yes",
+        "- Closure risk reviewed: yes",
+        "- Fresh verification evidence recorded: yes",
+        "",
+        "## Conclusion",
+        "",
+        "Ready to release: yes"
+    )
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    & node (Join-Path $root "scripts\workflow\automation\completion-check.mjs") "docs/features/__tmp_coverage_feature" --target $root --changed-files "src/cov-a.ts,src/cov-b.ts" *> $null
+    $coverageCheckCode = $LASTEXITCODE
+    $ErrorActionPreference = $previousErrorActionPreference
+    if ($coverageCheckCode -eq 0) {
+        Write-Host "Gate regression failed: coverage feature passed with a missing coverage row." -ForegroundColor Red
+        exit 1
+    }
+    WriteUtf8 (Join-Path $coverageFeature "07-verification-report.md") @(
+        "# Verification Report",
+        "",
+        "## Basic Info",
+        "",
+        "- Result: Passed",
+        "",
+        "## Requirement Trace",
+        "",
+        "| Requirement ID | Acceptance ID | Implementation Evidence | Test Evidence | Result |",
+        "| --- | --- | --- | --- | --- |",
+        "| REQ-DEMO-001 | AC-DEMO-001 | src/cov-a.ts, src/cov-b.ts | workflow verify ok | Passed |",
+        "",
+        "## Coverage Matrix Verification",
+        "",
+        "- Coverage required: yes",
+        "- Expected coverage items: 2",
+        "",
+        "| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Implementation Evidence | Verification Evidence | Status |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| COV-DEMO-001 | Module A | REQ-DEMO-001 | AC-DEMO-001 | src/cov-a.ts | workflow verify ok | Passed |",
+        "| COV-DEMO-002 | Module B | REQ-DEMO-001 | AC-DEMO-001 | src/cov-b.ts | workflow verify ok | Passed |",
+        "",
+        "## Changed Files",
+        "",
+        "| File | Purpose | Requirement IDs |",
+        "| --- | --- | --- |",
+        "| src/cov-a.ts | Module A implementation | REQ-DEMO-001 |",
+        "| src/cov-b.ts | Module B implementation | REQ-DEMO-001 |",
+        "",
+        "## Commands Run",
+        "",
+        '```bash',
+        "cmd /c echo workflow verify ok",
+        '```',
+        "",
+        "## Product Traceability Update",
+        "",
+        '- Updated `docs/product/traceability.md`: not-applicable',
+        "",
+        "## Self Review",
+        "",
+        "- Requirement coverage checked: yes",
+        "- Acceptance coverage checked: yes",
+        "- Changed files mapped to requirements: yes",
+        "- No unrelated refactor: yes",
+        "- Maintainability guardrails checked: yes",
+        "- Performance risk handled or marked not-applicable: yes",
+        "- Option decision recorded when needed: yes",
+        "- Closure risk reviewed: yes",
+        "- Fresh verification evidence recorded: yes",
+        "",
+        "## Conclusion",
+        "",
+        "Ready to release: yes"
+    )
+    $coverageJsonRaw = & node (Join-Path $root "scripts\workflow\automation\completion-check.mjs") "docs/features/__tmp_coverage_feature" --target $root --changed-files "src/cov-a.ts,src/cov-b.ts" --json
+    $coverageJson = $coverageJsonRaw | ConvertFrom-Json
+    if ($coverageJson.result -ne "PASS" -or $coverageJson.coverage.required -ne $true -or $coverageJson.coverage.expected_count -ne 2 -or $coverageJson.coverage.verified_count -ne 2) {
+        Write-Host "Gate regression failed: coverage feature did not pass with full coverage evidence." -ForegroundColor Red
+        exit 1
+    }
+
     & node (Join-Path $root "scripts\workflow\automation\doctor.mjs") --target $root --host all --skip-install-check --skip-cli-check | Out-Host
     $doctorReport = Get-Content -LiteralPath (Join-Path $root "docs\workflow\DOCTOR_REPORT.md") -Raw -Encoding utf8
     if ($doctorReport -notmatch "Workflow Doctor Report" -or $doctorReport -notmatch "Result: PASS") {
@@ -703,8 +855,16 @@ try {
         Write-Host "Gate regression failed: workflow:handoff-pack did not include requirement and acceptance IDs." -ForegroundColor Red
         exit 1
     }
-    if ($handoffJson.codex_prompt -notmatch "exactly one Feature" -or $handoffJson.codex_prompt -notmatch "Build/typecheck/lint passing is not completion" -or $handoffJson.codex_prompt -notmatch "finish-feature") {
+    if ($handoffJson.codex_prompt -notmatch "exactly one Feature" -or $handoffJson.codex_prompt -notmatch "Build/typecheck/lint passing is not completion" -or $handoffJson.codex_prompt -notmatch "finish-feature" -or $handoffJson.codex_prompt -notmatch "Coverage Matrix" -or $handoffJson.codex_prompt -notmatch "Stall Guard") {
         Write-Host "Gate regression failed: workflow:handoff-pack did not include anti-drift worker guardrails." -ForegroundColor Red
+        exit 1
+    }
+    if (-not $handoffJson.stall_guard -or $handoffJson.stall_guard.stall_threshold_minutes -ne 15 -or -not ($handoffJson.stall_guard.required_progress_fields -contains "current_req_ac_cov")) {
+        Write-Host "Gate regression failed: workflow:handoff-pack did not include machine-readable Stall Guard." -ForegroundColor Red
+        exit 1
+    }
+    if ($handoffJson.stall_guard.hard_gate -ne $false -or -not ($handoffJson.stall_guard.applies_to -contains "expected_feature_runtime_over_30_minutes")) {
+        Write-Host "Gate regression failed: workflow:handoff-pack treated Stall Guard as a hard gate or missed trigger boundaries." -ForegroundColor Red
         exit 1
     }
 

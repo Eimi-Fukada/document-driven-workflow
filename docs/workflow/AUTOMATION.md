@@ -39,7 +39,7 @@
 | `continue.mjs` | 用户批准后运行 gate，并准备下一阶段上下文 | yes | yes，当需要写入批准时 |
 | `verify.mjs` | 执行文档里的验证命令并写回验证报告 | yes，`07-verification-report.md` | no |
 | `finish-feature.mjs` | 唯一完成出口，依次运行 gate、verify、completion-check，写入完成证明和 verified 状态 | yes，`COMPLETION_PROOF.json` | no |
-| `completion-check.mjs` | 底层完成检查，检查需求覆盖、验证证据、diff、可维护性和追溯 | yes，`COMPLETION_CHECK.md` | no |
+| `completion-check.mjs` | 底层完成检查，检查需求覆盖、Coverage Matrix、验证证据、diff、可维护性和追溯 | yes，`COMPLETION_CHECK.md` | no |
 | `status.mjs` | 输出 Epic / Feature 状态快照，给人或 Maestro 判断下一步 | yes，`STATUS_REPORT.md`；`--json` 时可只输出 JSON | no |
 | `handoff-pack.mjs` | 生成单个 Feature 的实现交接包和机器可读 worker 输入 | yes，`HANDOFF_PACK.md` 和 `handoff-pack.json` | no |
 
@@ -62,7 +62,7 @@
 
 gate 通过后，AI 遵守 `EXECUTION_DISCIPLINE.md` 中的 Scope Lock、TDD / debugging 触发条件、性能纪律、方案/闭环提醒、自审和证据规则。
 
-验证通过后，AI 仍然不能直接声称完成；需要运行唯一完成出口 `finish-feature.mjs`。它会确认验证报告、变更文件映射、禁止范围、可维护性、性能风险和闭环风险检查都通过，并写入 `COMPLETION_PROOF.json`。
+验证通过后，AI 仍然不能直接声称完成；需要运行唯一完成出口 `finish-feature.mjs`。它会确认验证报告、Coverage Matrix、变更文件映射、禁止范围、可维护性、性能风险和闭环风险检查都通过，并写入 `COMPLETION_PROOF.json`。
 
 ## Maestro 机器接口
 

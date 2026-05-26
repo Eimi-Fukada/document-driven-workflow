@@ -163,6 +163,7 @@ node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> -
 
 - Feature gate 仍然通过。
 - `07-verification-report.md` 或 Light Feature 验证区包含所有 `REQ-*` 和 `AC-*` 的证据。
+- 如果 `04-acceptance-criteria.md` 启用了 Coverage Matrix，验证报告必须包含每个 `COV-*` 的实现证据、验证证据和 Passed 状态。
 - 验证报告包含新的命令输出或明确人工验证证据。
 - 验证报告不再保留 `Not Tested`。
 - 结果为 `Passed` 或 `Ready to release: yes`。
@@ -178,6 +179,19 @@ node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> -
 finish-feature 失败时，AI 不能声称完成，只能继续补验证、修实现或回到文档阶段修正范围。
 
 Completion gate 只判断单个 Feature 是否具备完成证据。跨项目联调、接口兼容和集成验收属于 Maestro 或其他上层编排器的职责，不应该被塞进单个 Feature 的完成状态里。
+
+## Coverage Matrix Gate
+
+一个 Feature 仍然可以包含多个模块、页面、工具、状态或接口，只要它们属于同一个业务闭环。为了防止 AI 只实现第一批内容就报告完成，这类 Feature 必须在 `04-acceptance-criteria.md` 中启用 Coverage Matrix：
+
+```text
+- Coverage required: yes
+- Expected coverage items: 11
+```
+
+每个覆盖项使用 `COV-*` ID，并映射到 `REQ-*` 和 `AC-*`。完成时，`07-verification-report.md` 的 `Coverage Matrix Verification` 必须逐项填写实现证据、验证证据和 `Passed` 状态。
+
+覆盖项很多时，允许实现 agent 按 3-5 个一批推进；这只是执行批次，不是降低验收范围。`finish-feature.mjs` 只有在全部 `COV-*` 覆盖项通过后才会允许该 Feature 完成。
 
 ## 假完成状态
 

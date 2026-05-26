@@ -18,6 +18,8 @@ description: "Use when a project should be delivered from product documents, UI 
 - 用户批准进入开发不等于允许自由落地。实现 agent 只能按当前 Feature 的 `08-context-pack.md`、验收标准和 handoff pack 执行，不能把最快实现路径替代已批准方案。
 - 每个 Feature 必须单独闭环：实现、补 `07-verification-report.md`、运行 `finish-feature.mjs`，通过并写入 `COMPLETION_PROOF.json` 后才能继续下一个 Feature。不要批量实现多个 Feature 后统一验收。
 - 实现时考虑可维护性：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；Next.js UI 优先使用 Tailwind CSS。
+- 多模块、多页面、多工具、多状态、多接口或明确枚举数量的 Feature 必须使用 Coverage Matrix。每个 `COV-*` 都是完成范围；覆盖项多于 5 个时可以 3-5 个一批执行，但 `finish-feature.mjs` 通过前不能声称完成。
+- Stall Guard：只用于长任务和无输出场景；短任务不需要额外汇报。预计超过 30 分钟或 15 分钟没有文件变更、命令输出、验证证据时，暂停并报告卡点。它不是完成门禁。
 - Performance：命中大表、长列表、轮询、批处理、缓存、索引、并发或大文件等场景时，必须记录性能风险、缓解方案和验证证据。
 - Closure：当实现方案不唯一、用户方案可能不闭环、或技术路线明显老旧时，先给出方案对比和闭环提醒，再实施。
 - 当实现路径与推荐方案、已拒绝方案、allowed scope、forbidden scope、非目标或验收标准冲突时，必须停下来报告冲突并等待用户确认，不能擅自降级成 MVP 或兜底方案。
@@ -35,7 +37,7 @@ description: "Use when a project should be delivered from product documents, UI 
 7. 运行内置 gate。
 8. gate 通过后，按已批准范围、`08-context-pack.md` 和 `EXECUTION_DISCIPLINE.md` 实现。
 9. 每个 Feature 独立完成自审、验证、产品追溯更新，并更新验证报告。
-10. 声称完成前运行 `finish-feature.mjs`，把 `COMPLETION_PROOF.json` 作为交付证据；只有该 Feature 通过后才继续下一个 Feature。
+10. 声称完成前运行 `finish-feature.mjs`，把 `COMPLETION_PROOF.json` 作为交付证据；如果启用了 Coverage Matrix，必须全部 `COV-*` 通过；只有该 Feature 通过后才继续下一个 Feature。
 
 ## 入口规则
 

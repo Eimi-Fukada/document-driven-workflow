@@ -4,6 +4,7 @@ import { spawnSync } from "child_process";
 import { createWorkflowContext, parseOption } from "../../shared/workflow-context.mjs";
 import { readText, stripHtmlComments } from "../../shared/document-utils.mjs";
 import { readManifest } from "../../shared/workflow-manifest.mjs";
+import { evaluateCoverageMatrix } from "../../shared/coverage-matrix.mjs";
 
 const args = process.argv.slice(2);
 const workflow = createWorkflowContext(args);
@@ -44,6 +45,12 @@ function classifyRow(check) {
   }
   if (/Requirement IDs|Feature gate/i.test(check)) {
     return "doc_blocker";
+  }
+  if (/Coverage.*(declared|expected|source|duplicate)/i.test(check)) {
+    return "doc_blocker";
+  }
+  if (/Coverage/i.test(check)) {
+    return "verification_blocker";
   }
   if (/Forbidden scope|Allowed scope/i.test(check)) {
     return "implementation_blocker";
@@ -254,6 +261,16 @@ if (missingAcEvidence.length) {
   addRow("Acceptance evidence", "PASS", "all acceptance IDs are mentioned in verification evidence");
 }
 
+const coverageResult = evaluateCoverageMatrix({
+  acceptanceText: acceptance,
+  reportText: report,
+  requirementIds,
+  acceptanceIds,
+});
+for (const check of coverageResult.checks) {
+  addRow(check.check, check.status, check.detail, check.blocker_type);
+}
+
 const commandBlock = /## Commands Run[\s\S]*?```(?:bash|text)?\s*([\s\S]*?)```/i.exec(report)?.[1]?.trim() || "";
 const hasVerificationRun = /Automated Verification Run/i.test(report) || commandBlock.length > 0 || /Manual Verification/i.test(report);
 addRow(
@@ -445,15 +462,27 @@ const payload = {
     mode: manifest.mode || "standard",
     approval: manifest.approval || "pending",
     readiness: manifest.readiness || "not_ready",
-    status: failures.length ? manifest.status || "draft" : "verified",
+    status: manifest.status || "draft",
     stack_preset: manifest.stack_preset || "next-fullstack",
     epic_id: manifest.epic_id || "none",
   },
   result: failures.length ? "BLOCKED" : "PASS",
+  completion_result: failures.length ? "blocked" : "pass",
   summary: {
     blockers: failures.length,
     warnings: warnings.length,
     checks: rows.length,
+  },
+  coverage: {
+    required: coverageResult.required,
+    expected_count: coverageResult.expected_count,
+    declared_count: coverageResult.declared_count,
+    verified_count: coverageResult.verified_count,
+    missing_in_report: coverageResult.missing_in_report,
+    missing_evidence: coverageResult.missing_evidence,
+    not_passed: coverageResult.not_passed,
+    invalid_source_rows: coverageResult.invalid_source_rows,
+    duplicate_ids: coverageResult.duplicate_ids,
   },
   checks: rows,
   changed_files: relevantChangedFiles,

@@ -31,17 +31,43 @@ function readIfExists(filePath) {
   return existsSync(filePath) ? readFileSync(filePath, "utf8") : "";
 }
 
+function sanitizeCommand(rawCommand) {
+  const raw = String(rawCommand || "").trim();
+  let command = raw;
+  command = command.replace(/^```[A-Za-z0-9_-]*\s*/, "").replace(/\s*```$/, "").trim();
+  command = command.replace(/^`+/, "").replace(/`+$/, "").trim();
+  if (
+    (command.startsWith('"') && command.endsWith('"')) ||
+    (command.startsWith("'") && command.endsWith("'"))
+  ) {
+    command = command.slice(1, -1).trim();
+  }
+  if (!command || command.includes("```") || /\r?\n/.test(command)) {
+    return {
+      ok: false,
+      raw,
+      command: "",
+      reason: "verification command must be one clean shell command, not a markdown code fence or multi-line block",
+    };
+  }
+  return { ok: true, raw, command, changed: raw !== command };
+}
+
 function collectCommands(text) {
   const commands = [];
   const labels = ["Typecheck", "Lint", "Unit", "API", "Playwright", "Smoke", "Build", "Format"];
   for (const label of labels) {
     const pattern = new RegExp(`^-\\s*${label}:\\s*(.+)$`, "gim");
     for (const match of text.matchAll(pattern)) {
-      const command = match[1].trim();
+      const sanitized = sanitizeCommand(match[1]);
+      if (!sanitized.ok) {
+        throw new Error(`${label}: ${sanitized.reason}. Raw value: ${sanitized.raw}`);
+      }
+      const command = sanitized.command;
       if (!command || ["-", "none", "n/a", "not-applicable", "pending"].includes(command.toLowerCase())) {
         continue;
       }
-      commands.push({ label, command });
+      commands.push({ label, command, raw_command: sanitized.raw, sanitized: sanitized.changed });
     }
   }
   return commands;
@@ -60,7 +86,17 @@ for (const item of commandSources.flatMap((source) => collectCommands(source))) 
   }
 }
 if (extraCommand) {
-  commandMap.set(extraCommand, { label: "Manual", command: extraCommand });
+  const sanitized = sanitizeCommand(extraCommand);
+  if (!sanitized.ok) {
+    console.error(`Manual: ${sanitized.reason}. Raw value: ${sanitized.raw}`);
+    process.exit(1);
+  }
+  commandMap.set(sanitized.command, {
+    label: "Manual",
+    command: sanitized.command,
+    raw_command: sanitized.raw,
+    sanitized: sanitized.changed,
+  });
 }
 
 const commands = [...commandMap.values()];
@@ -102,7 +138,13 @@ const timestamp = new Date().toISOString();
 const section = `\n\n## Automated Verification Run - ${timestamp}\n\n| Label | Command | Exit Code | Result |\n| --- | --- | --- | --- |\n${results
   .map((item) => `| ${item.label} | \`${item.command.replaceAll("|", "\\|")}\` | ${item.status} | ${item.status === 0 ? "Passed" : "Failed"} |`)
   .join("\n")}\n\n${results
-  .map((item) => `### ${item.label}: ${item.command}\n\nExit code: ${item.status}\n\nStdout:\n\n\`\`\`text\n${item.stdout}\n\`\`\`\n\nStderr:\n\n\`\`\`text\n${item.stderr}\n\`\`\``)
+  .map((item) => {
+    const sanitizedNote =
+      item.sanitized && item.raw_command
+        ? `\n\nSanitized from markdown-wrapped command: \`${item.raw_command.replaceAll("|", "\\|")}\``
+        : "";
+    return `### ${item.label}: ${item.command}\n\nExit code: ${item.status}${sanitizedNote}\n\nStdout:\n\n\`\`\`text\n${item.stdout}\n\`\`\`\n\nStderr:\n\n\`\`\`text\n${item.stderr}\n\`\`\``;
+  })
   .join("\n\n")}\n`;
 
 mkdirSync(path.dirname(reportPath), { recursive: true });

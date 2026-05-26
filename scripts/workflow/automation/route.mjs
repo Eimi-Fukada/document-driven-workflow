@@ -53,6 +53,15 @@ const scaffold = `# Workflow Routing Review
 
 -
 
+## User Confirmation Draft
+
+- AI suggested mode: unset
+- AI suggested risk level: unset
+- Objective hard risk blockers: none
+- Expected runtime: unset
+- Execution slicing: unset
+- User can confirm / downgrade / upgrade / split:
+
 ## Required Artifacts
 
 -
@@ -82,10 +91,14 @@ Rules:
 - Recommend exactly one mode: Direct, Light, Standard, Epic, or Strict.
 - Choose the lightest safe mode.
 - Do not approve implementation. Approval is recorded only in the selected Epic or Feature 00-workflow.yaml.
-- If the source touches auth, payment, permission, database, task state, deployment, migration, legacy core behavior, or multi-agent execution, recommend Strict unless it is clearly an Epic first.
+- Treat routing as an AI draft for user review, not as final approval.
+- Only objective hard risks can block downgrade: authentication/session/token changes, payment, permission, database/schema migration, destructive data change, security, production deployment, task-state consistency, or legacy core compatibility breakage.
+- If objective hard risk blockers exist, recommend Strict unless the work should be an Epic first.
+- Do not make ordinary API/data/UI/state uncertainty automatically Strict. Explain the uncertainty and what the user should confirm.
 - If the source spans multiple modules or release batches, recommend Epic.
 - If it is low-risk and single-scope, recommend Light.
 - If it is clear and trivial, recommend Direct.
+- Estimate expected runtime and execution slicing. If expected runtime is over 90 minutes or coverage is large, recommend splitting or execution slicing.
 - Explain what the user should review next.
 
 Source excerpt:

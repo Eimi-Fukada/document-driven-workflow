@@ -7,7 +7,7 @@
 自动化可以：
 
 - 检查本机 Skill、AI CLI、目标项目文档结构和老项目接入状态。
-- 推荐 Direct、Light、Standard、Epic 或 Strict mode。
+- 推荐 Direct、Light、Standard、Epic 或 Strict mode，并把模式/风险作为 AI 初判交给用户确认。
 - 初始化产品追溯文件。
 - 创建或 hydrate Epic 和 Feature 文档。
 - 生成批准前检查报告。
@@ -23,7 +23,8 @@
 
 - 自己批准需求。
 - gate 失败时开始代码实现。
-- 把高风险工作降级成 Light。
+- 在存在客观硬风险时把工作降级成 Light 或 Standard。
+- 因为 AI 不确定就强制把简单需求推入重流程。
 - 为了暴露工作流命令而修改目标项目 `package.json`。
 - 自动启动多个 agent 写代码。
 - 替代 Maestro 做多项目 mission、依赖调度或跨项目联调验收。
@@ -85,6 +86,10 @@ node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> -
 ## 批准规则
 
 `approve.mjs` 只更新 `00-workflow.yaml`，并且没有 `--user-approved` 时拒绝运行。
+
+批准写入时会同时把 `route_decision` 设为 `user_confirmed`。用户只需要确认一次，不需要在多个 Markdown 文件里改批准状态。
+
+如果 `hard_risk_blockers` 不是 `none`，Feature 必须使用 `strict` mode；这是客观硬风险门禁。除此之外，模式和风险等级由用户基于 AI 初判确认。
 
 批准写入后仍然必须通过 gate。批准是必要条件，不是充分条件。
 

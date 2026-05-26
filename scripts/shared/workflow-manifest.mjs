@@ -11,6 +11,11 @@ const orderedKeys = [
   "epic_id",
   "approval",
   "approval_source",
+  "route_decision",
+  "risk_level",
+  "hard_risk_blockers",
+  "expected_runtime",
+  "execution_slicing",
   "readiness",
   "status",
   "stack_preset",
@@ -62,6 +67,11 @@ export function writeManifest(subjectPath, data) {
     "# Workflow Control",
     "# Single source of truth for readiness, approval, routing, and gate state.",
     "# Allowed approval: pending | approved | inherited",
+    "# Allowed route_decision: ai_draft | user_confirmed",
+    "# Allowed risk_level: low | medium | high | unset",
+    "# Allowed hard_risk_blockers: none | comma-separated objective blocker IDs",
+    "# Allowed expected_runtime: under_30m | 30_90m | over_90m | unset",
+    "# Allowed execution_slicing: not_required | recommended | required",
     "# Allowed readiness: not_ready | ready",
     "# Allowed status: draft | ready | in_progress | verified | released",
     "",
@@ -88,6 +98,11 @@ export function normalizeManifest(data) {
     schema_version: "1",
     approval: "pending",
     approval_source: "none",
+    route_decision: "ai_draft",
+    risk_level: "unset",
+    hard_risk_blockers: "none",
+    expected_runtime: "unset",
+    execution_slicing: "not_required",
     readiness: "not_ready",
     status: "draft",
     stack_preset: "next-fullstack",
@@ -103,22 +118,52 @@ export function normalizeManifest(data) {
 
 export function createFeatureManifest({
   id,
-  mode = "standard",
-  stackPreset = "next-fullstack",
-  epicId = "none",
-  sourcePath = "none",
-  approval = "pending",
-  approvalSource = "none",
+  mode,
+  stackPreset,
+  stack_preset,
+  epicId,
+  epic_id,
+  sourcePath,
+  source_path,
+  approval,
+  approvalSource,
+  approval_source,
+  routeDecision,
+  route_decision,
+  riskLevel,
+  risk_level,
+  hardRiskBlockers,
+  hard_risk_blockers,
+  expectedRuntime,
+  expected_runtime,
+  executionSlicing,
+  execution_slicing,
 } = {}) {
+  const resolvedMode = mode || "standard";
+  const defaultRiskLevel = resolvedMode === "light" ? "low" : resolvedMode === "strict" ? "high" : "medium";
+  const defaultExpectedRuntime = resolvedMode === "light" ? "under_30m" : "30_90m";
+  const defaultExecutionSlicing = resolvedMode === "strict" ? "recommended" : "not_required";
+  const resolvedStackPreset = stackPreset || stack_preset || "next-fullstack";
+  const resolvedEpicId = epicId || epic_id || "none";
+  const resolvedSourcePath = sourcePath || source_path || "none";
+  const resolvedApproval = approval || "pending";
+  const resolvedApprovalSource = approvalSource || approval_source || "none";
+  const resolvedRouteDecision = routeDecision || route_decision || "ai_draft";
+
   return normalizeManifest({
     type: "feature",
-    mode,
+    mode: resolvedMode,
     id,
-    epic_id: epicId,
-    stack_preset: stackPreset,
-    approval,
-    approval_source: approvalSource,
-    source_path: sourcePath,
+    epic_id: resolvedEpicId,
+    stack_preset: resolvedStackPreset,
+    approval: resolvedApproval,
+    approval_source: resolvedApprovalSource,
+    route_decision: resolvedRouteDecision,
+    risk_level: riskLevel || risk_level || defaultRiskLevel,
+    hard_risk_blockers: hardRiskBlockers || hard_risk_blockers || "none",
+    expected_runtime: expectedRuntime || expected_runtime || defaultExpectedRuntime,
+    execution_slicing: executionSlicing || execution_slicing || defaultExecutionSlicing,
+    source_path: resolvedSourcePath,
   });
 }
 
@@ -129,6 +174,11 @@ export function createEpicManifest({ id, sourcePath = "00-source.md" } = {}) {
     id,
     epic_id: "none",
     stack_preset: "none",
+    route_decision: "ai_draft",
+    risk_level: "medium",
+    hard_risk_blockers: "none",
+    expected_runtime: "over_90m",
+    execution_slicing: "required",
     source_path: sourcePath,
   });
 }
@@ -137,6 +187,7 @@ export function approveManifest(data, { approvedBy = "user", approvedAt = new Da
   return normalizeManifest({
     ...data,
     approval: data.approval === "inherited" ? "inherited" : "approved",
+    route_decision: "user_confirmed",
     readiness: "ready",
     status: "ready",
     unresolved_questions: "0",
@@ -152,6 +203,7 @@ export function inheritApproval(data, approvalSource) {
     ...data,
     approval: "inherited",
     approval_source: approvalSource,
+    route_decision: "ai_draft",
     readiness: "ready",
     status: "ready",
     unresolved_questions: "0",
@@ -160,4 +212,40 @@ export function inheritApproval(data, approvalSource) {
     approved_by: "inherited",
     approved_at: "inherited",
   });
+}
+
+export function hardRiskBlockers(data) {
+  return String(data?.hard_risk_blockers || "none")
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item && item !== "none");
+}
+
+export function validateRouteDecision(data) {
+  const failures = [];
+  const allowedRiskLevels = new Set(["low", "medium", "high"]);
+  const allowedExpectedRuntime = new Set(["under_30m", "30_90m", "over_90m"]);
+  const allowedExecutionSlicing = new Set(["not_required", "recommended", "required"]);
+  const blockers = hardRiskBlockers(data);
+
+  if (data.route_decision !== "user_confirmed") {
+    failures.push("route_decision must be user_confirmed before implementation.");
+  }
+  if (!allowedRiskLevels.has(String(data.risk_level || ""))) {
+    failures.push("risk_level must be low, medium, or high before approval.");
+  }
+  if (!allowedExpectedRuntime.has(String(data.expected_runtime || ""))) {
+    failures.push("expected_runtime must be under_30m, 30_90m, or over_90m before approval.");
+  }
+  if (!allowedExecutionSlicing.has(String(data.execution_slicing || ""))) {
+    failures.push("execution_slicing must be not_required, recommended, or required before approval.");
+  }
+  if (blockers.length > 0 && data.type === "feature" && data.mode !== "strict") {
+    failures.push("objective hard risk blockers require Strict mode before implementation.");
+  }
+  if (data.mode === "light" && data.risk_level !== "low") {
+    failures.push("Light mode requires risk_level: low.");
+  }
+
+  return failures;
 }

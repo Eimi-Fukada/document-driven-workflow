@@ -161,6 +161,11 @@ const payload = {
     status: manifest.status || "draft",
     stack_preset: manifest.stack_preset || "next-fullstack",
     epic_id: manifest.epic_id || "none",
+    route_decision: manifest.route_decision || "ai_draft",
+    risk_level: manifest.risk_level || "unset",
+    hard_risk_blockers: manifest.hard_risk_blockers || "none",
+    expected_runtime: manifest.expected_runtime || "unset",
+    execution_slicing: manifest.execution_slicing || "not_required",
   },
   requirement_ids: requirementIds,
   acceptance_ids: acceptanceIds,
@@ -200,6 +205,11 @@ const markdown = `# Feature Handoff Pack
 - Epic ID: ${payload.feature.epic_id}
 - Approval: ${payload.feature.approval}
 - Readiness: ${payload.feature.readiness}
+- Route Decision: ${payload.feature.route_decision}
+- Risk Level: ${payload.feature.risk_level}
+- Objective Hard Risk Blockers: ${payload.feature.hard_risk_blockers}
+- Expected Runtime: ${payload.feature.expected_runtime}
+- Execution Slicing: ${payload.feature.execution_slicing}
 
 ## Maestro Boundary
 

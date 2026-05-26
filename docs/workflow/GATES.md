@@ -16,6 +16,8 @@
 
 ```yaml
 approval: approved
+route_decision: user_confirmed
+risk_level: low | medium | high
 readiness: ready
 unresolved_questions: 0
 blocking_issues: 0
@@ -104,6 +106,18 @@ Epic gate 表示 Epic 已经可以拆分为 Feature。它不授权代码实现�
 ## 批准
 
 用户对每个 Epic 或 Feature 只批准一次。批准只写入 `00-workflow.yaml`。
+
+用户批准时同时确认模式和风险边界。AI 可以在文档里给出初判，但最终执行只看 `00-workflow.yaml`：
+
+```yaml
+route_decision: user_confirmed
+risk_level: low | medium | high
+hard_risk_blockers: none
+expected_runtime: under_30m | 30_90m | over_90m
+execution_slicing: not_required | recommended | required
+```
+
+如果 `hard_risk_blockers` 不是 `none`，Feature 必须使用 `strict` mode。除此之外，用户可以基于 AI 初判选择保持、降级、升级或拆分，不需要在多个 Markdown 文件里改批准状态。
 
 目标项目通过 Skill 内置脚本执行：
 

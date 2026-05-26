@@ -1,6 +1,11 @@
 # Workflow Control
 # Single source of truth for readiness, approval, routing, and gate state.
 # Allowed approval: pending | approved
+# Allowed route_decision: ai_draft | user_confirmed
+# Allowed risk_level: low | medium | high | unset
+# Allowed hard_risk_blockers: none | comma-separated objective blocker IDs
+# Allowed expected_runtime: under_30m | 30_90m | over_90m | unset
+# Allowed execution_slicing: not_required | recommended | required
 # Allowed readiness: not_ready | ready
 # Allowed status: draft | ready | in_progress | verified | released
 
@@ -11,6 +16,11 @@ id: unset
 epic_id: none
 approval: pending
 approval_source: none
+route_decision: ai_draft
+risk_level: medium
+hard_risk_blockers: none
+expected_runtime: over_90m
+execution_slicing: required
 readiness: not_ready
 status: draft
 stack_preset: none

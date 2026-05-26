@@ -3,7 +3,7 @@ import path from "path";
 import { spawnSync } from "child_process";
 import { parseAgentOption } from "../../shared/agent-runner.mjs";
 import { createWorkflowContext, parseOption } from "../../shared/workflow-context.mjs";
-import { approveManifest, readManifest, writeManifest } from "../../shared/workflow-manifest.mjs";
+import { approveManifest, readManifest, validateRouteDecision, writeManifest } from "../../shared/workflow-manifest.mjs";
 
 const args = process.argv.slice(2);
 const workflow = createWorkflowContext(args);
@@ -55,6 +55,17 @@ if (userApproved) {
     process.exit(1);
   }
   currentManifest = approveManifest(currentManifest);
+  const routeFailures = validateRouteDecision(currentManifest);
+  if (routeFailures.length > 0) {
+    console.error("Refusing to approve because the workflow route or risk boundary is not user-confirmable yet.");
+    console.error("");
+    for (const failure of routeFailures) {
+      console.error(` - ${failure}`);
+    }
+    console.error("");
+    console.error("Fix 00-workflow.yaml only: choose the user-confirmed mode/risk/runtime fields, or use Strict mode for objective hard risk blockers.");
+    process.exit(1);
+  }
   writeManifest(subjectPath, currentManifest);
   console.log(`Applied user approval to: ${workflow.relativeToTarget(subjectPath)}`);
 } else if (!["approved", "inherited"].includes(currentManifest.approval)) {

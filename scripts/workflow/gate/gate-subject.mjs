@@ -2,7 +2,7 @@ import { existsSync } from "fs";
 import path from "path";
 import { createWorkflowContext, parseOption } from "../../shared/workflow-context.mjs";
 import { readText, stripHtmlComments } from "../../shared/document-utils.mjs";
-import { MANIFEST_FILE, manifestPath, readManifest } from "../../shared/workflow-manifest.mjs";
+import { MANIFEST_FILE, readManifest, validateRouteDecision } from "../../shared/workflow-manifest.mjs";
 
 const args = process.argv.slice(2);
 const workflow = createWorkflowContext(args);
@@ -62,6 +62,9 @@ function requireApprovedManifest() {
   requireManifestField("blocking_issues", "0");
   requireManifestField("assumptions_accepted", "true");
   requireManifestField("approval", ["approved", "inherited"]);
+  for (const failure of validateRouteDecision(manifest)) {
+    failures.push(`Route decision not satisfied: ${failure}`);
+  }
 }
 
 function checkNoBlockedMarkers(file, content) {

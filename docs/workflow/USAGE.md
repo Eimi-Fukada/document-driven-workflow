@@ -52,6 +52,8 @@ node scripts/workflow/automation/process.mjs --source docs/requirements/example.
 
 它会初始化 `docs/product`、路由需求、创建 Epic 或 Feature 文档包、hydrate 草稿，并生成 `APPROVAL_REVIEW.md`。它不会批准需求，也不会开始实现。
 
+AI 生成的模式和风险只是初判。用户审查后只需要确认一次：需求是否正确、模式是否合适、风险等级是否合理、是否存在客观硬风险、是否需要分批。确认结果写入 `00-workflow.yaml`，不要在多个 Markdown 文件里维护批准状态。
+
 批准后继续：
 
 ```bash
@@ -59,6 +61,8 @@ node scripts/workflow/automation/continue.mjs docs/features/<feature-id> --targe
 ```
 
 对 Feature，它会写入批准、刷新 Standard / Strict Feature 的 `08-context-pack.md`，并运行 Feature gate。
+
+批准时会自动把 `route_decision` 写为 `user_confirmed`。如果 `hard_risk_blockers` 不是 `none` 且 Feature 不是 `strict` mode，脚本会拒绝进入实现；除此之外，模式和风险由用户基于 AI 初判确认。
 
 对 Epic，它会写入批准并运行 Epic gate。需要同时拆分 Feature 时：
 

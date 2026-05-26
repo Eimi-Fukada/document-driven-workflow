@@ -84,6 +84,19 @@ function blockerEntriesForFeature(manifest, completionResult, completionProof) {
   if (manifest.readiness !== "ready") {
     blockers.push({ type: "doc_blocker", detail: "Feature readiness is not ready" });
   }
+  if (manifest.route_decision !== "user_confirmed") {
+    blockers.push({ type: "route_blocker", detail: "Feature route/risk decision is not user_confirmed" });
+  }
+  if (!["low", "medium", "high"].includes(String(manifest.risk_level || ""))) {
+    blockers.push({ type: "route_blocker", detail: "Feature risk_level is not low, medium, or high" });
+  }
+  const hardRiskBlockers = String(manifest.hard_risk_blockers || "none")
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item && item !== "none");
+  if (hardRiskBlockers.length > 0 && manifest.mode !== "strict") {
+    blockers.push({ type: "route_blocker", detail: "Objective hard risk blockers require strict mode" });
+  }
   if (intValue(manifest.unresolved_questions) > 0) {
     blockers.push({ type: "doc_blocker", detail: `${manifest.unresolved_questions} unresolved question(s)` });
   }
@@ -105,6 +118,9 @@ function blockerEntriesForFeature(manifest, completionResult, completionProof) {
 function nextActionForFeature({ manifest, blockers, completionResult, completionProof, verificationResult }) {
   if (blockers.some((item) => item.type === "approval_blocker")) {
     return "用户审查文档后运行 workflow:approve / continue 写入一次批准";
+  }
+  if (blockers.some((item) => item.type === "route_blocker")) {
+    return "用户确认或调整 00-workflow.yaml 中的模式、风险、客观硬风险和分批字段";
   }
   if (blockers.some((item) => item.type === "doc_blocker")) {
     return "补全文档、解决未决问题，然后重新运行 Feature gate";
@@ -160,6 +176,11 @@ function summarizeFeature(subjectPath, manifest) {
     status: manifest.status || "draft",
     stack_preset: manifest.stack_preset || "next-fullstack",
     epic_id: manifest.epic_id || "none",
+    route_decision: manifest.route_decision || "ai_draft",
+    risk_level: manifest.risk_level || "unset",
+    hard_risk_blockers: manifest.hard_risk_blockers || "none",
+    expected_runtime: manifest.expected_runtime || "unset",
+    execution_slicing: manifest.execution_slicing || "not_required",
     unresolved_questions: intValue(manifest.unresolved_questions),
     blocking_issues: intValue(manifest.blocking_issues),
     assumptions_accepted: String(manifest.assumptions_accepted) === "true",
@@ -185,6 +206,9 @@ function summarizeEpic(subjectPath, manifest, features) {
   if (manifest.readiness !== "ready") {
     blockers.push({ type: "doc_blocker", detail: "Epic readiness is not ready" });
   }
+  if (manifest.route_decision !== "user_confirmed") {
+    blockers.push({ type: "route_blocker", detail: "Epic route/risk decision is not user_confirmed" });
+  }
   if (intValue(manifest.unresolved_questions) > 0) {
     blockers.push({ type: "doc_blocker", detail: `${manifest.unresolved_questions} unresolved question(s)` });
   }
@@ -200,6 +224,10 @@ function summarizeEpic(subjectPath, manifest, features) {
     approval: manifest.approval || "pending",
     readiness: manifest.readiness || "not_ready",
     status: manifest.status || "draft",
+    route_decision: manifest.route_decision || "ai_draft",
+    risk_level: manifest.risk_level || "unset",
+    expected_runtime: manifest.expected_runtime || "unset",
+    execution_slicing: manifest.execution_slicing || "required",
     unresolved_questions: intValue(manifest.unresolved_questions),
     blocking_issues: intValue(manifest.blocking_issues),
     feature_count: linkedFeatures.length,
@@ -281,19 +309,19 @@ if (jsonOutput) {
 
 ## Epics
 
-| Epic | Status | Approval | Readiness | Features | Next Action |
-| --- | --- | --- | --- | --- | --- |
+| Epic | Status | Approval | Readiness | Route | Risk | Features | Next Action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
 ${epics
-  .map((epic) => `| ${epic.id} | ${epic.status} | ${epic.approval} | ${epic.readiness} | ${epic.feature_count} | ${epic.next_action.replaceAll("|", "\\|")} |`)
-  .join("\n") || "| none | - | - | - | - | - |"}
+  .map((epic) => `| ${epic.id} | ${epic.status} | ${epic.approval} | ${epic.readiness} | ${epic.route_decision} | ${epic.risk_level} | ${epic.feature_count} | ${epic.next_action.replaceAll("|", "\\|")} |`)
+  .join("\n") || "| none | - | - | - | - | - | - | - |"}
 
 ## Features
 
-| Feature | Status | Approval | Readiness | Verification | Completion | Finish Proof | Next Action |
-| --- | --- | --- | --- | --- | --- | --- | --- |
+| Feature | Status | Approval | Readiness | Route | Risk | Runtime | Slicing | Verification | Completion | Finish Proof | Next Action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${features
-  .map((feature) => `| ${feature.id} | ${feature.status} | ${feature.approval} | ${feature.readiness} | ${feature.verification_result} | ${feature.completion_result} | ${feature.completion_proof_result} | ${feature.next_action.replaceAll("|", "\\|")} |`)
-  .join("\n") || "| none | - | - | - | - | - | - | - |"}
+  .map((feature) => `| ${feature.id} | ${feature.status} | ${feature.approval} | ${feature.readiness} | ${feature.route_decision} | ${feature.risk_level} | ${feature.expected_runtime} | ${feature.execution_slicing} | ${feature.verification_result} | ${feature.completion_result} | ${feature.completion_proof_result} | ${feature.next_action.replaceAll("|", "\\|")} |`)
+  .join("\n") || "| none | - | - | - | - | - | - | - | - | - | - | - |"}
 `;
   mkdirSync(path.dirname(reportPath), { recursive: true });
   writeFileSync(reportPath, report, "utf8");

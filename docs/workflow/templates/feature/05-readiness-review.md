@@ -38,6 +38,20 @@ AI 做出的关键假设。用户批准前必须可见：
 
 -
 
+## User Route Confirmation
+
+这部分帮助用户做一次性确认。机器可读结果只写入 `00-workflow.yaml`，不要在多个 Markdown 文件里维护批准状态。
+
+- User confirmed mode: light / standard / strict
+- User confirmed risk level: low / medium / high
+- Objective hard risk blockers: none / auth-session-token / payment / permission / database-migration / production-deployment / task-state / legacy-core / security / destructive-data
+- Expected runtime: under_30m / 30_90m / over_90m
+- Execution slicing: not_required / recommended / required
+- User downgrade / upgrade decision:
+- Decision reason:
+
+AI 可以提出升级建议，但除鉴权/会话/token、支付、权限、数据库或结构迁移、数据破坏、安全、生产部署、任务状态一致性、老项目核心兼容等客观硬风险外，不要阻止用户把需求保持在更轻模式。
+
 ## Performance Review
 
 - Performance risk: yes / no / not-applicable

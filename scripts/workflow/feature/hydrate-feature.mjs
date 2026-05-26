@@ -119,7 +119,11 @@ Instructions:
 - Do not modify ${relativeSourcePath} if it is 00-source.md.
 - Do not change ${relativeFeaturePath}/00-workflow.yaml approval, readiness, or status.
 - Keep ${relativeFeaturePath}/00-intake-review.md and ${relativeFeaturePath}/08-context-pack.md consistent if those files exist.
-- Use light mode only for low-risk, single-scope changes; if the source touches auth, payment, permission, database, task state, deployment, migration, legacy onboarding, or multiple modules, write that the Feature must be upgraded to standard or Epic flow.
+- Treat mode and risk as an AI draft for user review. Fill the Route And Risk Draft and Readiness Review so the user can confirm or adjust mode/risk once.
+- Only objective hard risks can block downgrade: authentication/session/token changes, payment, permission, database/schema migration, destructive data change, security, production deployment, task-state consistency, or legacy core compatibility breakage.
+- Do not turn ordinary API/data/UI/state uncertainty into automatic Strict mode. Explain the uncertainty and what the user should confirm.
+- If objective hard risk blockers exist, write them clearly and recommend Strict. Otherwise recommend the lightest safe mode and let the user decide.
+- Estimate expected runtime and execution slicing. If the work is likely over 90 minutes or has many coverage items, recommend slicing or Epic breakdown before implementation.
 - Preserve the user's original product meaning.
 - Mark inferred items explicitly as assumptions.
 - Remove unresolved template placeholders from the completed draft documents when the source supports a concrete answer.

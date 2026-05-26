@@ -1,6 +1,6 @@
 import { existsSync } from "fs";
 import { createWorkflowContext, parseOption } from "../../shared/workflow-context.mjs";
-import { approveManifest, readManifest, writeManifest } from "../../shared/workflow-manifest.mjs";
+import { approveManifest, readManifest, validateRouteDecision, writeManifest } from "../../shared/workflow-manifest.mjs";
 
 const args = process.argv.slice(2);
 const workflow = createWorkflowContext(args);
@@ -36,7 +36,20 @@ if (manifest.unresolved_questions !== "0" || manifest.blocking_issues !== "0") {
   process.exit(1);
 }
 
-writeManifest(subjectPath, approveManifest(manifest));
+const approvedManifest = approveManifest(manifest);
+const routeFailures = validateRouteDecision(approvedManifest);
+if (routeFailures.length > 0) {
+  console.error("Refusing to approve because the workflow route or risk boundary is not user-confirmable yet.");
+  console.error("");
+  for (const failure of routeFailures) {
+    console.error(` - ${failure}`);
+  }
+  console.error("");
+  console.error("Fix 00-workflow.yaml only: choose the user-confirmed mode/risk/runtime fields, or use Strict mode for objective hard risk blockers.");
+  process.exit(1);
+}
+
+writeManifest(subjectPath, approvedManifest);
 
 console.log(`Applied user approval to: ${workflow.relativeToTarget(subjectPath)}`);
 console.log(`Document type: ${manifest.type}`);

@@ -50,6 +50,10 @@ function WriteUtf8($path, $lines) {
 function WriteManifest($dir, $type, $mode, $id, $stack = "next-fullstack", $approval = "approved") {
     $readiness = if ($approval -eq "pending") { "not_ready" } else { "ready" }
     $assumptions = if ($approval -eq "pending") { "false" } else { "true" }
+    $routeDecision = if ($approval -eq "pending") { "ai_draft" } else { "user_confirmed" }
+    $riskLevel = if ($mode -eq "light") { "low" } elseif ($mode -eq "strict") { "high" } else { "medium" }
+    $expectedRuntime = if ($mode -eq "light") { "under_30m" } elseif ($mode -eq "epic") { "over_90m" } else { "30_90m" }
+    $executionSlicing = if ($mode -eq "epic") { "required" } elseif ($mode -eq "strict") { "recommended" } else { "not_required" }
     WriteUtf8 (Join-Path $dir "00-workflow.yaml") @(
         "# Workflow Control",
         "schema_version: 1",
@@ -59,6 +63,11 @@ function WriteManifest($dir, $type, $mode, $id, $stack = "next-fullstack", $appr
         "epic_id: none",
         "approval: $approval",
         "approval_source: none",
+        "route_decision: $routeDecision",
+        "risk_level: $riskLevel",
+        "hard_risk_blockers: none",
+        "expected_runtime: $expectedRuntime",
+        "execution_slicing: $executionSlicing",
         "readiness: $readiness",
         "status: draft",
         "stack_preset: $stack",
@@ -365,6 +374,18 @@ try {
             "",
             "- Typecheck: npm run typecheck"
         )
+        $generatedManifestPath = Join-Path $generatedPath "00-workflow.yaml"
+        $generatedManifest = Get-Content -LiteralPath $generatedManifestPath -Raw -Encoding utf8
+        if ($generatedManifest -notmatch "approval: inherited" -or $generatedManifest -notmatch "route_decision: ai_draft") {
+            Write-Host "Gate regression failed: generated Feature should inherit Epic approval but still require user route confirmation." -ForegroundColor Red
+            exit 1
+        }
+        if ((RunFeatureGate "docs/features/$generatedFeature") -eq 0) {
+            Write-Host "Gate regression failed: generated Feature passed before user route confirmation." -ForegroundColor Red
+            exit 1
+        }
+        $generatedManifest = $generatedManifest -replace "route_decision: ai_draft", "route_decision: user_confirmed"
+        Set-Content -LiteralPath $generatedManifestPath -Value $generatedManifest -Encoding utf8
         if ((RunFeatureGate "docs/features/$generatedFeature") -ne 0) {
             Write-Host "Gate regression failed: generated feature with inherited Epic approval did not pass after concrete REQ/AC hydration." -ForegroundColor Red
             exit 1

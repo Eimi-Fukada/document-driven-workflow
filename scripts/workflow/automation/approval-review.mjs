@@ -46,6 +46,10 @@ function sharedManifestRows() {
     manifestCheck("未解决问题", "unresolved_questions", "0"),
     manifestCheck("阻塞问题", "blocking_issues", "0"),
     manifestCheck("假设确认", "assumptions_accepted", ["true", "false"]),
+    manifestCheck("路由初判", "route_decision", "ai_draft"),
+    manifestCheck("风险等级", "risk_level", ["low", "medium", "high"]),
+    manifestCheck("预计时长", "expected_runtime", ["under_30m", "30_90m", "over_90m"]),
+    manifestCheck("分批策略", "execution_slicing", ["not_required", "recommended", "required"]),
     manifestCheck("Manifest Approval", "approval", "pending"),
   ];
 }
@@ -100,6 +104,10 @@ const rows =
       ? reviewFeature()
       : reviewEpic();
 const blocked = rows.filter((row) => row.includes("| BLOCKED |"));
+const hardRiskBlockers = String(manifest.hard_risk_blockers || "none")
+  .split(",")
+  .map((item) => item.trim())
+  .filter((item) => item && item !== "none");
 const recommendation = blocked.length === 0 ? "可以提交用户批准。" : "暂时不要批准。";
 
 const report = `# Approval Review
@@ -116,10 +124,25 @@ const report = `# Approval Review
 | --- | --- | --- |
 ${rows.join("\n")}
 
+## User Confirmation
+
+用户批准前只需要确认一次，确认结果由批准脚本写入 \`00-workflow.yaml\`。
+
+- Current mode: ${manifest.mode}
+- Risk level: ${manifest.risk_level || "unset"}
+- Objective hard risk blockers: ${hardRiskBlockers.length ? hardRiskBlockers.join(", ") : "none"}
+- Expected runtime: ${manifest.expected_runtime || "unset"}
+- Execution slicing: ${manifest.execution_slicing || "unset"}
+- User choices: confirm / downgrade / upgrade / split / revise requirement
+
+${hardRiskBlockers.length
+  ? "存在客观硬风险时，Feature 必须使用 strict mode。"
+  : "未记录客观硬风险时，用户可以基于 AI 初判选择保持、降级、升级或拆分。"}
+
 ## Next Step
 
 ${blocked.length === 0
-  ? "如果用户同意，运行带 --user-approved 的 approve script。"
+  ? "如果用户同意，运行带 --user-approved 的 approve script；不要在多个 Markdown 文件里改批准状态。"
   : "先修复阻塞项，然后重新生成本批准前检查报告。"}
 `;
 

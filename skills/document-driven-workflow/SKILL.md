@@ -14,6 +14,8 @@ description: "Use when a project should be delivered from product documents, UI 
 - 不要为了暴露工作流命令而修改目标项目的 `package.json`。
 - 每个 Epic、Feature、Light Feature 只使用 `00-workflow.yaml` 作为机器可读状态源。
 - 代码实现前必须通过对应 gate。
+- 路由和风险分级采用“AI 初判 + 用户一次确认”。AI 可以推荐 Direct、Light、Standard、Epic 或 Strict，但最终执行以 `00-workflow.yaml` 的 `route_decision: user_confirmed`、`risk_level`、`hard_risk_blockers`、`expected_runtime` 和 `execution_slicing` 为准。
+- 只有客观硬风险可以阻止用户降级：鉴权/会话/token、支付、权限、数据库或结构迁移、数据破坏、安全、生产部署、任务状态一致性、老项目核心兼容破坏。其他风险作为提示交给用户判断，不要因为 AI 不确定就把简单需求推入重流程。
 - 实现时遵守 `EXECUTION_DISCIPLINE.md`：Scope Lock、TDD / debugging 触发条件、自审、证据规则。
 - 用户批准进入开发不等于允许自由落地。实现 agent 只能按当前 Feature 的 `08-context-pack.md`、验收标准和 handoff pack 执行，不能把最快实现路径替代已批准方案。
 - 每个 Feature 必须单独闭环：实现、补 `07-verification-report.md`、运行 `finish-feature.mjs`，通过并写入 `COMPLETION_PROOF.json` 后才能继续下一个 Feature。不要批量实现多个 Feature 后统一验收。
@@ -33,7 +35,7 @@ description: "Use when a project should be delivered from product documents, UI 
 3. 按需要补全产品、UI、技术契约、验收、实现计划和验证文档。
 4. 当存在明确需求 ID 时，同步 `docs/product/requirement-ledger.md` 和 `docs/product/traceability.md`。
 5. 让用户审查文档包。
-6. 只有用户明确批准后，才用 `approve.mjs` 或 `continue.mjs --user-approved` 写入批准状态。
+6. 只有用户明确批准后，才用 `approve.mjs` 或 `continue.mjs --user-approved` 写入一次批准状态；批准时同时确认模式、风险、预计时长和分批策略。
 7. 运行内置 gate。
 8. gate 通过后，按已批准范围、`08-context-pack.md` 和 `EXECUTION_DISCIPLINE.md` 实现。
 9. 每个 Feature 独立完成自审、验证、产品追溯更新，并更新验证报告。

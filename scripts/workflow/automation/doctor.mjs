@@ -4,6 +4,7 @@ import os from "os";
 import path from "path";
 import { spawnSync } from "child_process";
 import { createWorkflowContext, parseOption } from "../../shared/workflow-context.mjs";
+import { printJsonForCli } from "../../shared/document-utils.mjs";
 
 const args = process.argv.slice(2);
 const workflow = createWorkflowContext(args);
@@ -372,7 +373,7 @@ const payload = {
 };
 
 if (jsonOutput) {
-  console.log(JSON.stringify(payload, null, 2));
+  printJsonForCli(payload);
 } else {
   if (!noWrite) {
     console.log(`Doctor report written: ${workflow.relativeToTarget(reportPath)}`);

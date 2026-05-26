@@ -57,3 +57,17 @@ export function detectWorkflowDoc(subjectPath) {
 
   return { type: "unknown", gateFile: "" };
 }
+
+export function stringifyJsonForCli(payload) {
+  return JSON.stringify(payload, null, 2).replace(/[^\x00-\x7F]/g, (char) => {
+    const code = char.charCodeAt(0);
+    if (code <= 0xffff) {
+      return `\\u${code.toString(16).padStart(4, "0")}`;
+    }
+    return char;
+  });
+}
+
+export function printJsonForCli(payload) {
+  console.log(stringifyJsonForCli(payload));
+}

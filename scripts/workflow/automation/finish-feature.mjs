@@ -3,6 +3,7 @@ import path from "path";
 import { spawnSync } from "child_process";
 import { createHash } from "crypto";
 import { createWorkflowContext, parseOption } from "../../shared/workflow-context.mjs";
+import { printJsonForCli } from "../../shared/document-utils.mjs";
 import { readManifest, writeManifest } from "../../shared/workflow-manifest.mjs";
 
 const args = process.argv.slice(2);
@@ -70,7 +71,7 @@ function fail(message, commands = []) {
   };
 
   if (jsonOutput) {
-    console.log(JSON.stringify(payload, null, 2));
+    printJsonForCli(payload);
   } else {
     console.error(message);
     for (const command of commands) {
@@ -185,7 +186,7 @@ const payload = {
 };
 
 if (jsonOutput) {
-  console.log(JSON.stringify(payload, null, 2));
+  printJsonForCli(payload);
 } else {
   console.log(`Feature finished: ${payload.subject}`);
   console.log(`Completion proof written: ${workflow.relativeToTarget(proofPath)}`);

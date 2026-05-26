@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import { spawnSync } from "child_process";
 import { createWorkflowContext, parseOption } from "../../shared/workflow-context.mjs";
-import { readText, stripHtmlComments } from "../../shared/document-utils.mjs";
+import { printJsonForCli, readText, stripHtmlComments } from "../../shared/document-utils.mjs";
 import { readManifest } from "../../shared/workflow-manifest.mjs";
 import { evaluateCoverageMatrix } from "../../shared/coverage-matrix.mjs";
 
@@ -495,7 +495,7 @@ const payload = {
 };
 
 if (jsonOutput) {
-  console.log(JSON.stringify(payload, null, 2));
+  printJsonForCli(payload);
 } else {
   console.log(`Completion check written: ${workflow.relativeToTarget(outputPath)}`);
   console.log(`Completion check result: ${failures.length ? "BLOCKED" : "PASS"}`);

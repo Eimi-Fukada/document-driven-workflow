@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import path from "path";
 import { createWorkflowContext, parseOption } from "../../shared/workflow-context.mjs";
-import { readText, stripHtmlComments } from "../../shared/document-utils.mjs";
+import { printJsonForCli, readText, stripHtmlComments } from "../../shared/document-utils.mjs";
 import { readManifest } from "../../shared/workflow-manifest.mjs";
 import { readCoverageMatrix } from "../../shared/coverage-matrix.mjs";
 
@@ -297,7 +297,7 @@ writeFileSync(markdownPath, markdown, "utf8");
 writeFileSync(jsonPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 
 if (jsonOutput) {
-  console.log(JSON.stringify(payload, null, 2));
+  printJsonForCli(payload);
 } else {
   console.log(`Handoff pack written: ${workflow.relativeToTarget(markdownPath)}`);
   console.log(`Handoff JSON written: ${workflow.relativeToTarget(jsonPath)}`);

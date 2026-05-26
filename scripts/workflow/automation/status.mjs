@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import path from "path";
 import { createWorkflowContext, parseOption } from "../../shared/workflow-context.mjs";
-import { listDirs, readText, stripHtmlComments } from "../../shared/document-utils.mjs";
+import { listDirs, printJsonForCli, readText, stripHtmlComments } from "../../shared/document-utils.mjs";
 import { readManifest } from "../../shared/workflow-manifest.mjs";
 
 const args = process.argv.slice(2);
@@ -252,7 +252,7 @@ if (!existsSync(workflow.targetRoot)) {
     result: "BLOCKED",
     blockers: [{ type: "environment_blocker", detail: "target root does not exist" }],
   };
-  console.log(JSON.stringify(payload, null, 2));
+  printJsonForCli(payload);
   process.exit(1);
 }
 
@@ -285,7 +285,7 @@ const payload = {
 };
 
 if (jsonOutput) {
-  console.log(JSON.stringify(payload, null, 2));
+  printJsonForCli(payload);
 } else {
   const reportPath = outputArg
     ? workflow.resolveTarget(outputArg)

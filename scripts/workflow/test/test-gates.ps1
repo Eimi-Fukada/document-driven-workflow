@@ -80,6 +80,27 @@ function WriteManifest($dir, $type, $mode, $id, $stack = "next-fullstack", $appr
     )
 }
 
+function ConvertJsonOutput($raw, $label) {
+    $text = if ($raw -is [array]) { ($raw -join [Environment]::NewLine) } else { [string]$raw }
+    $text = $text.Trim()
+    if (-not $text.StartsWith("{")) {
+        Write-Host "Gate regression failed: $label did not emit JSON as the first output." -ForegroundColor Red
+        Write-Host $text -ForegroundColor Red
+        exit 1
+    }
+    return $text | ConvertFrom-Json
+}
+
+function RunJsonNode($scriptRelativePath, $arguments, $label) {
+    $raw = & node (Join-Path $root $scriptRelativePath) @arguments
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Gate regression failed: $label command exited with code $LASTEXITCODE." -ForegroundColor Red
+        $raw | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+        exit 1
+    }
+    return ConvertJsonOutput $raw $label
+}
+
 function RunFeatureGate($featurePath) {
     $previousErrorActionPreference = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
@@ -595,8 +616,7 @@ try {
         Write-Host "Gate regression failed: workflow:completion-check did not pass a fully evidenced feature." -ForegroundColor Red
         exit 1
     }
-    $completionJsonRaw = & node (Join-Path $root "scripts\workflow\automation\completion-check.mjs") "docs/features/tmp-process-feature" --target $root --changed-files "src/demo.ts" --json
-    $completionJson = $completionJsonRaw | ConvertFrom-Json
+    $completionJson = RunJsonNode "scripts\workflow\automation\completion-check.mjs" @("docs/features/tmp-process-feature", "--target", $root, "--changed-files", "src/demo.ts", "--json") "workflow:completion-check --json"
     if ($completionJson.kind -ne "workflow_completion_check" -or $completionJson.result -ne "PASS" -or $completionJson.summary.checks -lt 1) {
         Write-Host "Gate regression failed: workflow:completion-check --json did not emit a passing machine-readable payload." -ForegroundColor Red
         exit 1
@@ -606,8 +626,7 @@ try {
         Write-Host "Gate regression failed: workflow:completion-check wrote verified status directly." -ForegroundColor Red
         exit 1
     }
-    $finishJsonRaw = & node (Join-Path $root "scripts\workflow\automation\finish-feature.mjs") "docs/features/tmp-process-feature" --target $root --changed-files "src/demo.ts" --skip-verify --json
-    $finishJson = $finishJsonRaw | ConvertFrom-Json
+    $finishJson = RunJsonNode "scripts\workflow\automation\finish-feature.mjs" @("docs/features/tmp-process-feature", "--target", $root, "--changed-files", "src/demo.ts", "--skip-verify", "--json") "workflow:finish-feature --json"
     if ($finishJson.kind -ne "workflow_finish_feature" -or $finishJson.result -ne "PASS" -or -not (Test-Path (Join-Path $processFeature "COMPLETION_PROOF.json"))) {
         Write-Host "Gate regression failed: workflow:finish-feature did not create completion proof." -ForegroundColor Red
         exit 1
@@ -819,8 +838,7 @@ try {
         "",
         "Ready to release: yes"
     )
-    $coverageJsonRaw = & node (Join-Path $root "scripts\workflow\automation\completion-check.mjs") "docs/features/__tmp_coverage_feature" --target $root --changed-files "src/cov-a.ts,src/cov-b.ts" --json
-    $coverageJson = $coverageJsonRaw | ConvertFrom-Json
+    $coverageJson = RunJsonNode "scripts\workflow\automation\completion-check.mjs" @("docs/features/__tmp_coverage_feature", "--target", $root, "--changed-files", "src/cov-a.ts,src/cov-b.ts", "--json") "workflow:completion-check coverage --json"
     if ($coverageJson.result -ne "PASS" -or $coverageJson.coverage.required -ne $true -or $coverageJson.coverage.expected_count -ne 2 -or $coverageJson.coverage.verified_count -ne 2) {
         Write-Host "Gate regression failed: coverage feature did not pass with full coverage evidence." -ForegroundColor Red
         exit 1
@@ -832,8 +850,7 @@ try {
         Write-Host "Gate regression failed: workflow:doctor did not generate a passing local report when install and CLI checks are skipped." -ForegroundColor Red
         exit 1
     }
-    $doctorJsonRaw = & node (Join-Path $root "scripts\workflow\automation\doctor.mjs") --target $root --host all --skip-install-check --skip-cli-check --json
-    $doctorJson = $doctorJsonRaw | ConvertFrom-Json
+    $doctorJson = RunJsonNode "scripts\workflow\automation\doctor.mjs" @("--target", $root, "--host", "all", "--skip-install-check", "--skip-cli-check", "--json") "workflow:doctor --json"
     if ($doctorJson.kind -ne "workflow_doctor" -or $doctorJson.result -ne "PASS" -or $doctorJson.summary.checks -lt 1) {
         Write-Host "Gate regression failed: workflow:doctor --json did not emit a passing machine-readable payload." -ForegroundColor Red
         exit 1
@@ -845,8 +862,7 @@ try {
         Write-Host "Gate regression failed: workflow:status did not generate a useful status report." -ForegroundColor Red
         exit 1
     }
-    $statusJsonRaw = & node (Join-Path $root "scripts\workflow\automation\status.mjs") --target $root --json
-    $statusJson = $statusJsonRaw | ConvertFrom-Json
+    $statusJson = RunJsonNode "scripts\workflow\automation\status.mjs" @("--target", $root, "--json") "workflow:status --json"
     if ($statusJson.kind -ne "workflow_status" -or $statusJson.result -ne "PASS" -or $statusJson.summary.features_total -lt 1) {
         Write-Host "Gate regression failed: workflow:status --json did not emit a machine-readable payload." -ForegroundColor Red
         exit 1
@@ -858,16 +874,14 @@ try {
     $fakeManifest = Get-Content -LiteralPath $fakeManifestPath -Raw -Encoding utf8
     $fakeManifest = $fakeManifest -replace "status: draft", "status: verified"
     Set-Content -LiteralPath $fakeManifestPath -Value $fakeManifest -Encoding utf8
-    $statusJsonRaw = & node (Join-Path $root "scripts\workflow\automation\status.mjs") --target $root --json
-    $statusJson = $statusJsonRaw | ConvertFrom-Json
+    $statusJson = RunJsonNode "scripts\workflow\automation\status.mjs" @("--target", $root, "--json") "workflow:status fake verified --json"
     $fakeStatus = $statusJson.features | Where-Object { $_.id -eq "__tmp_fake_verified" } | Select-Object -First 1
     if (-not $fakeStatus -or $fakeStatus.verified -ne $false -or $fakeStatus.manifest_verified_without_proof -ne $true -or $fakeStatus.completion_proof_result -ne "missing") {
         Write-Host "Gate regression failed: workflow:status trusted manifest-only verified status." -ForegroundColor Red
         exit 1
     }
 
-    $handoffJsonRaw = & node (Join-Path $root "scripts\workflow\automation\handoff-pack.mjs") "docs/features/tmp-process-feature" --target $root --json
-    $handoffJson = $handoffJsonRaw | ConvertFrom-Json
+    $handoffJson = RunJsonNode "scripts\workflow\automation\handoff-pack.mjs" @("docs/features/tmp-process-feature", "--target", $root, "--json") "workflow:handoff-pack --json"
     if ($handoffJson.kind -ne "workflow_handoff_pack" -or $handoffJson.feature.id -ne "tmp-process-feature" -or -not (Test-Path (Join-Path $processFeature "HANDOFF_PACK.md")) -or -not (Test-Path (Join-Path $processFeature "handoff-pack.json"))) {
         Write-Host "Gate regression failed: workflow:handoff-pack did not generate handoff artifacts." -ForegroundColor Red
         exit 1

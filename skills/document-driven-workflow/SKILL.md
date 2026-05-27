@@ -19,7 +19,7 @@ description: "Use when a project should be delivered from product documents, UI 
 - 实现时遵守 `EXECUTION_DISCIPLINE.md`：Scope Lock、TDD / debugging 触发条件、自审、证据规则。
 - 用户批准进入开发不等于允许自由落地。实现 agent 只能按当前 Feature 的 `08-context-pack.md`、验收标准和 handoff pack 执行，不能把最快实现路径替代已批准方案。
 - 每个 Feature 必须单独闭环：实现、补 `07-verification-report.md`、运行 `finish-feature.mjs`，通过并写入 `COMPLETION_PROOF.json` 后才能继续下一个 Feature。不要批量实现多个 Feature 后统一验收。
-- 实现时考虑可维护性：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；Next.js UI 优先使用 Tailwind CSS。
+- 实现时考虑可维护性：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；技术栈专属规则以当前 Stack Preset 为准。
 - 多模块、多页面、多工具、多状态、多接口或明确枚举数量的 Feature 必须使用 Coverage Matrix。每个 `COV-*` 都是完成范围；覆盖项多于 5 个时可以 3-5 个一批执行，但 `finish-feature.mjs` 通过前不能声称完成。
 - Stall Guard：只用于长任务和无输出场景；短任务不需要额外汇报。预计超过 30 分钟或 15 分钟没有文件变更、命令输出、验证证据时，暂停并报告卡点。它不是完成门禁。
 - Performance：命中大表、长列表、轮询、批处理、缓存、索引、并发或大文件等场景时，必须记录性能风险、缓解方案和验证证据。

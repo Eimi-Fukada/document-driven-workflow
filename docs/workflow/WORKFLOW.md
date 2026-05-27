@@ -124,7 +124,7 @@ Standard 和 Strict Feature 的实现交接上下文来自：
 
 实现 agent 必须遵守 Scope Lock；当触发条件成立时使用 TDD、systematic debugging、性能纪律和方案/闭环提醒；完成前执行 self review；声称完成前记录新的验证证据。
 
-同时要遵守可维护性规则：当结构或逻辑出现 2 or more times 时考虑抽取；触碰的单文件尽量保持在 1000 lines 以下；新的 Next.js UI 样式优先使用 Tailwind CSS。
+同时要遵守可维护性规则：当结构或逻辑出现 2 or more times 时考虑抽取；触碰的单文件尽量保持在 1000 lines 以下。具体框架规则以当前 Feature 的 Stack Preset 为准，例如 Next.js 的 App Router、Tailwind CSS 和 Playwright 要求写在 `presets/next-fullstack.md`。
 
 用户批准进入开发不等于允许自由落地。实现 agent 一次只能执行一个 Feature，并且必须在开工前重新锁定 `08-context-pack.md`、`04-acceptance-criteria.md` 和 `06-implementation-plan.md`。
 

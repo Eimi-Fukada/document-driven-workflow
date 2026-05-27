@@ -69,7 +69,8 @@ gate 还会检查：
 - Requirement Intake Review 中包含清楚项、缺失项、风险和用户问题
 - Context Pack 中包含 requirement IDs 和 test commands
 - 实现交接中包含 Scope Lock 和 execution discipline 字段
-- 可维护性规则：reuse threshold、1000-line file limit、Tailwind CSS preference for Next.js UI
+- 可维护性规则：reuse threshold、1000-line file limit
+- Stack Preset 规则：当前技术栈的框架、样式、API、测试和部署边界
 - 性能和闭环规则：Performance Guardrails、Option And Closure Notes
 - 不包含未解决占位符，例如 `TODO`、`TBD`、`待确认`、`未确认`、`待补充`
 - `stack_preset` 合法

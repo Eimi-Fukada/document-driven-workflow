@@ -11,7 +11,7 @@
 - 产品源头历史保存在 `docs/product/requirement-ledger.md`，交付覆盖关系保存在 `docs/product/traceability.md`。
 - 没有明确验收标准、没有通过门禁时，不进入代码实现。
 - Feature gate 通过后，必须遵守 `EXECUTION_DISCIPLINE.md` 中的 Scope Lock、TDD / debugging 触发条件、自审和证据规则。
-- 实现时要考虑长期维护性：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；Next.js UI 优先使用 Tailwind CSS。
+- 实现时要考虑长期维护性：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；技术栈专属规则以当前 Stack Preset 为准。
 - 工作流本身不保留历史兼容补丁，除非有明确迁移理由。
 - Maestro 只负责多项目调度、依赖和跨项目验收；本工作流只负责单项目文档、门禁、验证和交接证据。
 

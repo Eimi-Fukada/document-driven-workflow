@@ -107,9 +107,18 @@ Forbidden changes:
 - Reuse check: if any structure or logic appears 2 or more times, consider component / hook / helper extraction.
 - Planned extractions:
 - Files expected to approach 1000 lines:
-- Tailwind CSS preferred for Next.js UI: yes / no / not-applicable
-- CSS exception reason:
 - Existing project convention to follow:
+
+## Stack Preset Implementation Rules
+
+- Stack Preset:
+- Preset reference:
+- Framework-specific constraints:
+- Styling / UI rules:
+- API / data access rules:
+- Performance rules:
+- Test rules:
+- Exception reason:
 
 ## Agent Assignment
 
@@ -137,7 +146,7 @@ Strict mode 可能需要额外需求审查、代码质量审查或多 agent 计�
 - Non-goals preserved:
 - Reuse and extraction reviewed:
 - Touched files remain below 1000 lines or have an extraction note:
-- Tailwind CSS used for Next.js UI unless exception is documented:
+- Stack Preset rules followed or exception documented:
 - Traceability updated:
 - Performance risk handled or marked not-applicable:
 - Option decision recorded when needed:

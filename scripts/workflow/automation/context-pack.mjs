@@ -67,9 +67,14 @@ const tddRequired = sectionLine(/TDD required:\s*(.*)$/im, plan, "no");
 const tddReason = sectionLine(/TDD reason:\s*(.*)$/im, plan, "-");
 const debuggingRequired = sectionLine(/Root cause evidence required:\s*(.*)$/im, plan, "no");
 const debuggingReason = sectionLine(/Bug fix:\s*(.*)$/im, plan, "-");
-const tailwindPreferred = /Stack Preset:\s*next-fullstack/i.test(technical) ? "yes" : "not-applicable";
 const plannedExtractions = sectionLine(/Planned extractions:\s*([\s\S]*?)(?:\n##|\nFiles expected|$)/i, plan);
-const cssExceptionReason = sectionLine(/CSS exception reason:\s*(.*)$/im, plan);
+const stackPreset = manifest.stack_preset || sectionLine(/Stack Preset:\s*(.*)$/im, technical, "next-fullstack");
+const presetReference = stackPreset && stackPreset !== "none" ? `docs/workflow/presets/${stackPreset}.md` : "not-applicable";
+const frameworkConstraints = sectionLine(/Framework-specific constraints:\s*(.*)$/im, plan);
+const stylingRules = sectionLine(/Styling \/ UI rules:\s*(.*)$/im, plan);
+const apiDataRules = sectionLine(/API \/ data access rules:\s*(.*)$/im, plan);
+const stackTestRules = sectionLine(/Test rules:\s*(.*)$/im, plan);
+const stackExceptionReason = sectionLine(/Exception reason:\s*(.*)$/im, plan);
 const performanceRisk = sectionLine(/Performance risk:\s*(.*)$/im, plan, "not-applicable");
 const performanceTrigger = sectionLine(/Risk trigger:\s*(.*)$/im, plan);
 const performanceMitigation = [
@@ -153,9 +158,17 @@ If implementation conflicts with the selected option, rejected option, allowed s
 
 - Reuse threshold: consider extraction when structure or logic appears 2 or more times
 - Max single-file size: 1000 lines
-- Tailwind CSS preferred for Next.js UI: ${tailwindPreferred}
 - Planned component / hook / helper extraction: ${plannedExtractions}
-- CSS exception reason: ${cssExceptionReason}
+
+## Stack Preset Guardrails
+
+- Stack Preset: ${stackPreset}
+- Preset reference: ${presetReference}
+- Framework-specific constraints: ${frameworkConstraints}
+- Styling / UI rules: ${stylingRules}
+- API / data access rules: ${apiDataRules}
+- Test rules: ${stackTestRules}
+- Exception reason: ${stackExceptionReason}
 
 ## Performance Guardrails
 

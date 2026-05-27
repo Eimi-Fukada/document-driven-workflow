@@ -61,9 +61,17 @@
 
 - Reuse threshold: consider extraction when structure or logic appears 2 or more times
 - Max single-file size: 1000 lines
-- Tailwind CSS preferred for Next.js UI: yes / no / not-applicable
 - Planned component / hook / helper extraction:
-- CSS exception reason:
+
+## Stack Preset Guardrails
+
+- Stack Preset:
+- Preset reference:
+- Framework-specific constraints:
+- Styling / UI rules:
+- API / data access rules:
+- Test rules:
+- Exception reason:
 
 ## Performance Guardrails
 

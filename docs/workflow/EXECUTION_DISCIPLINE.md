@@ -168,7 +168,7 @@ Feature 是 bug 修复，或实现过程中发现非预期行为时，需要 sys
 - 如果同一页面结构、UI 块、有状态逻辑、数据映射或校验逻辑出现 2 or more times，考虑抽取 component、hook、helper、service 或 shared module。
 - 不要为了只出现一次的代码强行抽象，除非它确实降低风险或符合项目既有模式。
 - 避免文件无限膨胀。单个源文件尽量保持在 1000 lines 以下；如果触碰的文件已经接近或超过该大小，优先考虑聚焦抽取，而不是继续叠加职责。
-- Next.js 前端工作优先使用 Tailwind CSS utility classes。只有在项目既有约定、第三方库集成、全局样式或 Tailwind 难以清楚表达时，才使用单独 CSS。
+- 技术栈专属实现规则以当前 Feature 的 Stack Preset 为准，例如 Next.js、Flutter、FastAPI 或 Express 的目录结构、样式方案、API 契约和测试要求。
 - 引入新抽象前，先遵守目标项目既有结构和命名。
 - 不要因为发现重复就做大范围重构。抽取必须绑定当前 Feature 和已批准范围。
 

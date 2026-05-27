@@ -194,6 +194,7 @@ function gateFeature() {
   requireSection("08-context-pack.md", content["08-context-pack.md"], "Scope Lock");
   requireSection("08-context-pack.md", content["08-context-pack.md"], "Execution Discipline");
   requireSection("08-context-pack.md", content["08-context-pack.md"], "Maintainability Guardrails");
+  requireSection("08-context-pack.md", content["08-context-pack.md"], "Stack Preset Guardrails");
   requireSection("08-context-pack.md", content["08-context-pack.md"], "Performance Guardrails");
   requireSection("08-context-pack.md", content["08-context-pack.md"], "Option And Closure Notes");
   if (!/TDD required:\s*(yes|no)/i.test(content["08-context-pack.md"])) {
@@ -211,8 +212,14 @@ function gateFeature() {
   if (!/Max single-file size:\s*1000 lines/i.test(content["08-context-pack.md"])) {
     failures.push("Context Pack must include the 1000-line single-file limit.");
   }
-  if (manifest?.stack_preset === "next-fullstack" && !/Tailwind CSS preferred for Next\.js UI:\s*yes/i.test(content["08-context-pack.md"])) {
-    failures.push("next-fullstack Context Pack must prefer Tailwind CSS for UI styling or document an exception.");
+  if (!/Stack Preset:\s*[\w-]+/i.test(content["08-context-pack.md"])) {
+    failures.push("Context Pack must state the active Stack Preset.");
+  }
+  if (!/Preset reference:\s*(docs\/workflow\/presets\/[\w-]+\.md|not-applicable)/i.test(content["08-context-pack.md"])) {
+    failures.push("Context Pack must reference the active Stack Preset rules.");
+  }
+  if (manifest?.stack_preset === "next-fullstack" && !/Styling \/ UI rules:\s*(?!\s*(-|not-applicable)\s*$).+/im.test(content["08-context-pack.md"])) {
+    failures.push("next-fullstack Context Pack must include styling/UI rules from the Stack Preset or document an exception.");
   }
   if (!/Performance risk:\s*(yes|no|not-applicable)/i.test(content["08-context-pack.md"])) {
     failures.push("Context Pack must state whether performance risk applies.");

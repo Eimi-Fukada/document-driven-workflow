@@ -77,8 +77,15 @@ Allowed values:
 - Repeated structure or logic found 2 or more times: yes / no
 - Any touched file over 1000 lines: yes / no
 - Files over limit and reason:
-- Tailwind CSS used for Next.js UI: yes / no / not-applicable
-- CSS exception reason:
+
+## Stack Preset Review
+
+- Stack Preset:
+- Preset rules followed: yes / no / not-applicable
+- Framework-specific exceptions:
+- Styling / UI exceptions:
+- API / data access exceptions:
+- Test exceptions:
 
 ## Performance Review
 

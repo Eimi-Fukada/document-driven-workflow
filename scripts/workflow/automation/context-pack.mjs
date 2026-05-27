@@ -73,6 +73,12 @@ const presetReference = stackPreset && stackPreset !== "none" ? `docs/workflow/p
 const frameworkConstraints = sectionLine(/Framework-specific constraints:\s*(.*)$/im, plan);
 const stylingRules = sectionLine(/Styling \/ UI rules:\s*(.*)$/im, plan);
 const apiDataRules = sectionLine(/API \/ data access rules:\s*(.*)$/im, plan);
+const clientStateEffectRules = sectionLine(/Client state \/ effect rules:\s*(.*)$/im, plan);
+const backendQueryRules = sectionLine(/Backend query rules:\s*(.*)$/im, plan);
+const renderingCacheStrategy = sectionLine(/Rendering \/ cache strategy:\s*(.*)$/im, plan);
+const formMutationAuthBoundary = sectionLine(/Form \/ mutation \/ auth boundary:\s*(.*)$/im, plan);
+const libraryChoices = sectionLine(/Library choices:\s*(.*)$/im, plan);
+const bundleClientJsImpact = sectionLine(/Bundle \/ client JS impact:\s*(.*)$/im, plan);
 const stackTestRules = sectionLine(/Test rules:\s*(.*)$/im, plan);
 const stackExceptionReason = sectionLine(/Exception reason:\s*(.*)$/im, plan);
 const performanceRisk = sectionLine(/Performance risk:\s*(.*)$/im, plan, "not-applicable");
@@ -167,6 +173,12 @@ If implementation conflicts with the selected option, rejected option, allowed s
 - Framework-specific constraints: ${frameworkConstraints}
 - Styling / UI rules: ${stylingRules}
 - API / data access rules: ${apiDataRules}
+- Client state / effect rules: ${clientStateEffectRules}
+- Backend query rules: ${backendQueryRules}
+- Rendering / cache strategy: ${renderingCacheStrategy}
+- Form / mutation / auth boundary: ${formMutationAuthBoundary}
+- Library choices: ${libraryChoices}
+- Bundle / client JS impact: ${bundleClientJsImpact}
 - Test rules: ${stackTestRules}
 - Exception reason: ${stackExceptionReason}
 

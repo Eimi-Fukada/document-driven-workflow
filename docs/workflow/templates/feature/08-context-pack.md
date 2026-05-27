@@ -70,6 +70,12 @@
 - Framework-specific constraints:
 - Styling / UI rules:
 - API / data access rules:
+- Client state / effect rules:
+- Backend query rules:
+- Rendering / cache strategy:
+- Form / mutation / auth boundary:
+- Library choices:
+- Bundle / client JS impact:
 - Test rules:
 - Exception reason:
 

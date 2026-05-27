@@ -85,6 +85,12 @@ Allowed values:
 - Framework-specific exceptions:
 - Styling / UI exceptions:
 - API / data access exceptions:
+- Client state / effect review:
+- Backend query review:
+- Rendering / cache review:
+- Form / mutation / auth review:
+- Library choice review:
+- Bundle / client JS review:
 - Test exceptions:
 
 ## Performance Review

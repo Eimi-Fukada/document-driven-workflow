@@ -221,6 +221,18 @@ function gateFeature() {
   if (manifest?.stack_preset === "next-fullstack" && !/Styling \/ UI rules:\s*(?!\s*(-|not-applicable)\s*$).+/im.test(content["08-context-pack.md"])) {
     failures.push("next-fullstack Context Pack must include styling/UI rules from the Stack Preset or document an exception.");
   }
+  if (manifest?.stack_preset === "next-fullstack" && !/Client state \/ effect rules:\s*(?!\s*(-|not-applicable)\s*$).+/im.test(content["08-context-pack.md"])) {
+    failures.push("next-fullstack Context Pack must include client state/effect rules from the Stack Preset or document an exception.");
+  }
+  if (manifest?.stack_preset === "next-fullstack" && !/Backend query rules:\s*(?!\s*(-|not-applicable)\s*$).+/im.test(content["08-context-pack.md"])) {
+    failures.push("next-fullstack Context Pack must include backend query rules from the Stack Preset or document an exception.");
+  }
+  if (manifest?.stack_preset === "next-fullstack" && !/Rendering \/ cache strategy:\s*(?!\s*(-|not-applicable)\s*$).+/im.test(content["08-context-pack.md"])) {
+    failures.push("next-fullstack Context Pack must include rendering/cache strategy from the Stack Preset or document an exception.");
+  }
+  if (manifest?.stack_preset === "next-fullstack" && !/Library choices:\s*(?!\s*(-|not-applicable)\s*$).+/im.test(content["08-context-pack.md"])) {
+    failures.push("next-fullstack Context Pack must include library choices or explicitly avoid new libraries.");
+  }
   if (!/Performance risk:\s*(yes|no|not-applicable)/i.test(content["08-context-pack.md"])) {
     failures.push("Context Pack must state whether performance risk applies.");
   }

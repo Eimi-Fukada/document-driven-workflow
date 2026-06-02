@@ -18,7 +18,7 @@ Stack Preset：
 - `legacy-existing`
 - custom stack，例如 `java-springboot`、`go-service`、`python-service`
 
-内置 preset 会触发专属门禁。custom stack 不触发 Next / Flutter 专属门禁，但必须在本文件、实现计划和 Context Pack 中写清框架边界、验证命令和性能规则。
+内置 preset 会触发专属门禁。custom stack 不触发 Next / Flutter 专属门禁，但必须在本文件、实现计划和 Context Pack 中写清框架边界、验证命令和性能规则。工作流核心不维护 custom stack 的默认验证命令，必须按目标项目已有命令填写。
 
 ## 架构选择
 
@@ -121,3 +121,5 @@ Stack Preset：
 - 启动命令：
 - 迁移命令：
 - 回滚方式：
+
+<!-- custom stack 使用项目自己的命令，例如 ./gradlew test、mvn test、go test ./...、pytest。不要要求工作流核心内置所有语言的验证命令。 -->

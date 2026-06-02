@@ -96,6 +96,8 @@
 
 ## Test Commands
 
+<!-- custom stack 必须填写目标项目自己的验证命令；工作流核心不会为所有语言维护默认命令。 -->
+
 - Typecheck:
 - Lint:
 - Unit:

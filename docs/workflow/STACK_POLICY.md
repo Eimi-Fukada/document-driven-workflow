@@ -69,6 +69,7 @@
 - 不触发 Next.js、Flutter 或 Express 的专属规则。
 - 必须在 `03-technical-contract.md` 写清真实技术栈、框架、数据库、部署方式和测试命令。
 - 必须在 `06-implementation-plan.md` 和 `08-context-pack.md` 写清该技术栈的实现规则、性能边界和验证方式。
+- 工作流核心不维护 custom stack 的默认验证命令；每个 Feature 必须根据目标项目现状声明自己的验证命令，例如 Gradle、Maven、Go、pytest 或其他项目已有命令。
 - AI 可以根据项目已有代码和框架常识补充建议，但不能把未内置的技术栈当作工作流阻塞项。
 
 ## 3. 禁止项

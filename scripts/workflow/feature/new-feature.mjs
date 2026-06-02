@@ -15,12 +15,11 @@ const workflow = createWorkflowContext(args);
 const stackPreset = parseSharedOption(args, "stack", "next-fullstack", { startIndex: 1 });
 const epicId = parseSharedOption(args, "epic", "none", { startIndex: 1 });
 const mode = parseSharedOption(args, "mode", "standard", { startIndex: 1 });
-const validStacks = new Set(["next-fullstack", "flutter-fastapi", "flutter-express", "legacy-existing"]);
 const validModes = new Set(["light", "standard", "strict"]);
 
 if (!featureId) {
   console.error("Missing feature id.");
-  console.error("Usage: node scripts/workflow/feature/new-feature.mjs <feature-id> --target <project-root> --stack next-fullstack [--mode light|standard|strict]");
+  console.error("Usage: node scripts/workflow/feature/new-feature.mjs <feature-id> --target <project-root> --stack next-fullstack|custom-stack [--mode light|standard|strict]");
   process.exit(1);
 }
 
@@ -29,9 +28,9 @@ if (!/^[a-z0-9][a-z0-9-]*$/.test(featureId)) {
   process.exit(1);
 }
 
-if (!validStacks.has(stackPreset)) {
+if (!/^[a-z0-9][a-z0-9-]*$/.test(stackPreset)) {
   console.error(`Invalid stack preset: ${stackPreset}`);
-  console.error("Allowed values: next-fullstack, flutter-fastapi, flutter-express, legacy-existing");
+  console.error("Use lowercase letters, numbers, and hyphens. Built-in presets have extra rules; custom stacks are allowed.");
   process.exit(1);
 }
 

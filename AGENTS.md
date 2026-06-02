@@ -79,6 +79,7 @@ node scripts/workflow/epic/gate-epic.mjs docs/epics/<epic-id> --target <project-
 ## 边界
 
 - 新 Next.js 项目只支持 App Router。
+- 未内置的技术栈不要被工作流阻断；使用自定义 `stack_preset`，并在技术契约、实现计划、Context Pack 和验证报告中写清项目自己的框架规则与测试命令。
 - 老项目使用 `legacy-existing`，并且必须先有 `docs/legacy/BASELINE.md` 与 `docs/legacy/COMPATIBILITY_CONTRACT.md`。
 - 修改已有行为时使用 `docs/changes/CR-xxxx.md`。
 - Standard 和 Strict Feature 应包含 `00-intake-review.md` 与 `08-context-pack.md`。

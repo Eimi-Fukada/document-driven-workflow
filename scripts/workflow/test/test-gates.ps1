@@ -17,6 +17,9 @@ $tmpPaths = @(
     (Join-Path $featuresRoot "__tmp_performance_feature"),
     (Join-Path $featuresRoot "__tmp_coverage_feature"),
     (Join-Path $featuresRoot "__tmp_fake_verified"),
+    (Join-Path $featuresRoot "__tmp_legacy_standard_feature"),
+    (Join-Path $featuresRoot "__tmp_custom_java_stack"),
+    (Join-Path $featuresRoot "__tmp_custom_java_bad_preset"),
     (Join-Path $featuresRoot "tmp-new-feature-docs"),
     (Join-Path $featuresRoot "tmp-process-feature"),
     (Join-Path $featuresRoot "tmp-epic-feature-one"),
@@ -30,6 +33,7 @@ $tmpPaths = @(
     (Join-Path $root "docs\workflow\__tmp_routing_review.md"),
     (Join-Path $root "docs\workflow\DOCTOR_REPORT.md"),
     (Join-Path $root "docs\workflow\STATUS_REPORT.md"),
+    (Join-Path $root "docs\__tmp_legacy"),
     (Join-Path $root "docs\product")
 )
 
@@ -121,7 +125,23 @@ function RunEpicGate($epicPath) {
     return $code
 }
 
-function WriteReadyFeature($dir, $id, $stack = "next-fullstack", $pagesRouter = "no") {
+function WriteReadyFeature($dir, $id, $stack = "next-fullstack", $pagesRouter = "no", $presetReferenceOverride = $null, $legacyBaselineOverride = $null, $compatibilityContractOverride = $null) {
+    $builtInStacks = @("next-fullstack", "flutter-fastapi", "flutter-express")
+    $presetReference = if ($builtInStacks -contains $stack) { "docs/workflow/presets/$stack.md" } else { "not-applicable" }
+    if ($null -ne $presetReferenceOverride) {
+        $presetReference = $presetReferenceOverride
+    }
+    $appRouter = if ($stack -eq "next-fullstack") { "yes" } else { "not-applicable" }
+    $stylingRules = if ($stack -eq "next-fullstack") { "follow Tailwind CSS and App Router rules when next-fullstack" } else { "follow the target project's own conventions" }
+    $projectMode = if ($stack -eq "legacy-existing") { "legacy" } else { "greenfield" }
+    $legacyBaseline = if ($stack -eq "legacy-existing") { "docs/__tmp_legacy/BASELINE.md" } else { "none" }
+    $compatibilityContract = if ($stack -eq "legacy-existing") { "docs/__tmp_legacy/COMPATIBILITY_CONTRACT.md" } else { "none" }
+    if ($null -ne $legacyBaselineOverride) {
+        $legacyBaseline = $legacyBaselineOverride
+    }
+    if ($null -ne $compatibilityContractOverride) {
+        $compatibilityContract = $compatibilityContractOverride
+    }
     New-Item -ItemType Directory -Force -Path $dir | Out-Null
     WriteManifest $dir "feature" "standard" $id $stack "approved"
     WriteUtf8 (Join-Path $dir "00-intake-review.md") @("# Requirement Intake Review", "", "## Clear Items", "", "- REQ-DEMO-001 is clear.", "", "## User Questions", "", "- none")
@@ -131,12 +151,12 @@ function WriteReadyFeature($dir, $id, $stack = "next-fullstack", $pagesRouter = 
         "# Technical Contract",
         "",
         "- Stack Preset: $stack",
-        "- Project Mode: greenfield",
+        "- Project Mode: $projectMode",
         "- Exception Reason: demo exception when needed",
-        "- Legacy Baseline: none",
-        "- Compatibility Contract: none",
+        "- Legacy Baseline: $legacyBaseline",
+        "- Compatibility Contract: $compatibilityContract",
         "",
-        "- Next.js App Router: yes",
+        "- Next.js App Router: $appRouter",
         "- Next.js Pages Router: $pagesRouter",
         "",
         "API-DEMO-001 Demo API"
@@ -183,7 +203,7 @@ function WriteReadyFeature($dir, $id, $stack = "next-fullstack", $pagesRouter = 
         "## Stack Preset Implementation Rules",
         "",
         "- Stack Preset: $stack",
-        "- Preset reference: docs/workflow/presets/$stack.md",
+        "- Preset reference: $presetReference",
         "- Framework-specific constraints: use the selected preset",
         "- Styling / UI rules: follow the selected preset",
         "- API / data access rules: follow the selected preset",
@@ -230,9 +250,9 @@ function WriteReadyFeature($dir, $id, $stack = "next-fullstack", $pagesRouter = 
         "## Stack Preset Guardrails",
         "",
         "- Stack Preset: $stack",
-        "- Preset reference: docs/workflow/presets/$stack.md",
+        "- Preset reference: $presetReference",
         "- Framework-specific constraints: use the selected preset",
-        "- Styling / UI rules: follow Tailwind CSS and App Router rules when next-fullstack",
+        "- Styling / UI rules: $stylingRules",
         "- API / data access rules: follow the selected preset",
         "- Client state / effect rules: avoid unnecessary state and effect loops",
         "- Backend query rules: use bounded queries and pagination",
@@ -536,6 +556,15 @@ try {
     WriteUtf8 (Join-Path $lightLegacyFeature "01-light-feature.md") @("# Light Feature Brief", "", "REQ-LIGHT-001 Demo", "AC-LIGHT-001 covers REQ-LIGHT-001")
     if ((RunFeatureGate "docs/features/__tmp_light_feature_legacy") -eq 0) {
         Write-Host "Gate regression failed: legacy light feature passed." -ForegroundColor Red
+        exit 1
+    }
+
+    WriteUtf8 (Join-Path $root "docs\__tmp_legacy\BASELINE.md") @("# Legacy Baseline", "", "Existing system baseline for regression tests.")
+    WriteUtf8 (Join-Path $root "docs\__tmp_legacy\COMPATIBILITY_CONTRACT.md") @("# Compatibility Contract", "", "Preserve existing public behavior for regression tests.")
+    $legacyStandardFeature = Join-Path $featuresRoot "__tmp_legacy_standard_feature"
+    WriteReadyFeature $legacyStandardFeature "__tmp_legacy_standard_feature" "legacy-existing" "not-applicable"
+    if ((RunFeatureGate "docs/features/__tmp_legacy_standard_feature") -ne 0) {
+        Write-Host "Gate regression failed: standard legacy-existing feature should pass with not-applicable preset reference." -ForegroundColor Red
         exit 1
     }
 
@@ -974,6 +1003,20 @@ try {
     WriteReadyFeature $pagesFeature "__tmp_gate_pages_router" "next-fullstack" "yes"
     if ((RunFeatureGate "docs/features/__tmp_gate_pages_router") -eq 0) {
         Write-Host "Gate regression failed: next-fullstack Pages Router package passed." -ForegroundColor Red
+        exit 1
+    }
+
+    $customStackFeature = Join-Path $featuresRoot "__tmp_custom_java_stack"
+    WriteReadyFeature $customStackFeature "__tmp_custom_java_stack" "java-springboot" "not-applicable"
+    if ((RunFeatureGate "docs/features/__tmp_custom_java_stack") -ne 0) {
+        Write-Host "Gate regression failed: custom java-springboot stack should pass generic document-driven gate." -ForegroundColor Red
+        exit 1
+    }
+
+    $customStackBadPresetFeature = Join-Path $featuresRoot "__tmp_custom_java_bad_preset"
+    WriteReadyFeature $customStackBadPresetFeature "__tmp_custom_java_bad_preset" "java-springboot" "not-applicable" "docs/workflow/presets/java-springboot.md"
+    if ((RunFeatureGate "docs/features/__tmp_custom_java_bad_preset") -eq 0) {
+        Write-Host "Gate regression failed: custom stack with non-applicable preset reference should not pass." -ForegroundColor Red
         exit 1
     }
 

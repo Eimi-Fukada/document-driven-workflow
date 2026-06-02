@@ -1,14 +1,17 @@
 # 技术栈策略
 
-固定技术栈的目的，是减少项目分叉、降低维护成本，并让文档模板、门禁、测试和部署流程可以复用。
+固定常用技术栈的目的，是减少常见项目分叉、降低维护成本，并让文档模板、门禁、测试和部署流程可以复用。
+
+本工作流的核心是文档驱动，不是技术栈驱动。内置 Stack Preset 只为常用技术栈提供额外约束；没有内置 preset 的 Java、Go、Python、Rust、桌面端、CLI 或其他项目，仍然可以使用文档驱动流程。
 
 ## 1. 总原则
 
 - 使用主流、稳定、长期可维护的技术栈。
-- 新项目只能使用标准 Stack Preset。
+- 新项目优先使用标准 Stack Preset；没有内置 preset 的技术栈可以使用自定义 stack 名称。
 - 不把过时路线、冷门框架或实验性方案作为默认选择。
 - 技术栈变更必须通过 ADR 记录。
 - 老项目优先保护兼容边界，不借接入工作流强行重写。
+- 自定义 stack 不触发 Next / Flutter 专属门禁，但必须在技术契约、实现计划和 Context Pack 中写清框架边界、验证命令和验收证据。
 
 ## 2. 标准 Stack Preset
 
@@ -56,6 +59,18 @@
 - 技术升级必须通过 ADR。
 - 新增和修改功能仍必须通过功能级 gate。
 
+### custom stack
+
+用于当前工作流没有内置规则的技术栈，例如 Java / Spring Boot、Go、Python、Rust、Electron、桌面端、CLI 工具或其他框架。
+
+规则：
+
+- `stack_preset` 可以使用小写字母、数字和 hyphen，例如 `java-springboot`、`go-service`、`python-fastapi`。
+- 不触发 Next.js、Flutter 或 Express 的专属规则。
+- 必须在 `03-technical-contract.md` 写清真实技术栈、框架、数据库、部署方式和测试命令。
+- 必须在 `06-implementation-plan.md` 和 `08-context-pack.md` 写清该技术栈的实现规则、性能边界和验证方式。
+- AI 可以根据项目已有代码和框架常识补充建议，但不能把未内置的技术栈当作工作流阻塞项。
+
 ## 3. 禁止项
 
 新项目禁止：
@@ -90,4 +105,12 @@
 - Project Mode: legacy
 - Legacy Baseline: docs/legacy/BASELINE.md
 - Compatibility Contract: docs/legacy/COMPATIBILITY_CONTRACT.md
+```
+
+自定义技术栈示例：
+
+```text
+- Stack Preset: java-springboot
+- Project Mode: greenfield
+- Exception Reason: custom stack; no built-in preset
 ```

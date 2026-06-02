@@ -15,7 +15,6 @@ const modeArg = parseOption(args, "mode", "auto", { startIndex: 0 }).toLowerCase
 const stackPreset = parseOption(args, "stack", "next-fullstack", { startIndex: 0 });
 
 const validModes = new Set(["auto", "direct", "light", "standard", "epic", "strict"]);
-const validStacks = new Set(["next-fullstack", "flutter-fastapi", "flutter-express", "legacy-existing"]);
 
 if (!sourceArg) {
   console.error("Missing requirement source.");
@@ -29,9 +28,9 @@ if (!validModes.has(modeArg)) {
   process.exit(1);
 }
 
-if (!validStacks.has(stackPreset)) {
+if (!/^[a-z0-9][a-z0-9-]*$/.test(stackPreset)) {
   console.error(`Invalid stack preset: ${stackPreset}`);
-  console.error("Allowed values: next-fullstack, flutter-fastapi, flutter-express, legacy-existing");
+  console.error("Use lowercase letters, numbers, and hyphens. Built-in presets have extra rules; custom stacks are allowed.");
   process.exit(1);
 }
 

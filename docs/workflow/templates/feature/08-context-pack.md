@@ -66,7 +66,7 @@
 ## Stack Preset Guardrails
 
 - Stack Preset:
-- Preset reference:
+- Preset reference: docs/workflow/presets/<built-in-preset>.md / not-applicable for custom stack
 - Framework-specific constraints:
 - Styling / UI rules:
 - API / data access rules:

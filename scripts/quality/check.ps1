@@ -221,7 +221,7 @@ $contentChecks = @(
     @{ Name = "GATES.md documents fake completion handling"; Pass = $gates -match "status: verified" -and $gates -match "COMPLETION_PROOF.json" -and $gates -match "finish-feature.mjs" },
     @{ Name = "GATES.md documents machine-readable completion gate"; Pass = $gates -match "--json" -and $gates -match "Maestro" },
     @{ Name = "STACK_POLICY.md bans Pages Router"; Pass = $stackPolicy -match "Pages Router" -and $stackPolicy -match "App Router" },
-    @{ Name = "STACK_POLICY.md defines allowed presets"; Pass = $stackPolicy -match "next-fullstack" -and $stackPolicy -match "flutter-fastapi" -and $stackPolicy -match "legacy-existing" },
+    @{ Name = "STACK_POLICY.md defines built-in and custom stacks"; Pass = $stackPolicy -match "next-fullstack" -and $stackPolicy -match "flutter-fastapi" -and $stackPolicy -match "legacy-existing" -and $stackPolicy -match "custom stack" },
     @{ Name = "AGENTS.md mentions Skill-owned gates"; Pass = $agents -match "gate-feature.mjs" -and $agents -match "gate-epic.mjs" },
     @{ Name = "CLAUDE.md mentions Skill-owned gates"; Pass = $claude -match "gate-feature.mjs" -and $claude -match "gate-epic.mjs" },
     @{ Name = "Skill mentions feature gate"; Pass = $skill -match "feature gate" -or $skill -match "gate" },

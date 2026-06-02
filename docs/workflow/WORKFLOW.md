@@ -159,7 +159,7 @@ node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> -
 
 ## Stack Policy
 
-新项目必须选择 `STACK_POLICY.md` 里的标准 Stack Preset。
+新项目优先选择 `STACK_POLICY.md` 里的内置 Stack Preset。没有内置 preset 的技术栈可以使用自定义 `stack_preset`，工作流不应因为 Java、Go、Python、Rust 或其他语言没有内置规则而阻断文档驱动流程。
 
 - `next-fullstack` 只使用 Next.js App Router。
 - `flutter-fastapi` 是 Flutter 独立后端默认预设。

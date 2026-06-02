@@ -10,12 +10,15 @@
 - Compatibility Contract: none
 - 关联需求 ID：
 
-允许的 Stack Preset：
+Stack Preset：
 
 - `next-fullstack`
 - `flutter-fastapi`
 - `flutter-express`
 - `legacy-existing`
+- custom stack，例如 `java-springboot`、`go-service`、`python-service`
+
+内置 preset 会触发专属门禁。custom stack 不触发 Next / Flutter 专属门禁，但必须在本文件、实现计划和 Context Pack 中写清框架边界、验证命令和性能规则。
 
 ## 架构选择
 

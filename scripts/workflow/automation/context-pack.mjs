@@ -69,7 +69,8 @@ const debuggingRequired = sectionLine(/Root cause evidence required:\s*(.*)$/im,
 const debuggingReason = sectionLine(/Bug fix:\s*(.*)$/im, plan, "-");
 const plannedExtractions = sectionLine(/Planned extractions:\s*([\s\S]*?)(?:\n##|\nFiles expected|$)/i, plan);
 const stackPreset = manifest.stack_preset || sectionLine(/Stack Preset:\s*(.*)$/im, technical, "next-fullstack");
-const presetReference = stackPreset && stackPreset !== "none" ? `docs/workflow/presets/${stackPreset}.md` : "not-applicable";
+const builtInStackPresets = new Set(["next-fullstack", "flutter-fastapi", "flutter-express"]);
+const presetReference = builtInStackPresets.has(stackPreset) ? `docs/workflow/presets/${stackPreset}.md` : "not-applicable";
 const frameworkConstraints = sectionLine(/Framework-specific constraints:\s*(.*)$/im, plan);
 const stylingRules = sectionLine(/Styling \/ UI rules:\s*(.*)$/im, plan);
 const apiDataRules = sectionLine(/API \/ data access rules:\s*(.*)$/im, plan);

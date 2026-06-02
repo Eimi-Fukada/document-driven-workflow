@@ -22,6 +22,7 @@ if (!existsSync(subjectPath)) {
 
 const manifest = readManifest(subjectPath);
 const failures = [];
+const builtInStackPresets = new Set(["next-fullstack", "flutter-fastapi", "flutter-express"]);
 
 function requireFile(file) {
   const filePath = path.join(subjectPath, file);
@@ -90,9 +91,8 @@ function checkNoBlockedMarkers(file, content) {
 }
 
 function checkStack(stackPreset, technical, { light = false } = {}) {
-  const allowedStacks = ["next-fullstack", "flutter-fastapi", "flutter-express", "legacy-existing"];
-  if (!allowedStacks.includes(stackPreset)) {
-    failures.push(`Invalid stack_preset in ${MANIFEST_FILE}: ${stackPreset || "unset"}`);
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(stackPreset || "")) {
+    failures.push(`Invalid stack_preset in ${MANIFEST_FILE}: ${stackPreset || "unset"}. Use lowercase letters, numbers, and hyphens.`);
     return;
   }
 
@@ -129,6 +129,28 @@ function requireSection(file, content, sectionName) {
   const pattern = new RegExp(`##\\s+${sectionName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i");
   if (!pattern.test(content)) {
     failures.push(`${file} must include section: ${sectionName}.`);
+  }
+}
+
+function checkPresetReference(stackPreset, contextPack) {
+  const match = /^-?\s*Preset reference:\s*(.+)$/im.exec(contextPack);
+  const presetReference = match?.[1]?.trim() || "";
+
+  if (!presetReference) {
+    failures.push("Context Pack must reference built-in Stack Preset rules or state not-applicable for legacy/custom stacks.");
+    return;
+  }
+
+  if (builtInStackPresets.has(stackPreset)) {
+    const expected = `docs/workflow/presets/${stackPreset}.md`;
+    if (presetReference !== expected) {
+      failures.push(`Context Pack preset reference for ${stackPreset} must be ${expected}.`);
+    }
+    return;
+  }
+
+  if (presetReference !== "not-applicable") {
+    failures.push("Legacy/custom stack Context Pack must use Preset reference: not-applicable.");
   }
 }
 
@@ -215,9 +237,7 @@ function gateFeature() {
   if (!/Stack Preset:\s*[\w-]+/i.test(content["08-context-pack.md"])) {
     failures.push("Context Pack must state the active Stack Preset.");
   }
-  if (!/Preset reference:\s*(docs\/workflow\/presets\/[\w-]+\.md|not-applicable)/i.test(content["08-context-pack.md"])) {
-    failures.push("Context Pack must reference the active Stack Preset rules.");
-  }
+  checkPresetReference(manifest?.stack_preset, content["08-context-pack.md"]);
   if (manifest?.stack_preset === "next-fullstack" && !/Styling \/ UI rules:\s*(?!\s*(-|not-applicable)\s*$).+/im.test(content["08-context-pack.md"])) {
     failures.push("next-fullstack Context Pack must include styling/UI rules from the Stack Preset or document an exception.");
   }

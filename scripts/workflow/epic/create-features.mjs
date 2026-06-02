@@ -38,17 +38,16 @@ function parseFeatureIds() {
 }
 
 const stackPreset = parseSharedOption(args, "stack", "next-fullstack", { startIndex: 1 });
-const validStacks = new Set(["next-fullstack", "flutter-fastapi", "flutter-express", "legacy-existing"]);
 
 if (!epicArg) {
   console.error("Missing epic path.");
-  console.error("Usage: node scripts/workflow/epic/create-features.mjs docs/epics/<epic-id> --target <project-root> --features feature-a,feature-b --stack next-fullstack");
+  console.error("Usage: node scripts/workflow/epic/create-features.mjs docs/epics/<epic-id> --target <project-root> --features feature-a,feature-b --stack next-fullstack|custom-stack");
   process.exit(1);
 }
 
-if (!validStacks.has(stackPreset)) {
+if (!/^[a-z0-9][a-z0-9-]*$/.test(stackPreset)) {
   console.error(`Invalid stack preset: ${stackPreset}`);
-  console.error("Allowed values: next-fullstack, flutter-fastapi, flutter-express, legacy-existing");
+  console.error("Use lowercase letters, numbers, and hyphens. Built-in presets have extra rules; custom stacks are allowed.");
   process.exit(1);
 }
 

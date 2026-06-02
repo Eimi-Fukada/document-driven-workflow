@@ -73,7 +73,7 @@ gate 还会检查：
 - Stack Preset 规则：当前技术栈的框架、样式、API、测试和部署边界
 - 性能和闭环规则：Performance Guardrails、Option And Closure Notes
 - 不包含未解决占位符，例如 `TODO`、`TBD`、`待确认`、`未确认`、`待补充`
-- `stack_preset` 合法
+- `stack_preset` 使用小写字母、数字和 hyphen；内置 preset 触发专属规则，custom stack 只要求技术契约和验证证据完整
 - `next-fullstack` 使用 App Router，不能使用 Pages Router
 - `legacy-existing` 必须已有 Legacy Baseline 和 Compatibility Contract
 - Light Feature 不能使用 `legacy-existing`

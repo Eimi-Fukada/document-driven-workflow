@@ -7,6 +7,7 @@
 自动化可以：
 
 - 检查本机 Skill、AI CLI、目标项目文档结构和老项目接入状态。
+- 在目标项目 `AGENTS.md` 写入持久工作流约束，避免后续对话绕过 document-driven-workflow。
 - 推荐 Direct、Light、Standard、Epic 或 Strict mode，并把模式/风险作为 AI 初判交给用户确认。
 - 初始化产品追溯文件。
 - 创建或 hydrate Epic 和 Feature 文档。
@@ -35,6 +36,7 @@
 
 | Script | 用途 | 是否写文件 | 是否需要明确批准 |
 | --- | --- | --- | --- |
+| `adopt.mjs` | 把 document-driven-workflow 持久接入目标项目 `AGENTS.md` | yes，维护 marker block | no |
 | `doctor.mjs` | 体检 Skill 安装、CLI、目标项目接入和文档结构 | yes，`DOCTOR_REPORT.md` | no |
 | `process.mjs` | 从需求来源编排路由、建包、hydrate 和批准前检查 | yes，文档包和 `APPROVAL_REVIEW.md` | no |
 | `continue.mjs` | 用户批准后运行 gate，并准备下一阶段上下文 | yes | yes，当需要写入批准时 |

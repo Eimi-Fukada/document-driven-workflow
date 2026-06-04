@@ -27,6 +27,7 @@ $tmpPaths = @(
     (Join-Path $epicsRoot "__tmp_epic_fail"),
     (Join-Path $epicsRoot "__tmp_epic_pass"),
     (Join-Path $epicsRoot "__tmp_epic_hydrated"),
+    (Join-Path $root "docs\__tmp_agents.md"),
     (Join-Path $root "docs\__tmp_route_source.md"),
     (Join-Path $root "docs\__tmp_process_source.md"),
     (Join-Path $root "docs\workflow\ROUTING_REVIEW.md"),
@@ -300,6 +301,18 @@ function WriteReadyEpic($dir, $id, $approval = "approved") {
 $tmpPaths | ForEach-Object { RemoveIfExists $_ }
 
 try {
+    WriteUtf8 (Join-Path $root "docs\__tmp_agents.md") @("# Existing Agent Rules", "", "- Keep this line.")
+    $adoptJson = RunJsonNode "scripts\workflow\automation\adopt.mjs" @("--target", $root, "--output", "docs/__tmp_agents.md", "--json") "workflow:adopt --json"
+    if ($adoptJson.kind -ne "workflow_adoption" -or $adoptJson.result -ne "PASS" -or $adoptJson.changed -ne $true) {
+        Write-Host "Gate regression failed: workflow:adopt --json did not report adoption update." -ForegroundColor Red
+        exit 1
+    }
+    $adoptedAgents = Get-Content -LiteralPath (Join-Path $root "docs\__tmp_agents.md") -Raw -Encoding utf8
+    if ($adoptedAgents -notmatch "Keep this line" -or $adoptedAgents -notmatch "document-driven-workflow:start" -or $adoptedAgents -notmatch "finish-feature.mjs") {
+        Write-Host "Gate regression failed: workflow:adopt did not preserve existing content and add persistent workflow instructions." -ForegroundColor Red
+        exit 1
+    }
+
     & node (Join-Path $root "scripts\workflow\product\init-product.mjs") --target $root | Out-Host
     if (-not (Test-Path (Join-Path $root "docs\product\requirement-ledger.md")) -or -not (Test-Path (Join-Path $root "docs\product\traceability.md"))) {
         Write-Host "Gate regression failed: product init did not create product traceability files." -ForegroundColor Red

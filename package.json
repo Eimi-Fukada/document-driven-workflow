@@ -7,6 +7,7 @@
     "build": "node scripts/build/build-skills.mjs",
     "check": "powershell -ExecutionPolicy Bypass -File scripts/quality/check.ps1",
     "workflow:agent-plan": "node scripts/workflow/automation/agent-plan.mjs",
+    "workflow:adopt": "node scripts/workflow/automation/adopt.mjs",
     "workflow:approval-review": "node scripts/workflow/automation/approval-review.mjs",
     "workflow:approve": "node scripts/workflow/automation/approve.mjs",
     "workflow:completion-check": "node scripts/workflow/automation/completion-check.mjs",

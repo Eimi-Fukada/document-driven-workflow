@@ -40,6 +40,7 @@ const referenceFiles = [
 
 const requiredSkillFiles = [
   "SKILL.md",
+  "scripts/workflow/automation/adopt.mjs",
   "scripts/workflow/automation/process.mjs",
   "scripts/workflow/automation/continue.mjs",
   "scripts/workflow/automation/verify.mjs",
@@ -272,6 +273,25 @@ addCheck(
 );
 addCheck("Target project", targetExists(".git") ? "PASS" : "WARN", "git repository", "git is recommended for scope checks");
 addCheck("Target docs", targetExists("docs") ? "PASS" : "WARN", "docs directory", "missing docs/ means workflow is not adopted yet");
+const agentsPath = path.join(workflow.targetRoot, "AGENTS.md");
+const agentsContent = existsSync(agentsPath) ? readFileSync(agentsPath, "utf8") : "";
+const hasAdoptionBlock =
+  agentsContent.includes("<!-- document-driven-workflow:start -->") &&
+  agentsContent.includes("<!-- document-driven-workflow:end -->");
+const hasExistingWorkflowInstructions =
+  /document-driven-workflow/i.test(agentsContent) &&
+  /gate-feature\.mjs|Feature gate/i.test(agentsContent) &&
+  /finish-feature\.mjs|COMPLETION_PROOF\.json/i.test(agentsContent);
+addCheck(
+  "Target project",
+  hasAdoptionBlock || hasExistingWorkflowInstructions ? "PASS" : "WARN",
+  "persistent workflow instructions",
+  hasAdoptionBlock
+    ? "AGENTS.md contains document-driven-workflow adoption block"
+    : hasExistingWorkflowInstructions
+      ? "AGENTS.md contains existing document-driven-workflow instructions"
+    : "run workflow:adopt so later Codex/Claude turns keep using document-driven-workflow without repeating the skill name",
+);
 addCheck("Target docs", targetExists("docs/features") ? "PASS" : "WARN", "docs/features", "missing Feature directory");
 addCheck("Target docs", targetExists("docs/epics") ? "PASS" : "WARN", "docs/epics", "missing Epic directory");
 addCheck(

@@ -12,6 +12,7 @@ description: "Use when a project should be delivered from product documents, UI 
 - 复用脚本、门禁、模板和规则保存在 Skill 内部。
 - 目标项目只保存项目自己的文档：`docs/epics`、`docs/features`、`docs/product`、`docs/legacy`、`docs/changes`、`docs/decisions`。
 - 不要为了暴露工作流命令而修改目标项目的 `package.json`。
+- 长期使用本工作流的目标项目，应通过 `adopt.mjs` 在项目级 `AGENTS.md` 写入持久约束，避免后续对话绕过 document-driven-workflow。
 - 每个 Epic、Feature、Light Feature 只使用 `00-workflow.yaml` 作为机器可读状态源。
 - 代码实现前必须通过对应 gate。
 - 路由和风险分级采用“AI 初判 + 用户一次确认”。AI 可以推荐 Direct、Light、Standard、Epic 或 Strict，但最终执行以 `00-workflow.yaml` 的 `route_decision: user_confirmed`、`risk_level`、`hard_risk_blockers`、`expected_runtime` 和 `execution_slicing` 为准。
@@ -31,15 +32,16 @@ description: "Use when a project should be delivered from product documents, UI 
 ## 执行顺序
 
 1. 阅读 `references/MODE_ROUTER.md`，选择 Direct、Light、Standard、Epic 或 Strict。
-2. 创建或 hydrate 最小安全文档包。
-3. 按需要补全产品、UI、技术契约、验收、实现计划和验证文档。
-4. 当存在明确需求 ID 时，同步 `docs/product/requirement-ledger.md` 和 `docs/product/traceability.md`。
-5. 让用户审查文档包。
-6. 只有用户明确批准后，才用 `approve.mjs` 或 `continue.mjs --user-approved` 写入一次批准状态；批准时同时确认模式、风险、预计时长和分批策略。
-7. 运行内置 gate。
-8. gate 通过后，按已批准范围、`08-context-pack.md` 和 `EXECUTION_DISCIPLINE.md` 实现。
-9. 每个 Feature 独立完成自审、验证、产品追溯更新，并更新验证报告。
-10. 声称完成前运行 `finish-feature.mjs`，把 `COMPLETION_PROOF.json` 作为交付证据；如果启用了 Coverage Matrix，必须全部 `COV-*` 通过；只有该 Feature 通过后才继续下一个 Feature。
+2. 如果目标项目缺少持久工作流指令，先运行 `adopt.mjs --target <project-root>`，只维护 `AGENTS.md` marker block。
+3. 创建或 hydrate 最小安全文档包。
+4. 按需要补全产品、UI、技术契约、验收、实现计划和验证文档。
+5. 当存在明确需求 ID 时，同步 `docs/product/requirement-ledger.md` 和 `docs/product/traceability.md`。
+6. 让用户审查文档包。
+7. 只有用户明确批准后，才用 `approve.mjs` 或 `continue.mjs --user-approved` 写入一次批准状态；批准时同时确认模式、风险、预计时长和分批策略。
+8. 运行内置 gate。
+9. gate 通过后，按已批准范围、`08-context-pack.md` 和 `EXECUTION_DISCIPLINE.md` 实现。
+10. 每个 Feature 独立完成自审、验证、产品追溯更新，并更新验证报告。
+11. 声称完成前运行 `finish-feature.mjs`，把 `COMPLETION_PROOF.json` 作为交付证据；如果启用了 Coverage Matrix，必须全部 `COV-*` 通过；只有该 Feature 通过后才继续下一个 Feature。
 
 ## 入口规则
 

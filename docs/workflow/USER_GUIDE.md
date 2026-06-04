@@ -24,6 +24,14 @@
 
 AI 会选择 Skill 内置脚本执行，目标项目只保留自己的 `docs/` 文档。
 
+首次在一个项目中长期使用时，先让 AI 执行：
+
+```text
+使用 document-driven-workflow 接入这个项目，让后续 Codex / Claude 对话持续遵守这套工作流。
+```
+
+它会在目标项目 `AGENTS.md` 中写入一段带 marker 的持久约束。这样后续你说“继续实现这个需求”时，AI 也应该先检查当前 Epic / Feature、gate 和完成出口，而不是只补轻量文档后直接写代码。
+
 ## 一次确认
 
 AI 生成的 Epic / Feature 是初版，不是最终决策。你审查时主要看五件事：

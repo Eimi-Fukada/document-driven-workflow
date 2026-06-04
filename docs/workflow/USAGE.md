@@ -38,6 +38,14 @@ npm test
 
 维护者直接调试时，优先使用这些 Skill 内置脚本，并始终传入 `--target <project-root>`。
 
+把工作流持久接入目标项目：
+
+```bash
+node scripts/workflow/automation/adopt.mjs --target <project-root>
+```
+
+它只维护目标项目 `AGENTS.md` 中的 `document-driven-workflow` marker block，不修改目标项目 `package.json`。接入后，后续 Codex / Claude 对话会通过项目级指令继续遵守门禁、Scope Lock 和 `finish-feature` 完成出口。
+
 体检目标项目和本机 Skill：
 
 ```bash
@@ -120,6 +128,7 @@ node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> -
 
 | Script | 用途 |
 | --- | --- |
+| `adopt.mjs` | 写入或更新目标项目 `AGENTS.md` 的持久工作流约束 |
 | `route.mjs` | 生成路由评审 |
 | `approval-review.mjs` | 检查文档是否可以提交用户批准 |
 | `approve.mjs` | 把批准写入 `00-workflow.yaml` |

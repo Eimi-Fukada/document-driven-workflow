@@ -193,6 +193,7 @@ Light Feature 文档包：
 ```text
 docs/features/<feature-id>/
   00-workflow.yaml
+  REVIEW.md
   01-light-feature.md
 ```
 

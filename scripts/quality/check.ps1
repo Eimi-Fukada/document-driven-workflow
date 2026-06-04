@@ -99,6 +99,7 @@ $required = @(
     "scripts/workflow/test/test-gates.ps1",
     "scripts/quality/check.ps1",
     "scripts/quality/check-encoding.mjs",
+    "scripts/quality/ensure-dist.mjs",
     "skills/document-driven-workflow/SKILL.md"
 )
 
@@ -294,7 +295,7 @@ $contentChecks = @(
     @{ Name = "Script next-step prompts avoid maintainer npm script names"; Pass = -not ($processScript + $continueScript + $featureNewScript + $epicFeaturesScript -match "run epic:features|workflow:continue|npm run epic:|npm run feature:") },
     @{ Name = "Product automation scripts exist"; Pass = $contextPackScript -match "Context Pack" -and $productArtifactsScript -match "requirement-ledger.md" },
     @{ Name = "Maintainer package exposes core maintenance commands"; Pass = $package -match '"build"' -and $package -match '"check"' -and $package -match '"test"' -and $package -match '"setup:codex"' -and $package -match '"setup:claude"' },
-    @{ Name = "Maintainer package runs encoding check"; Pass = $package -match "check-encoding.mjs" },
+    @{ Name = "Maintainer package ensures dist before check"; Pass = $package -match "ensure-dist.mjs" -and $package -match "check-encoding.mjs" },
     @{ Name = "Workflow scripts live in Skill layer"; Pass = $processScript -match "process.mjs" -or ((Test-Path (Join-Path $root "scripts/workflow/automation/process.mjs")) -and (Test-Path (Join-Path $root "scripts/workflow/feature/gate-feature.mjs")) -and (Test-Path (Join-Path $root "scripts/workflow/epic/gate-epic.mjs"))) },
     @{ Name = "USAGE.md documents UTF-8 terminal note"; Pass = $usage -match "OutputEncoding" -and $usage -match "UTF-8" }
 )

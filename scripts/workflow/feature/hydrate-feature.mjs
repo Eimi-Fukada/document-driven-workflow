@@ -51,6 +51,7 @@ if (source.length < 50) {
 
 const templateDir = path.join(workflow.templateRoot, "feature");
 const standardFiles = [
+  "REVIEW.md",
   "00-intake-review.md",
   "01-prd.md",
   "02-ui-spec.md",
@@ -60,7 +61,7 @@ const standardFiles = [
   "06-implementation-plan.md",
   "08-context-pack.md",
 ];
-const files = mode === "light" ? ["01-light-feature.md"] : standardFiles;
+const files = mode === "light" ? ["REVIEW.md", "01-light-feature.md"] : standardFiles;
 
 mkdirSync(featurePath, { recursive: true });
 
@@ -114,11 +115,12 @@ Task: hydrate the Feature document package at ${relativeFeaturePath}.
 
 Instructions:
 - Read ${relativeSourcePath}.
-- Complete ${mode === "light" ? `${relativeFeaturePath}/01-light-feature.md as a reviewable Light Feature draft` : `${relativeFeaturePath}/00-intake-review.md through ${relativeFeaturePath}/08-context-pack.md as reviewable Feature draft documents`}.
+- Complete ${mode === "light" ? `${relativeFeaturePath}/REVIEW.md and ${relativeFeaturePath}/01-light-feature.md as a reviewable Light Feature draft` : `${relativeFeaturePath}/REVIEW.md and ${relativeFeaturePath}/00-intake-review.md through ${relativeFeaturePath}/08-context-pack.md as reviewable Feature draft documents`}.
 - Write the main human-facing content in Chinese. Keep file names, command names, IDs, status values, and script-matched headings in English where the template already uses them.
 - Do not modify ${relativeSourcePath} if it is 00-source.md.
 - Do not change ${relativeFeaturePath}/00-workflow.yaml approval, readiness, or status.
 - Keep ${relativeFeaturePath}/00-intake-review.md and ${relativeFeaturePath}/08-context-pack.md consistent if those files exist.
+- Keep ${relativeFeaturePath}/REVIEW.md as the user's concise review surface: summary, scope, non-goals, risk choice, option choice, acceptance table, coverage table, and confirmation checklist.
 - Treat mode and risk as an AI draft for user review. Fill the Route And Risk Draft and Readiness Review so the user can confirm or adjust mode/risk once.
 - Only objective hard risks can block downgrade: authentication/session/token changes, payment, permission, database/schema migration, destructive data change, security, production deployment, task-state consistency, or legacy core compatibility breakage.
 - Do not turn ordinary API/data/UI/state uncertainty into automatic Strict mode. Explain the uncertainty and what the user should confirm.

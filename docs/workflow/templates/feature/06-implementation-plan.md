@@ -61,16 +61,21 @@ Forbidden changes:
 
 ## Option Decision
 
-| Option | 优势 | 劣势 | 风险 | 适用条件 | Decision |
-| --- | --- | --- | --- | --- | --- |
-| Option A |  |  |  |  | recommended / rejected |
+| Option ID | 方案 | 优势 | 劣势 | 风险 | 适用条件 | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| OPT-001 |  |  |  |  |  | recommended |
+| OPT-002 |  |  |  |  |  | rejected |
 
-- Selected option:
+- Selected option: OPT-001
+- Rejected options: OPT-002
+- Fallback options: none
 - Selection reason:
+- User override required: no
+- User override reason: not-applicable
 - User decision recorded: yes / no / not-applicable
 - ADR required: yes / no
 
-当方案不唯一时，必须先给出选择理由。用户选择非推荐方案时，应记录风险和原因。
+当方案不唯一时，必须先给出选择理由。用户选择 rejected 或 fallback 方案时，应记录风险和原因，并在用户确认前暂停实现。
 
 ## Performance Plan
 

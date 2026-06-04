@@ -202,7 +202,22 @@ function hasExplicitClosureRisk(...texts) {
 
 function hasOptionDecisionRequired(...texts) {
   const combined = texts.join("\n");
-  return /(Multiple implementation options:\s*yes|User decision required:\s*yes|User decision recorded:\s*yes|ADR required:\s*yes)/i.test(combined);
+  return /(Multiple implementation options:\s*yes|User decision required:\s*yes|User decision recorded:\s*yes|ADR required:\s*yes|Selected option:\s*(?!\s*(-|none|no|not-applicable|unset)\s*$).+|Rejected options:\s*(?!\s*(-|none|no|not-applicable|unset)\s*$).+|Fallback options:\s*(?!\s*(-|none|no|not-applicable|unset)\s*$).+)/im.test(combined);
+}
+
+function lineValue(label, ...texts) {
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  for (const text of texts) {
+    const match = new RegExp(`^-\\s*${escaped}:\\s*(.+?)\\s*$`, "im").exec(text);
+    if (match) {
+      return match[1].trim();
+    }
+  }
+  return "";
+}
+
+function isBlankValue(value) {
+  return !value || /^(unset|none|n\/a|not-applicable|not applicable|-|no)$/i.test(value.trim());
 }
 
 function countLines(file) {
@@ -345,12 +360,36 @@ if (closureRequired) {
 
 const optionRequired = hasOptionDecisionRequired(readiness, plan, context);
 if (optionRequired) {
-  const optionRecorded = /Option decision recorded when needed:\s*yes/im.test(report) || /Selected option implemented:\s*(yes|not-applicable)/im.test(report);
+  const planSelectedOption = lineValue("Selected option", plan, context);
+  const reportSelectedOption = lineValue("Selected option", report);
+  const rejectedOptionUsed = /^-\s*Rejected option used:\s*yes\s*$/im.test(report);
+  const fallbackOptionUsed = /^-\s*Fallback option used:\s*yes\s*$/im.test(report);
+  const overrideRequired = /^-\s*User override required:\s*yes\s*$/im.test(report);
+  const overrideEvidence = lineValue("User override evidence", report);
+  const planHasStableSelectedOption = /^OPT-[A-Z0-9-]+$/i.test(planSelectedOption);
+  const selectedOptionMatches =
+    !planHasStableSelectedOption || (!isBlankValue(reportSelectedOption) && reportSelectedOption === planSelectedOption);
+  const optionRecorded =
+    (/Option decision recorded when needed:\s*yes/im.test(report) || /Selected option implemented:\s*(yes|not-applicable)/im.test(report)) &&
+    selectedOptionMatches;
   addRow(
     "Option decision evidence",
     optionRecorded ? "PASS" : "BLOCKED",
-    optionRecorded ? "option decision evidence is recorded" : "implementation options were present; verification report must record selected option evidence",
+    optionRecorded
+      ? "option decision evidence is recorded"
+      : "implementation options were present; verification report must record the selected option and option decision evidence",
   );
+
+  if (rejectedOptionUsed || fallbackOptionUsed) {
+    const overrideRecorded = overrideRequired && !isBlankValue(overrideEvidence);
+    addRow(
+      "Rejected/fallback override evidence",
+      overrideRecorded ? "PASS" : "BLOCKED",
+      overrideRecorded
+        ? "user override evidence is recorded for rejected/fallback option use"
+        : "rejected or fallback option was used; verification report must record user override evidence",
+    );
+  }
 }
 
 const traceabilityLine = /^-\s*Updated `?docs\/product\/traceability\.md`?:\s*(yes|not-applicable)\s*$/im.test(report);
@@ -484,6 +523,7 @@ const payload = {
     verified_count: coverageResult.verified_count,
     missing_in_report: coverageResult.missing_in_report,
     missing_evidence: coverageResult.missing_evidence,
+    missing_changed_file_evidence: coverageResult.missing_changed_file_evidence,
     not_passed: coverageResult.not_passed,
     invalid_source_rows: coverageResult.invalid_source_rows,
     duplicate_ids: coverageResult.duplicate_ids,

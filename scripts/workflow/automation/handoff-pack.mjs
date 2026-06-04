@@ -77,6 +77,24 @@ function extractTestCommands(...texts) {
   );
 }
 
+function extractLineValue(label, ...texts) {
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  for (const text of texts) {
+    const match = new RegExp(`^-\\s*${escaped}:\\s*(.+?)\\s*$`, "im").exec(text);
+    if (match) {
+      return match[1].trim();
+    }
+  }
+  return "";
+}
+
+function splitCsv(value) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item && !/^(none|n\/a|not-applicable)$/i.test(item));
+}
+
 function detectFiles() {
   const files = [
     "00-workflow.yaml",
@@ -115,6 +133,11 @@ const forbiddenScope = bulletLines(
     section(/Forbidden changes:\s*([\s\S]*?)(?:\n##|$)/i, plan),
 );
 const testCommands = extractTestCommands(context, plan);
+const selectedOption = extractLineValue("Selected option", plan, context) || "not-specified";
+const rejectedOptions = splitCsv(extractLineValue("Rejected options", plan, context));
+const fallbackOptions = splitCsv(extractLineValue("Fallback options", plan, context));
+const userOverrideRequired = extractLineValue("User override required", plan, context) || "not-applicable";
+const userOverrideReason = extractLineValue("User override reason", plan, context) || "not-applicable";
 const subjectRel = workflow.relativeToTarget(subjectPath);
 const outputDir = outputArg ? workflow.resolveTarget(outputArg) : subjectPath;
 const markdownPath = path.join(outputDir, "HANDOFF_PACK.md");
@@ -182,6 +205,13 @@ const payload = {
     approved: approvedScope,
     allowed: allowedScope,
     forbidden: forbiddenScope,
+  },
+  option_decision: {
+    selected_option: selectedOption,
+    rejected_options: rejectedOptions,
+    fallback_options: fallbackOptions,
+    user_override_required: userOverrideRequired,
+    user_override_reason: userOverrideReason,
   },
   test_commands: testCommands,
   workflow_commands: workflowScripts,
@@ -259,6 +289,16 @@ ${allowedScope.map((item) => `- ${item}`).join("\n") || "- See Feature documents
 ## Forbidden Scope
 
 ${forbiddenScope.map((item) => `- ${item}`).join("\n") || "- See Feature documents."}
+
+## Option Decision
+
+- Selected option: ${payload.option_decision.selected_option}
+- Rejected options: ${payload.option_decision.rejected_options.length ? payload.option_decision.rejected_options.join(", ") : "none"}
+- Fallback options: ${payload.option_decision.fallback_options.length ? payload.option_decision.fallback_options.join(", ") : "none"}
+- User override required: ${payload.option_decision.user_override_required}
+- User override reason: ${payload.option_decision.user_override_reason}
+
+If implementation needs any rejected or fallback option, stop before editing code and ask the user to update and approve the Feature documents.
 
 ## Test Commands
 

@@ -26,6 +26,7 @@ const referenceFiles = [
   "USAGE.md",
   "WORKFLOW.md",
   "AUTOMATION.md",
+  "LANGUAGE_POLICY.md",
   "MODE_ROUTER.md",
   "EXECUTION_PROTOCOL.md",
   "EXECUTION_DISCIPLINE.md",
@@ -52,11 +53,13 @@ const requiredSkillFiles = [
   "scripts/workflow/feature/gate-feature.mjs",
   "scripts/workflow/epic/gate-epic.mjs",
   "templates/feature/00-workflow.yaml",
+  "templates/feature/REVIEW.md",
   "templates/feature/01-prd.md",
   "templates/feature/07-verification-report.md",
   "templates/contracts/integration-contract.md",
   "templates/contracts/project-contract.md",
   "templates/epic/00-source.md",
+  "templates/epic/REVIEW.md",
   "references/USAGE.md",
   "references/POSITIONING.md",
   "references/MAESTRO_INTEGRATION.md",
@@ -177,6 +180,34 @@ function targetExists(rel) {
   return existsSync(path.join(workflow.targetRoot, rel));
 }
 
+const projectMarkers = [
+  ["package.json", "node"],
+  ["pnpm-workspace.yaml", "node-workspace"],
+  ["pubspec.yaml", "flutter"],
+  ["pyproject.toml", "python"],
+  ["requirements.txt", "python"],
+  ["pom.xml", "java-maven"],
+  ["build.gradle", "java-gradle"],
+  ["build.gradle.kts", "java-gradle"],
+  ["settings.gradle", "java-gradle"],
+  ["settings.gradle.kts", "java-gradle"],
+  ["go.mod", "go"],
+  ["Cargo.toml", "rust"],
+  ["composer.json", "php"],
+  ["Gemfile", "ruby"],
+];
+
+function findProjectMarkers() {
+  const direct = projectMarkers
+    .filter(([file]) => targetExists(file))
+    .map(([file, kind]) => `${file}:${kind}`);
+  const dotnet = listFiles(workflow.targetRoot)
+    .filter((rel) => /\.(csproj|fsproj|vbproj|sln)$/i.test(rel))
+    .slice(0, 8)
+    .map((rel) => `${rel}:dotnet`);
+  return [...direct, ...dotnet];
+}
+
 const sourceMode = existsSync(path.join(workflow.packageRoot, "docs", "workflow", "templates"));
 const bundleHash = sourceMode ? hashSourceBundle(workflow.packageRoot) : hashInstalledSkill(workflow.packageRoot);
 
@@ -263,13 +294,16 @@ if (!skipCliCheck) {
 }
 
 addCheck("Target project", existsSync(workflow.targetRoot) ? "PASS" : "BLOCKER", "target root", workflow.targetRoot);
+const detectedProjectMarkers = findProjectMarkers();
 addCheck(
   "Target project",
-  targetExists("package.json") || targetExists("pubspec.yaml") || targetExists("pyproject.toml")
+  detectedProjectMarkers.length
     ? "PASS"
     : "WARN",
   "project marker",
-  "expected package.json, pubspec.yaml, or pyproject.toml when this is an app project",
+  detectedProjectMarkers.length
+    ? `detected project marker(s): ${detectedProjectMarkers.join(", ")}`
+    : "no common project marker detected; custom stacks are still allowed, but technical contract must record project commands",
 );
 addCheck("Target project", targetExists(".git") ? "PASS" : "WARN", "git repository", "git is recommended for scope checks");
 addCheck("Target docs", targetExists("docs") ? "PASS" : "WARN", "docs directory", "missing docs/ means workflow is not adopted yet");
@@ -290,7 +324,7 @@ addCheck(
     ? "AGENTS.md contains document-driven-workflow adoption block"
     : hasExistingWorkflowInstructions
       ? "AGENTS.md contains existing document-driven-workflow instructions"
-    : "run workflow:adopt so later Codex/Claude turns keep using document-driven-workflow without repeating the skill name",
+    : "ask document-driven-workflow to adopt this project so later Codex/Claude turns keep using the workflow without repeating the skill name",
 );
 addCheck("Target docs", targetExists("docs/features") ? "PASS" : "WARN", "docs/features", "missing Feature directory");
 addCheck("Target docs", targetExists("docs/epics") ? "PASS" : "WARN", "docs/epics", "missing Epic directory");

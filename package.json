@@ -5,7 +5,7 @@
   "description": "Document-driven product delivery workflow for Codex and Claude Code.",
   "scripts": {
     "build": "node scripts/build/build-skills.mjs",
-    "check": "powershell -ExecutionPolicy Bypass -File scripts/quality/check.ps1",
+    "check": "powershell -ExecutionPolicy Bypass -File scripts/quality/check.ps1 && node scripts/quality/check-encoding.mjs",
     "workflow:agent-plan": "node scripts/workflow/automation/agent-plan.mjs",
     "workflow:adopt": "node scripts/workflow/automation/adopt.mjs",
     "workflow:approval-review": "node scripts/workflow/automation/approval-review.mjs",

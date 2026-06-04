@@ -145,6 +145,31 @@ function WriteReadyFeature($dir, $id, $stack = "next-fullstack", $pagesRouter = 
     }
     New-Item -ItemType Directory -Force -Path $dir | Out-Null
     WriteManifest $dir "feature" "standard" $id $stack "approved"
+    WriteUtf8 (Join-Path $dir "REVIEW.md") @(
+        "# Feature Review Summary",
+        "",
+        "- Feature ID: $id",
+        "- Related Epic: none",
+        "- Mode Draft: standard",
+        "- Risk Level Draft: medium",
+        "- Objective Hard Risk Blockers: none",
+        "- Expected Runtime: 30_90m",
+        "- Execution Slicing: not_required",
+        "",
+        "## Summary",
+        "",
+        "- REQ-DEMO-001 Demo ready requirement",
+        "",
+        "## Option",
+        "",
+        "- Selected option: direct implementation",
+        "",
+        "## Acceptance",
+        "",
+        "| Requirement ID | Acceptance ID | Evidence |",
+        "| --- | --- | --- |",
+        "| REQ-DEMO-001 | AC-DEMO-001 | smoke |"
+    )
     WriteUtf8 (Join-Path $dir "00-intake-review.md") @("# Requirement Intake Review", "", "## Clear Items", "", "- REQ-DEMO-001 is clear.", "", "## User Questions", "", "- none")
     WriteUtf8 (Join-Path $dir "01-prd.md") @("# PRD", "", "REQ-DEMO-001 Demo ready requirement")
     WriteUtf8 (Join-Path $dir "02-ui-spec.md") @("# UI Spec", "", "UI-DEMO-001 Demo UI")
@@ -289,6 +314,26 @@ function WriteReadyEpic($dir, $id, $approval = "approved") {
     New-Item -ItemType Directory -Force -Path $dir | Out-Null
     WriteManifest $dir "epic" "epic" $id "none" $approval
     WriteUtf8 (Join-Path $dir "00-source.md") @("# Source", "", "Original product iteration material preserved here with enough detail for breakdown and regression testing.")
+    WriteUtf8 (Join-Path $dir "REVIEW.md") @(
+        "# Epic Review Summary",
+        "",
+        "- Epic ID: $id",
+        "- Mode Draft: epic",
+        "- Risk Level Draft: medium",
+        "- Objective Hard Risk Blockers: none",
+        "- Expected Runtime: over_90m",
+        "- Execution Slicing: required",
+        "",
+        "## Goal",
+        "",
+        "- EREQ-001 Demo product requirement",
+        "",
+        "## Feature Breakdown",
+        "",
+        "| Feature ID | Goal |",
+        "| --- | --- |",
+        "| demo-feature | Demo |"
+    )
     WriteUtf8 (Join-Path $dir "01-epic-brief.md") @("# Epic Brief", "", "Goal is clear.")
     WriteUtf8 (Join-Path $dir "02-requirement-inventory.md") @("# Requirement Inventory", "", "| Epic Req ID | Title | Module | Risk | Suggested Feature | Status |", "| --- | --- | --- | --- | --- | --- |", "| EREQ-001 | Demo | UI | Low | demo-feature | Ready |")
     WriteUtf8 (Join-Path $dir "03-scope-breakdown.md") @("# Scope Breakdown", "", "| Feature ID | Source Requirement | Goal | Risk | Dependency |", "| --- | --- | --- | --- | --- |", "| demo-feature | EREQ-001 | Demo | Low | none |")
@@ -358,7 +403,7 @@ try {
     & node (Join-Path $root "scripts\workflow\epic\create-features.mjs") "docs/epics/__tmp_epic_pass" --target $root --features tmp-epic-feature-one,tmp-epic-feature-two --stack next-fullstack --agent none | Out-Host
     foreach ($generatedFeature in @("tmp-epic-feature-one", "tmp-epic-feature-two")) {
         $generatedPath = Join-Path $featuresRoot $generatedFeature
-        $expectedFiles = @("00-workflow.yaml", "00-source.md", "00-intake-review.md", "01-prd.md", "02-ui-spec.md", "03-technical-contract.md", "04-acceptance-criteria.md", "05-readiness-review.md", "06-implementation-plan.md", "08-context-pack.md")
+        $expectedFiles = @("00-workflow.yaml", "00-source.md", "REVIEW.md", "00-intake-review.md", "01-prd.md", "02-ui-spec.md", "03-technical-contract.md", "04-acceptance-criteria.md", "05-readiness-review.md", "06-implementation-plan.md", "08-context-pack.md")
         foreach ($expectedFile in $expectedFiles) {
             if (-not (Test-Path (Join-Path $generatedPath $expectedFile))) {
                 Write-Host "Gate regression failed: epic:features did not create $generatedFeature/$expectedFile." -ForegroundColor Red
@@ -369,6 +414,21 @@ try {
             Write-Host "Gate regression failed: generated template feature passed before concrete REQ/AC hydration." -ForegroundColor Red
             exit 1
         }
+        WriteUtf8 (Join-Path $generatedPath "REVIEW.md") @(
+            "# Feature Review Summary",
+            "",
+            "- Feature ID: $generatedFeature",
+            "- Related Epic: __tmp_epic_pass",
+            "- Mode Draft: standard",
+            "- Risk Level Draft: medium",
+            "- Objective Hard Risk Blockers: none",
+            "- Expected Runtime: 30_90m",
+            "- Execution Slicing: not_required",
+            "",
+            "REQ-GENERATED-001 Demo ready requirement",
+            "AC-GENERATED-001 covers REQ-GENERATED-001",
+            "- Selected option: direct implementation"
+        )
         WriteUtf8 (Join-Path $generatedPath "01-prd.md") @("# PRD", "", "REQ-GENERATED-001 Demo ready requirement")
         WriteUtf8 (Join-Path $generatedPath "04-acceptance-criteria.md") @("# Acceptance", "", "AC-GENERATED-001 covers REQ-GENERATED-001")
         WriteUtf8 (Join-Path $generatedPath "06-implementation-plan.md") @(
@@ -538,6 +598,21 @@ try {
     $lightPassFeature = Join-Path $featuresRoot "__tmp_light_feature_pass"
     New-Item -ItemType Directory -Force -Path $lightPassFeature | Out-Null
     WriteManifest $lightPassFeature "feature" "light" "__tmp_light_feature_pass" "next-fullstack" "approved"
+    WriteUtf8 (Join-Path $lightPassFeature "REVIEW.md") @(
+        "# Feature Review Summary",
+        "",
+        "- Feature ID: __tmp_light_feature_pass",
+        "- Related Epic: none",
+        "- Mode Draft: light",
+        "- Risk Level Draft: low",
+        "- Objective Hard Risk Blockers: none",
+        "- Expected Runtime: under_30m",
+        "- Execution Slicing: not_required",
+        "",
+        "REQ-LIGHT-001 Demo light requirement",
+        "AC-LIGHT-001 covers REQ-LIGHT-001",
+        "- Selected option: direct implementation"
+    )
     WriteUtf8 (Join-Path $lightPassFeature "01-light-feature.md") @(
         "# Light Feature Brief",
         "",
@@ -566,6 +641,7 @@ try {
     $lightLegacyFeature = Join-Path $featuresRoot "__tmp_light_feature_legacy"
     New-Item -ItemType Directory -Force -Path $lightLegacyFeature | Out-Null
     WriteManifest $lightLegacyFeature "feature" "light" "__tmp_light_feature_legacy" "legacy-existing" "approved"
+    WriteUtf8 (Join-Path $lightLegacyFeature "REVIEW.md") @("# Feature Review Summary", "", "- Feature ID: __tmp_light_feature_legacy", "- Risk Level Draft: low", "- Expected Runtime: under_30m", "- Execution Slicing: not_required", "REQ-LIGHT-001 Demo", "AC-LIGHT-001 covers REQ-LIGHT-001", "- Selected option: direct implementation")
     WriteUtf8 (Join-Path $lightLegacyFeature "01-light-feature.md") @("# Light Feature Brief", "", "REQ-LIGHT-001 Demo", "AC-LIGHT-001 covers REQ-LIGHT-001")
     if ((RunFeatureGate "docs/features/__tmp_light_feature_legacy") -eq 0) {
         Write-Host "Gate regression failed: legacy light feature passed." -ForegroundColor Red
@@ -591,6 +667,7 @@ try {
     $approvalFeature = Join-Path $featuresRoot "__tmp_approval_feature"
     New-Item -ItemType Directory -Force -Path $approvalFeature | Out-Null
     WriteManifest $approvalFeature "feature" "light" "__tmp_approval_feature" "next-fullstack" "pending"
+    WriteUtf8 (Join-Path $approvalFeature "REVIEW.md") @("# Feature Review Summary", "", "- Feature ID: __tmp_approval_feature", "- Risk Level Draft: low", "- Expected Runtime: under_30m", "- Execution Slicing: not_required", "REQ-LIGHT-001 Demo", "AC-LIGHT-001 covers REQ-LIGHT-001", "- Selected option: direct implementation")
     WriteUtf8 (Join-Path $approvalFeature "01-light-feature.md") @("# Light Feature Brief", "", "REQ-LIGHT-001 Demo", "AC-LIGHT-001 covers REQ-LIGHT-001", "- Next.js App Router: yes", "- Next.js Pages Router: no")
     & node (Join-Path $root "scripts\workflow\automation\approval-review.mjs") "docs/features/__tmp_approval_feature" --target $root | Out-Host
     if (-not (Test-Path (Join-Path $approvalFeature "APPROVAL_REVIEW.md"))) {
@@ -689,6 +766,18 @@ try {
         "",
         "- Unit: Passed for AC-DEMO-001",
         "",
+        "## Option And Closure Review",
+        "",
+        "- Selected option implemented: yes",
+        "- Selected option: OPT-001",
+        "- Rejected option used: no",
+        "- Fallback option used: no",
+        "- User override required: no",
+        "- User override evidence: not-applicable",
+        "- Option decision evidence: OPT-001 implemented",
+        "- Closure risk reviewed: yes",
+        "- User warning handled: not-applicable",
+        "",
         "## Product Traceability Update",
         "",
         '- Updated `docs/product/traceability.md`: not-applicable',
@@ -772,6 +861,18 @@ try {
         "cmd /c echo workflow verify ok",
         '```',
         "",
+        "## Option And Closure Review",
+        "",
+        "- Selected option implemented: yes",
+        "- Selected option: OPT-001",
+        "- Rejected option used: no",
+        "- Fallback option used: no",
+        "- User override required: no",
+        "- User override evidence: not-applicable",
+        "- Option decision evidence: OPT-001 implemented",
+        "- Closure risk reviewed: yes",
+        "- User warning handled: not-applicable",
+        "",
         "## Product Traceability Update",
         "",
         '- Updated `docs/product/traceability.md`: not-applicable',
@@ -815,10 +916,10 @@ try {
         "- Expected coverage items: 2",
         "- Execution pass recommendation: 3-5 coverage items when Expected coverage items is greater than 5",
         "",
-        "| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Notes |",
-        "| --- | --- | --- | --- | --- |",
-        "| COV-DEMO-001 | Module A | REQ-DEMO-001 | AC-DEMO-001 | state recovery |",
-        "| COV-DEMO-002 | Module B | REQ-DEMO-001 | AC-DEMO-001 | state recovery |"
+        "| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Expected changed files / paths | Notes |",
+        "| --- | --- | --- | --- | --- | --- |",
+        "| COV-DEMO-001 | Module A | REQ-DEMO-001 | AC-DEMO-001 | src/cov-a.ts | state recovery |",
+        "| COV-DEMO-002 | Module B | REQ-DEMO-001 | AC-DEMO-001 | src/cov-b.ts | state recovery |"
     )
     WriteUtf8 (Join-Path $coverageFeature "07-verification-report.md") @(
         "# Verification Report",
@@ -838,9 +939,9 @@ try {
         "- Coverage required: yes",
         "- Expected coverage items: 2",
         "",
-        "| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Implementation Evidence | Verification Evidence | Status |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
-        "| COV-DEMO-001 | Module A | REQ-DEMO-001 | AC-DEMO-001 | src/cov-a.ts | workflow verify ok | Passed |",
+        "| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Implementation Evidence | Changed Files Evidence | Verification Evidence | Status |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| COV-DEMO-001 | Module A | REQ-DEMO-001 | AC-DEMO-001 | Module A implementation | src/cov-a.ts | workflow verify ok | Passed |",
         "",
         "## Changed Files",
         "",
@@ -854,6 +955,18 @@ try {
         '```bash',
         "cmd /c echo workflow verify ok",
         '```',
+        "",
+        "## Option And Closure Review",
+        "",
+        "- Selected option implemented: yes",
+        "- Selected option: OPT-001",
+        "- Rejected option used: no",
+        "- Fallback option used: no",
+        "- User override required: no",
+        "- User override evidence: not-applicable",
+        "- Option decision evidence: OPT-001 implemented",
+        "- Closure risk reviewed: yes",
+        "- User warning handled: not-applicable",
         "",
         "## Product Traceability Update",
         "",
@@ -902,10 +1015,10 @@ try {
         "- Coverage required: yes",
         "- Expected coverage items: 2",
         "",
-        "| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Implementation Evidence | Verification Evidence | Status |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
-        "| COV-DEMO-001 | Module A | REQ-DEMO-001 | AC-DEMO-001 | src/cov-a.ts | workflow verify ok | Passed |",
-        "| COV-DEMO-002 | Module B | REQ-DEMO-001 | AC-DEMO-001 | src/cov-b.ts | workflow verify ok | Passed |",
+        "| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Implementation Evidence | Changed Files Evidence | Verification Evidence | Status |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| COV-DEMO-001 | Module A | REQ-DEMO-001 | AC-DEMO-001 | Module A implementation | src/cov-a.ts | workflow verify ok | Passed |",
+        "| COV-DEMO-002 | Module B | REQ-DEMO-001 | AC-DEMO-001 | Module B implementation | src/cov-b.ts | workflow verify ok | Passed |",
         "",
         "## Changed Files",
         "",
@@ -919,6 +1032,18 @@ try {
         '```bash',
         "cmd /c echo workflow verify ok",
         '```',
+        "",
+        "## Option And Closure Review",
+        "",
+        "- Selected option implemented: yes",
+        "- Selected option: OPT-001",
+        "- Rejected option used: no",
+        "- Fallback option used: no",
+        "- User override required: no",
+        "- User override evidence: not-applicable",
+        "- Option decision evidence: OPT-001 implemented",
+        "- Closure risk reviewed: yes",
+        "- User warning handled: not-applicable",
         "",
         "## Product Traceability Update",
         "",

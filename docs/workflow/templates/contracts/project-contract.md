@@ -35,11 +35,11 @@
 ## Required Workflow Checks
 
 - Before implementation:
-  - `workflow:doctor --target <project-root> --json`
+  - document-driven-workflow doctor JSON
   - Feature gate for `docs/features/<feature-id>`
 - Before reporting done:
-  - `workflow:verify docs/features/<feature-id> --target <project-root>`
-  - `finish-feature docs/features/<feature-id> --target <project-root> --json`
+  - document-driven-workflow verification run
+  - document-driven-workflow finish-feature JSON
 
 ## Maestro Notes
 

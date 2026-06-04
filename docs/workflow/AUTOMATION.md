@@ -34,11 +34,18 @@
 
 普通使用者优先通过自然语言触发这些能力。维护者直接调试时，优先使用主入口。
 
+入口分层：
+
+- 用户入口是自然语言，不是脚本名。
+- AI 主入口只优先选择 `adopt.mjs`、`process.mjs`、`continue.mjs` 和 `finish-feature.mjs`。
+- 其他脚本是内部子能力或维护者工具，不应成为普通用户心智负担。
+- `completion-check.mjs` 只能作为底层诊断，不替代 `finish-feature.mjs`。
+
 | Script | 用途 | 是否写文件 | 是否需要明确批准 |
 | --- | --- | --- | --- |
 | `adopt.mjs` | 把 document-driven-workflow 持久接入目标项目 `AGENTS.md` | yes，维护 marker block | no |
 | `doctor.mjs` | 体检 Skill 安装、CLI、目标项目接入和文档结构 | yes，`DOCTOR_REPORT.md` | no |
-| `process.mjs` | 从需求来源编排路由、建包、hydrate 和批准前检查 | yes，文档包和 `APPROVAL_REVIEW.md` | no |
+| `process.mjs` | 从需求来源编排路由、建包、hydrate 和批准前检查 | yes，文档包、`REVIEW.md` 和 `APPROVAL_REVIEW.md` | no |
 | `continue.mjs` | 用户批准后运行 gate，并准备下一阶段上下文 | yes | yes，当需要写入批准时 |
 | `verify.mjs` | 执行文档里的验证命令并写回验证报告 | yes，`07-verification-report.md` | no |
 | `finish-feature.mjs` | 唯一完成出口，依次运行 gate、verify、completion-check，写入完成证明和 verified 状态 | yes，`COMPLETION_PROOF.json` | no |
@@ -115,3 +122,15 @@ Hydrate 和生成类脚本支持：
 - 标记禁止范围和合并风险。
 
 工作流目前不会自动启动或协调多个 agent 写代码。只有真实项目使用证明需要后，才应加入真正的编排。
+
+## Option Deviation Automation
+
+<!-- zh: 自动化只强制“偏离必须显性化”，不假装完全理解代码语义。 -->
+
+When Feature documents contain option decisions:
+
+- `handoff-pack.mjs` passes `selected_option`, `rejected_options`, `fallback_options`, and override fields to the worker.
+- `finish-feature.mjs` runs completion checks that require the verification report to record the selected option.
+- If rejected or fallback options were used, the verification report must include user override evidence.
+
+This keeps the workflow lightweight while preventing silent deviation from the approved plan.

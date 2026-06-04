@@ -38,6 +38,16 @@ npm test
 
 维护者直接调试时，优先使用这些 Skill 内置脚本，并始终传入 `--target <project-root>`。
 
+脚本分三层：
+
+| 层级 | 面向谁 | 入口 |
+| --- | --- | --- |
+| 用户自然语言入口 | 普通使用者 | 接入项目、处理需求、批准后继续、完成前验收 |
+| AI 主入口 | Codex / Claude worker | `adopt.mjs`、`process.mjs`、`continue.mjs`、`finish-feature.mjs` |
+| 维护者工具 | 工作流维护者 / 调试 | 其他 automation、gate、hydrate、status、handoff 脚本 |
+
+普通项目用户不应该直接调用维护者工具。维护者文档列出脚本是为了调试和回归，不是让用户记命令。
+
 把工作流持久接入目标项目：
 
 ```bash
@@ -59,6 +69,7 @@ node scripts/workflow/automation/process.mjs --source docs/requirements/example.
 ```
 
 它会初始化 `docs/product`、路由需求、创建 Epic 或 Feature 文档包、hydrate 草稿，并生成 `APPROVAL_REVIEW.md`。它不会批准需求，也不会开始实现。
+生成的 Epic / Feature 会包含 `REVIEW.md`，这是用户默认审核入口；完整文档包主要用于 AI 执行、追溯和门禁。
 
 AI 生成的模式和风险只是初判。用户审查后只需要确认一次：需求是否正确、模式是否合适、风险等级是否合理、是否存在客观硬风险、是否需要分批。确认结果写入 `00-workflow.yaml`，不要在多个 Markdown 文件里维护批准状态。
 
@@ -147,6 +158,7 @@ Epic 文档包：
 ```text
 docs/epics/<epic-id>/
   00-workflow.yaml
+  REVIEW.md
   00-source.md
   01-epic-brief.md
   02-requirement-inventory.md
@@ -164,6 +176,7 @@ Standard / Strict Feature 文档包：
 ```text
 docs/features/<feature-id>/
   00-workflow.yaml
+  REVIEW.md
   00-intake-review.md
   01-prd.md
   02-ui-spec.md

@@ -122,7 +122,7 @@ function writeRoutingReview({ mode, source }) {
 
 ## Reasoning
 
-- 本结论由 \`workflow:process\` 根据需求文本、风险关键词和范围大小生成。
+- 本结论由 document-driven-workflow 根据需求文本、风险关键词和范围大小生成。
 - 如果 AI 在补全文档时发现范围更大或风险更高，应在文档中说明，让用户确认是否调整模式。
 - 除客观硬风险外，不要因为 AI 不确定就自动把简单需求推入重流程。
 

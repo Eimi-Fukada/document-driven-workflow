@@ -35,9 +35,9 @@ Allowed values:
 - Coverage required: no
 - Expected coverage items: 0
 
-| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Implementation Evidence | Verification Evidence | Status |
-| --- | --- | --- | --- | --- | --- | --- |
-| COV-AREA-001 |  | REQ-AREA-001 | AC-AREA-001 |  |  | Not Tested |
+| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Implementation Evidence | Changed Files Evidence | Verification Evidence | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| COV-AREA-001 |  | REQ-AREA-001 | AC-AREA-001 |  |  |  | Not Tested |
 
 ## Scope Lock Review
 
@@ -104,6 +104,11 @@ Allowed values:
 ## Option And Closure Review
 
 - Selected option implemented: yes / no / not-applicable
+- Selected option:
+- Rejected option used: yes / no
+- Fallback option used: yes / no
+- User override required: yes / no / not-applicable
+- User override evidence:
 - Option decision evidence:
 - Closure risk reviewed: yes / no
 - User warning handled: yes / no / not-applicable

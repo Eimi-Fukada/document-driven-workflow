@@ -86,11 +86,18 @@ Stack Preset：
 
 当实现方案不唯一，或存在新旧技术路线差异时，列出可选方案：
 
-| Option | 优势 | 劣势 | 风险 | 适用条件 | 结论 |
-| --- | --- | --- | --- | --- | --- |
-| Option A |  |  |  |  | recommended / rejected |
+| Option ID | 方案 | 优势 | 劣势 | 风险 | 适用条件 | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| OPT-001 |  |  |  |  |  | recommended |
+| OPT-002 |  |  |  |  |  | rejected |
 
-如果用户选择了非推荐方案，应在 ADR 或实现计划中记录原因。
+- Selected option: OPT-001
+- Rejected options: OPT-002
+- Fallback options: none
+- User override required: no
+- User override reason: not-applicable
+
+如果用户选择了 rejected 或 fallback 方案，必须把 `User override required` 改为 `yes`，并在 ADR 或实现计划中记录原因。
 
 ## 闭环提醒
 

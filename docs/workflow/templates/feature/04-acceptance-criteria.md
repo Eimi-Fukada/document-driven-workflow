@@ -21,7 +21,7 @@
 - Coverage required: yes
 - Expected coverage items: 写实际数量，例如 11
 - 每个覆盖项使用一个 COV-* ID。
-- 完成时，07-verification-report.md 必须为每个 COV-* 填写实现证据、验证证据和 Passed 状态。
+- 完成时，07-verification-report.md 必须为每个 COV-* 填写实现证据、变更文件证据、验证证据和 Passed 状态。
 如果这个 Feature 只有单一闭环，可以保持 Coverage required: no。
 -->
 
@@ -29,9 +29,9 @@
 - Expected coverage items: 0
 - Execution pass recommendation: 3-5 coverage items when Expected coverage items is greater than 5
 
-| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Notes |
-| --- | --- | --- | --- | --- |
-| COV-AREA-001 |  | REQ-AREA-001 | AC-AREA-001 |  |
+| Coverage ID | Module / Item | Requirement ID | Acceptance ID | Expected changed files / paths | Notes |
+| --- | --- | --- | --- | --- | --- |
+| COV-AREA-001 |  | REQ-AREA-001 | AC-AREA-001 |  |  |
 
 ## 验收用例
 

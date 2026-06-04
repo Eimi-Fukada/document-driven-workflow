@@ -63,6 +63,7 @@ Standard 或 Strict Feature：
 ```text
 docs/features/<feature-id>/
   00-workflow.yaml
+  REVIEW.md
   00-intake-review.md
   01-prd.md
   02-ui-spec.md
@@ -79,6 +80,7 @@ Epic：
 ```text
 docs/epics/<epic-id>/
   00-workflow.yaml
+  REVIEW.md
   00-source.md
   01-epic-brief.md
   02-requirement-inventory.md

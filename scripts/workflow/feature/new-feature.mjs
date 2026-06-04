@@ -53,6 +53,7 @@ if (existsSync(featureDir)) {
 
 const templateDir = path.join(workflow.templateRoot, "feature");
 const standardFiles = [
+  "REVIEW.md",
   "00-intake-review.md",
   "01-prd.md",
   "02-ui-spec.md",
@@ -62,7 +63,7 @@ const standardFiles = [
   "06-implementation-plan.md",
   "08-context-pack.md",
 ];
-const files = mode === "light" ? ["01-light-feature.md"] : standardFiles;
+const files = mode === "light" ? ["REVIEW.md", "01-light-feature.md"] : standardFiles;
 
 mkdirSync(featureDir, { recursive: true });
 writeManifest(featureDir, createFeatureManifest({ id: featureId, mode, stackPreset, epicId }));
@@ -73,6 +74,17 @@ for (const file of files) {
 }
 
 if (mode === "light") {
+  const reviewPath = path.join(featureDir, "REVIEW.md");
+  let review = readFileSync(reviewPath, "utf8");
+  review = review
+    .replace("- Feature ID: unset", `- Feature ID: ${featureId}`)
+    .replace("- Related Epic: none", `- Related Epic: ${epicId}`)
+    .replace("- Mode Draft: unset", "- Mode Draft: light")
+    .replace("- Risk Level Draft: unset", "- Risk Level Draft: low")
+    .replace("- Expected Runtime: unset", "- Expected Runtime: under_30m")
+    .replace("- Execution Slicing: unset", "- Execution Slicing: not_required");
+  writeFileSync(reviewPath, review, "utf8");
+
   const lightFeaturePath = path.join(featureDir, "01-light-feature.md");
   let lightFeature = readFileSync(lightFeaturePath, "utf8");
   lightFeature = lightFeature
@@ -80,6 +92,17 @@ if (mode === "light") {
     .replace("- Epic ID: none", `- Epic ID: ${epicId}`);
   writeFileSync(lightFeaturePath, lightFeature, "utf8");
 } else {
+  const reviewPath = path.join(featureDir, "REVIEW.md");
+  let review = readFileSync(reviewPath, "utf8");
+  review = review
+    .replace("- Feature ID: unset", `- Feature ID: ${featureId}`)
+    .replace("- Related Epic: none", `- Related Epic: ${epicId}`)
+    .replace("- Mode Draft: unset", `- Mode Draft: ${mode}`)
+    .replace("- Risk Level Draft: unset", "- Risk Level Draft: medium")
+    .replace("- Expected Runtime: unset", "- Expected Runtime: 30_90m")
+    .replace("- Execution Slicing: unset", "- Execution Slicing: not_required");
+  writeFileSync(reviewPath, review, "utf8");
+
   const intakePath = path.join(featureDir, "00-intake-review.md");
   let intake = readFileSync(intakePath, "utf8");
   intake = intake
@@ -127,9 +150,9 @@ if (epicId !== "none") {
 console.log("");
 console.log("Next step:");
 if (mode === "light") {
-  console.log(`1. Fill docs/features/${featureId}/01-light-feature.md`);
+  console.log(`1. Fill docs/features/${featureId}/REVIEW.md and 01-light-feature.md`);
 } else {
-  console.log(`1. Fill docs/features/${featureId}/00-intake-review.md through 08-context-pack.md`);
+  console.log(`1. Fill docs/features/${featureId}/REVIEW.md and 00-intake-review.md through 08-context-pack.md`);
 }
 console.log(`2. User reviews and explicitly approves the Feature`);
 console.log(`3. Ask document-driven-workflow to continue docs/features/${featureId} after explicit user approval.`);

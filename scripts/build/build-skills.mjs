@@ -13,6 +13,7 @@ const referenceFiles = [
   "USAGE.md",
   "WORKFLOW.md",
   "AUTOMATION.md",
+  "LANGUAGE_POLICY.md",
   "MODE_ROUTER.md",
   "EXECUTION_PROTOCOL.md",
   "EXECUTION_DISCIPLINE.md",

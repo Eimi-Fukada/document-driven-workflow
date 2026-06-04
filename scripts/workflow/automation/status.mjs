@@ -115,12 +115,12 @@ function blockerEntriesForFeature(manifest, completionResult, completionProof) {
   return blockers;
 }
 
-function nextActionForFeature({ manifest, blockers, completionResult, completionProof, verificationResult }) {
+function nextActionForFeature({ manifest, blockers, completionProof, verificationResult }) {
   if (blockers.some((item) => item.type === "approval_blocker")) {
-    return "用户审查文档后运行 workflow:approve / continue 写入一次批准";
+    return "用户审查 REVIEW.md 和必要细节后，让 document-driven-workflow 写入一次批准并运行 gate";
   }
   if (blockers.some((item) => item.type === "route_blocker")) {
-    return "用户确认或调整 00-workflow.yaml 中的模式、风险、客观硬风险和分批字段";
+    return "用户确认或调整 00-workflow.yaml 中的 mode、risk、hard risk 和 slicing 字段";
   }
   if (blockers.some((item) => item.type === "doc_blocker")) {
     return "补全文档、解决未决问题，然后重新运行 Feature gate";
@@ -155,6 +155,7 @@ function summarizeFeature(subjectPath, manifest) {
   const verified = completionProof.result === "PASS";
   const manifestVerifiedWithoutProof = ["verified", "released"].includes(manifest.status) && completionProof.result !== "PASS";
   const docs = {
+    review: hasFile(subjectPath, "REVIEW.md"),
     intake_review: hasFile(subjectPath, "00-intake-review.md"),
     light_feature: hasFile(subjectPath, "01-light-feature.md"),
     prd: hasFile(subjectPath, "01-prd.md"),
@@ -194,7 +195,7 @@ function summarizeFeature(subjectPath, manifest) {
     blocked: blockers.length > 0,
     blockers,
     docs,
-    next_action: nextActionForFeature({ manifest, blockers, completionResult, completionProof, verificationResult }),
+    next_action: nextActionForFeature({ manifest, blockers, completionProof, verificationResult }),
   };
 }
 
@@ -239,7 +240,7 @@ function summarizeEpic(subjectPath, manifest, features) {
       ? "补全 Epic 文档并由用户批准后再拆分 Feature"
       : linkedFeatures.length
         ? "跟踪 Feature 交付状态"
-        : "可拆分 Feature 或生成 agent plan",
+        : "可拆分为 Feature 或生成 agent plan",
   };
 }
 

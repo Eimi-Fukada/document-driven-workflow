@@ -217,3 +217,26 @@ Feature 是 bug 修复，或实现过程中发现非预期行为时，需要 sys
 没有新的命令输出或明确的人工验证证据，就不能声称完成。
 
 验证报告是记录证据的必填位置。
+
+## Option Decision Contract
+
+<!-- zh: 方案偏离要显性化。机器不假装完全读懂代码语义，但必须要求文档和验证报告记录真实选择。 -->
+
+When implementation has multiple viable paths, the Feature documents must use stable option IDs:
+
+```text
+OPT-001
+OPT-002
+```
+
+The implementation plan must record:
+
+- `Selected option`
+- `Rejected options`
+- `Fallback options`
+- `User override required`
+- `User override reason`
+
+The agent must implement the selected option. If implementation needs a rejected or fallback option, the agent must stop before editing further and ask the user to update and approve the Feature documents.
+
+Completion checks only enforce explicit traceability. They do not pretend to fully infer implementation semantics from code.

@@ -95,6 +95,7 @@ for (const file of requiredEpicFiles) {
 
 const templateDir = path.join(workflow.templateRoot, "feature");
 const templateFiles = [
+  "REVIEW.md",
   "00-intake-review.md",
   "01-prd.md",
   "02-ui-spec.md",
@@ -105,11 +106,24 @@ const templateFiles = [
   "08-context-pack.md",
 ];
 
-function applyTechnicalPreset(featureDir) {
+function applyFeatureDefaults(featureDir) {
+  const featureId = path.basename(featureDir);
+
+  const reviewPath = path.join(featureDir, "REVIEW.md");
+  let review = readFileSync(reviewPath, "utf8");
+  review = review
+    .replace(/^- Feature ID:.*$/m, `- Feature ID: ${featureId}`)
+    .replace(/^- Related Epic:.*$/m, `- Related Epic: ${epicId}`)
+    .replace(/^- Mode Draft:.*$/m, "- Mode Draft: standard")
+    .replace(/^- Risk Level Draft:.*$/m, "- Risk Level Draft: medium")
+    .replace(/^- Expected Runtime:.*$/m, "- Expected Runtime: 30_90m")
+    .replace(/^- Execution Slicing:.*$/m, "- Execution Slicing: not_required");
+  writeFileSync(reviewPath, review, "utf8");
+
   const intakePath = path.join(featureDir, "00-intake-review.md");
   let intake = readFileSync(intakePath, "utf8");
   intake = intake
-    .replace("- Feature ID:", `- Feature ID: ${path.basename(featureDir)}`)
+    .replace("- Feature ID:", `- Feature ID: ${featureId}`)
     .replace("- Related Epic:", `- Related Epic: ${epicId}`)
     .replace("- Stack Preset:", `- Stack Preset: ${stackPreset}`);
   writeFileSync(intakePath, intake, "utf8");
@@ -169,8 +183,7 @@ for (const featureId of featureIds) {
 - Epic Path: ${workflow.relativeToTarget(epicPath)}
 - Feature ID: ${featureId}
 
-本 Feature 必须从 Epic 文档包中推导。保留 Epic 范围、风险、依赖和验收映射。
-`,
+This Feature must be derived from the Epic package. Preserve Epic scope, risks, dependencies, and acceptance mapping.`,
       "utf8",
     );
   }
@@ -186,7 +199,7 @@ for (const featureId of featureIds) {
     created += 1;
   }
 
-  applyTechnicalPreset(featureDir);
+  applyFeatureDefaults(featureDir);
 }
 
 function writeAgentPlan(featureIdsToPlan) {
@@ -217,8 +230,7 @@ ${rows}
 
 ## User Review
 
-Agent 分工只是建议。批准只记录在 \`00-workflow.yaml\`。
-`,
+Agent 分工只是建议。批准只记录在 \`00-workflow.yaml\`。`,
     "utf8",
   );
 }
@@ -247,7 +259,7 @@ Feature packages to complete:
 
 Instructions:
 - Read the full Epic package first.
-- For each Feature package, complete 00-intake-review.md through 08-context-pack.md.
+- For each Feature package, complete REVIEW.md and 00-intake-review.md through 08-context-pack.md.
 - Write the main human-facing content in Chinese. Keep file names, command names, IDs, status values, and script-matched headings in English where the template already uses them.
 - Do not modify the Epic files.
 - Do not change approval, readiness, or status in any Feature 00-workflow.yaml.

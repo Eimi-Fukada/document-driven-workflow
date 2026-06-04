@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync } from "fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createWorkflowContext } from "../../shared/workflow-context.mjs";
@@ -31,6 +31,7 @@ if (existsSync(epicDir)) {
 
 const templateDir = path.join(workflow.templateRoot, "epic");
 const files = [
+  "REVIEW.md",
   "00-source.md",
   "01-epic-brief.md",
   "02-requirement-inventory.md",
@@ -50,8 +51,15 @@ for (const file of files) {
   cpSync(path.join(templateDir, file), path.join(epicDir, file));
 }
 
+const reviewPath = path.join(epicDir, "REVIEW.md");
+let review = readFileSync(reviewPath, "utf8");
+review = review
+  .replace("- Epic ID: unset", `- Epic ID: ${epicId}`)
+  .replace("- Risk Level Draft: unset", "- Risk Level Draft: medium");
+writeFileSync(reviewPath, review, "utf8");
+
 console.log(`Created epic document package: docs/epics/${epicId}`);
 console.log("");
 console.log("Next step:");
-console.log(`1. Fill docs/epics/${epicId}/00-source.md through 07-progress-board.md`);
+console.log(`1. Fill docs/epics/${epicId}/00-source.md, REVIEW.md, and 01-epic-brief.md through 07-progress-board.md`);
 console.log(`2. Run the Epic gate for docs/epics/${epicId}`);

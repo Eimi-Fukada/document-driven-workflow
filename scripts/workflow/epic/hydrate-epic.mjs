@@ -39,6 +39,7 @@ if (source.length < 80) {
 
 const templateDir = path.join(workflow.templateRoot, "epic");
 const files = [
+  "REVIEW.md",
   "01-epic-brief.md",
   "02-requirement-inventory.md",
   "03-scope-breakdown.md",
@@ -87,11 +88,12 @@ Task: hydrate the Epic document package at ${relativeEpicPath}.
 
 Instructions:
 - Read ${relativeEpicPath}/00-source.md.
-- Complete ${relativeEpicPath}/01-epic-brief.md through ${relativeEpicPath}/07-progress-board.md as reviewable Epic draft documents.
+- Complete ${relativeEpicPath}/REVIEW.md and ${relativeEpicPath}/01-epic-brief.md through ${relativeEpicPath}/07-progress-board.md as reviewable Epic draft documents.
 - Write the main human-facing content in Chinese. Keep file names, command names, IDs, status values, and script-matched headings in English where the template already uses them.
 - Do not modify ${relativeEpicPath}/00-source.md.
 - Do not change ${relativeEpicPath}/00-workflow.yaml approval, readiness, or status.
 - Keep docs/product/requirement-ledger.md and docs/product/traceability.md aligned with the Epic scope when concrete IDs are known.
+- Keep ${relativeEpicPath}/REVIEW.md as the user's concise review surface: product goal, scope, non-goals, Feature split, risk choice, acceptance map, and confirmation checklist.
 - Preserve the user's original product meaning.
 - Mark inferred items explicitly as assumptions.
 - Remove unresolved template placeholders from the completed draft documents when the source supports a concrete answer.

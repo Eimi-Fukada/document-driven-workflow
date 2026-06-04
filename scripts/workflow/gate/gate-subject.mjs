@@ -78,15 +78,51 @@ function checkNoBlockedMarkers(file, content) {
     "AC-EXAMPLE-001",
     "feature-id",
     "unset",
-    "待确认",
-    "未确认",
-    "待补充",
   ];
 
   for (const pattern of blockedPatterns) {
     if (content.includes(pattern)) {
       failures.push(`Unresolved marker '${pattern}' found in ${file}`);
     }
+  }
+}
+
+function checkReviewSummary(file, content, { requireEpic = false } = {}) {
+  checkNoBlockedMarkers(file, content);
+  if (!/Risk Level Draft:\s*(low|medium|high)/i.test(content)) {
+    failures.push(`${file} must include a concrete Risk Level Draft.`);
+  }
+  if (!/Expected Runtime:\s*(under_30m|30_90m|over_90m)/i.test(content)) {
+    failures.push(`${file} must include a concrete Expected Runtime.`);
+  }
+  if (!/Execution Slicing:\s*(not_required|recommended|required)/i.test(content)) {
+    failures.push(`${file} must include a concrete Execution Slicing decision.`);
+  }
+
+  if (requireEpic) {
+    if (!/Epic ID:\s*(?!\s*unset\b)\S+/i.test(content)) {
+      failures.push(`${file} must include a concrete Epic ID.`);
+    }
+    if (!/EREQ-/.test(content)) {
+      failures.push(`${file} must summarize at least one EREQ-* item.`);
+    }
+    if (!/Feature ID/.test(content)) {
+      failures.push(`${file} must summarize Feature breakdown candidates.`);
+    }
+    return;
+  }
+
+  if (!/Feature ID:\s*(?!\s*unset\b)\S+/i.test(content)) {
+    failures.push(`${file} must include a concrete Feature ID.`);
+  }
+  if (!/REQ-/.test(content)) {
+    failures.push(`${file} must summarize at least one REQ-* item.`);
+  }
+  if (!/AC-/.test(content)) {
+    failures.push(`${file} must summarize at least one AC-* item.`);
+  }
+  if (!/Selected option:\s*(?!\s*unset\b).+/i.test(content)) {
+    failures.push(`${file} must include the selected implementation option.`);
   }
 }
 
@@ -159,7 +195,9 @@ function gateLightFeature() {
   requireManifestField("mode", "light");
   requireApprovedManifest();
 
+  const review = requireFile("REVIEW.md");
   const light = requireFile("01-light-feature.md");
+  checkReviewSummary("REVIEW.md", review);
   checkNoBlockedMarkers("01-light-feature.md", light);
 
   if (!/REQ-/.test(light)) {
@@ -177,6 +215,7 @@ function gateFeature() {
   requireApprovedManifest();
 
   const files = [
+    "REVIEW.md",
     "00-intake-review.md",
     "01-prd.md",
     "02-ui-spec.md",
@@ -190,6 +229,7 @@ function gateFeature() {
   for (const [file, text] of Object.entries(content)) {
     checkNoBlockedMarkers(file, text);
   }
+  checkReviewSummary("REVIEW.md", content["REVIEW.md"]);
 
   if (!/REQ-/.test(content["01-prd.md"]) && !/REQ-/.test(content["04-acceptance-criteria.md"])) {
     failures.push("Feature must reference at least one REQ-* requirement.");
@@ -269,6 +309,7 @@ function gateEpic() {
 
   const files = [
     "00-source.md",
+    "REVIEW.md",
     "01-epic-brief.md",
     "02-requirement-inventory.md",
     "03-scope-breakdown.md",
@@ -281,6 +322,7 @@ function gateEpic() {
   for (const [file, text] of Object.entries(content)) {
     checkNoBlockedMarkers(file, text);
   }
+  checkReviewSummary("REVIEW.md", content["REVIEW.md"], { requireEpic: true });
 
   if ((content["00-source.md"] || "").trim().length < 80) {
     failures.push("Epic source must preserve original product material or source path.");

@@ -175,7 +175,9 @@ export function readCoverageMatrix(text, { verification = false } = {}) {
       module: findCell(row, [/Module/i, /Item/i, /\u6a21\u5757/i, /\u8986\u76d6\u9879/i]),
       requirementId: findCell(row, [/Requirement\s*ID/i, /\u9700\u6c42\s*ID/i]),
       acceptanceId: findCell(row, [/Acceptance\s*ID/i, /\u9a8c\u6536\s*ID/i]),
+      expectedChangedFiles: findCell(row, [/Expected\s*changed\s*files/i, /Expected\s*changed\s*paths/i]),
       implementationEvidence: findCell(row, [/Implementation\s*Evidence/i, /\u5b9e\u73b0\u8bc1\u636e/i]),
+      changedFilesEvidence: findCell(row, [/Changed\s*Files\s*Evidence/i, /Changed\s*File\s*Evidence/i]),
       verificationEvidence: findCell(row, [/Verification\s*Evidence/i, /Test\s*Evidence/i, /\u9a8c\u8bc1\u8bc1\u636e/i, /\u6d4b\u8bd5\u8bc1\u636e/i]),
       status: findCell(row, [/Status/i, /Result/i, /\u72b6\u6001/i, /\u7ed3\u679c/i]),
     }))
@@ -283,11 +285,7 @@ export function evaluateCoverageMatrix({ acceptanceText, reportText, requirement
   const missingEvidence = declaredRows
     .filter((row) => {
       const reportRow = reportById.get(row.id.toUpperCase());
-      return (
-        !reportRow ||
-        isPlaceholder(reportRow.implementationEvidence) ||
-        isPlaceholder(reportRow.verificationEvidence)
-      );
+      return !reportRow || isPlaceholder(reportRow.implementationEvidence) || isPlaceholder(reportRow.verificationEvidence);
     })
     .map((row) => row.id);
   add(
@@ -296,6 +294,20 @@ export function evaluateCoverageMatrix({ acceptanceText, reportText, requirement
     missingEvidence.length
       ? `coverage rows need implementation and verification evidence: ${list(missingEvidence)}`
       : "every coverage row has implementation and verification evidence",
+  );
+
+  const missingChangedFileEvidence = declaredRows
+    .filter((row) => {
+      const reportRow = reportById.get(row.id.toUpperCase());
+      return !reportRow || isPlaceholder(reportRow.changedFilesEvidence);
+    })
+    .map((row) => row.id);
+  add(
+    "Coverage changed-file evidence",
+    missingChangedFileEvidence.length ? "BLOCKED" : "PASS",
+    missingChangedFileEvidence.length
+      ? `coverage rows need changed-file evidence: ${list(missingChangedFileEvidence)}`
+      : "every coverage row has changed-file evidence",
   );
 
   const notPassed = declaredRows
@@ -314,10 +326,11 @@ export function evaluateCoverageMatrix({ acceptanceText, reportText, requirement
     required: true,
     expected_count: expectedCount,
     declared_count: declaredRows.length,
-    verified_count: declaredRows.length - new Set([...missingInReport, ...missingEvidence, ...notPassed]).size,
+    verified_count: declaredRows.length - new Set([...missingInReport, ...missingEvidence, ...missingChangedFileEvidence, ...notPassed]).size,
     checks,
     missing_in_report: missingInReport,
     missing_evidence: missingEvidence,
+    missing_changed_file_evidence: missingChangedFileEvidence,
     not_passed: notPassed,
     invalid_source_rows: invalidRows,
     duplicate_ids: duplicates,

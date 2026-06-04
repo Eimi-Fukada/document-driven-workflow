@@ -5,82 +5,114 @@ description: "Use when a project should be delivered from product documents, UI 
 
 # Document Driven Workflow
 
-使用本 Skill 时，把它当成“文档驱动交付流程”，不是项目模板。用户用产品文档、UI 图、验收标准表达需求；AI 负责生成或补全文档包、执行门禁、实现代码、跑测试并更新验证报告。
+<!-- zh: 文档驱动交付 Skill。用户用产品文档、UI 图和验收标准对接 AI，AI 负责结构化文档、门禁、实现、验证和留痕。 -->
 
-## 核心规则
+Treat this Skill as a document-driven delivery workflow, not as a project template.
+The user provides product material, UI references, and acceptance criteria.
+The agent creates or hydrates reviewable documents, runs gates, implements only after approval, verifies the work, and records completion evidence.
 
-- 复用脚本、门禁、模板和规则保存在 Skill 内部。
-- 目标项目只保存项目自己的文档：`docs/epics`、`docs/features`、`docs/product`、`docs/legacy`、`docs/changes`、`docs/decisions`。
-- 不要为了暴露工作流命令而修改目标项目的 `package.json`。
-- 长期使用本工作流的目标项目，应通过 `adopt.mjs` 在项目级 `AGENTS.md` 写入持久约束，避免后续对话绕过 document-driven-workflow。
-- 每个 Epic、Feature、Light Feature 只使用 `00-workflow.yaml` 作为机器可读状态源。
-- 代码实现前必须通过对应 gate。
-- 路由和风险分级采用“AI 初判 + 用户一次确认”。AI 可以推荐 Direct、Light、Standard、Epic 或 Strict，但最终执行以 `00-workflow.yaml` 的 `route_decision: user_confirmed`、`risk_level`、`hard_risk_blockers`、`expected_runtime` 和 `execution_slicing` 为准。
-- 只有客观硬风险可以阻止用户降级：鉴权/会话/token、支付、权限、数据库或结构迁移、数据破坏、安全、生产部署、任务状态一致性、老项目核心兼容破坏。其他风险作为提示交给用户判断，不要因为 AI 不确定就把简单需求推入重流程。
-- 实现时遵守 `EXECUTION_DISCIPLINE.md`：Scope Lock、TDD / debugging 触发条件、自审、证据规则。
-- 用户批准进入开发不等于允许自由落地。实现 agent 只能按当前 Feature 的 `08-context-pack.md`、验收标准和 handoff pack 执行，不能把最快实现路径替代已批准方案。
-- 每个 Feature 必须单独闭环：实现、补 `07-verification-report.md`、运行 `finish-feature.mjs`，通过并写入 `COMPLETION_PROOF.json` 后才能继续下一个 Feature。不要批量实现多个 Feature 后统一验收。
-- 实现时考虑可维护性：出现 2 repeated uses 以上的重复结构或逻辑时考虑抽取；触碰的单文件尽量不超过 1000 lines；技术栈专属规则以当前 Stack Preset 为准。
-- 多模块、多页面、多工具、多状态、多接口或明确枚举数量的 Feature 必须使用 Coverage Matrix。每个 `COV-*` 都是完成范围；覆盖项多于 5 个时可以 3-5 个一批执行，但 `finish-feature.mjs` 通过前不能声称完成。
-- Stall Guard：只用于长任务和无输出场景；短任务不需要额外汇报。预计超过 30 分钟或 15 分钟没有文件变更、命令输出、验证证据时，暂停并报告卡点。它不是完成门禁。
-- Performance：命中大表、长列表、轮询、批处理、缓存、索引、并发或大文件等场景时，必须记录性能风险、缓解方案和验证证据。
-- Closure：当实现方案不唯一、用户方案可能不闭环、或技术路线明显老旧时，先给出方案对比和闭环提醒，再实施。
-- 当实现路径与推荐方案、已拒绝方案、allowed scope、forbidden scope、非目标或验收标准冲突时，必须停下来报告冲突并等待用户确认，不能擅自降级成 MVP 或兜底方案。
-- `pnpm build`、`npm run build` 或类型检查通过不是完成信号。`finish-feature.mjs` 是唯一完成出口；不要手动把 `00-workflow.yaml` 标记为 `verified`。
-- 如果文档与代码现状冲突，先报告冲突和方案，不要直接改代码绕过文档。
+## Language Policy
 
-## 执行顺序
+<!-- zh: 用户生成文档用中文；机器字段、脚本、JSON 和协议用英文/ASCII；内部规则英文为主，中文注释只帮助维护者阅读。 -->
 
-1. 阅读 `references/MODE_ROUTER.md`，选择 Direct、Light、Standard、Epic 或 Strict。
-2. 如果目标项目缺少持久工作流指令，先运行 `adopt.mjs --target <project-root>`，只维护 `AGENTS.md` marker block。
-3. 创建或 hydrate 最小安全文档包。
-4. 按需要补全产品、UI、技术契约、验收、实现计划和验证文档。
-5. 当存在明确需求 ID 时，同步 `docs/product/requirement-ledger.md` 和 `docs/product/traceability.md`。
-6. 让用户审查文档包。
-7. 只有用户明确批准后，才用 `approve.mjs` 或 `continue.mjs --user-approved` 写入一次批准状态；批准时同时确认模式、风险、预计时长和分批策略。
-8. 运行内置 gate。
-9. gate 通过后，按已批准范围、`08-context-pack.md` 和 `EXECUTION_DISCIPLINE.md` 实现。
-10. 每个 Feature 独立完成自审、验证、产品追溯更新，并更新验证报告。
-11. 声称完成前运行 `finish-feature.mjs`，把 `COMPLETION_PROOF.json` 作为交付证据；如果启用了 Coverage Matrix，必须全部 `COV-*` 通过；只有该 Feature 通过后才继续下一个 Feature。
+Follow `references/LANGUAGE_POLICY.md`.
 
-## 入口规则
+- User-facing generated documents must be written in Chinese.
+- Machine-readable protocol must stay English / ASCII.
+- Internal Skill references use English normative rules, with optional short Chinese maintainer notes in HTML comments.
+- Machine fields, status values, JSON, CLI output, gate names, and IDs stay English.
 
-优先用用户的自然语言意图驱动工作流，不要求用户记脚本。需要脚本时，在 Skill 目录下运行内置脚本，并传入 `--target <project-root>`。主脚本见 `references/USAGE.md`，用户侧说明见 `references/USER_GUIDE.md`。
+## Core Rules
 
-## Maestro 集成
+<!-- zh: 这些是执行层硬规则。用户批准开发不等于允许 AI 自由落地。 -->
 
-当 Maestro 负责更大的 mission 时，本 Skill 仍然只处理单个目标项目：
+- Keep reusable scripts, gates, templates, and rules inside the Skill.
+- Target projects keep only their own project documents under `docs/`.
+- Do not modify a target project's `package.json` just to expose workflow commands.
+- Long-lived target projects should run `adopt.mjs --target <project-root>` so project-level `AGENTS.md` keeps future Codex / Claude turns aligned with this workflow.
+- Every Epic, Feature, and Light Feature uses exactly one machine-readable state source: `00-workflow.yaml`.
+- Implementation may start only after the relevant gate passes.
+- Route and risk are `AI draft + one user confirmation`. The executable state is the `00-workflow.yaml` values such as `route_decision: user_confirmed`, `risk_level`, `hard_risk_blockers`, `expected_runtime`, and `execution_slicing`.
+- Only objective hard risks can block user downgrade: authentication/session/token, payment, permission, database/schema migration, destructive data change, security, production deployment, task-state consistency, or legacy core compatibility breakage.
+- User approval to start development does not permit free implementation. The agent must implement only the current Feature according to `08-context-pack.md`, acceptance criteria, and Scope Lock.
+- One Feature must close independently before another Feature starts.
+- `finish-feature.mjs` is the only valid completion exit. Build, typecheck, or lint success is verification evidence only.
+- Do not manually mark `00-workflow.yaml` as `verified`; completion requires `finish-feature.mjs` PASS and `COMPLETION_PROOF.json`.
+- If implementation conflicts with the approved option, rejected/fallback options, allowed scope, forbidden scope, non-goals, or acceptance criteria, stop and ask the user to confirm a document change before continuing.
+- Maintainability matters inside the approved scope: consider extraction after 2 repeated uses, avoid touched source files growing past 1000 lines when practical, and follow the active Stack Preset.
+- Use Coverage Matrix when a Feature contains multiple modules, pages, tools, states, APIs, or enumerated coverage items. All `COV-*` rows must have implementation evidence, changed-file evidence, verification evidence, and Passed status before completion.
+- Use Stall Guard only for long or silent work: if expected runtime is over 30 minutes or no file change / command output / verification evidence appears for 15 minutes, pause and report the blocker. Stall Guard is not a completion gate.
+- When performance-sensitive paths appear, record the performance risk, mitigation, and verification evidence.
+- When the user direction may not close the product or technical loop, provide option and closure advice before implementation.
 
-1. `doctor.mjs --target <project-root> --json`：检查环境、Skill 安装和项目接入状态。
-2. `status.mjs --target <project-root> --json`：生成项目状态快照，不运行 gate。
-3. `handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json`：生成 `HANDOFF_PACK.md` 和 `handoff-pack.json`，交给 Codex worker。
-4. `finish-feature.mjs docs/features/<feature-id> --target <project-root> --json`：Feature 唯一完成出口，内部执行 gate、验证、completion-check，并写入 `COMPLETION_PROOF.json`。
-5. `completion-check.mjs docs/features/<feature-id> --target <project-root> --json`：底层完成检查，供诊断使用，不作为唯一完成出口。
+## Execution Order
 
-不要把本 Skill 当成多项目调度器。Maestro 负责 mission 状态、依赖、派发和跨项目集成证据；document-driven-workflow 负责单项目文档、门禁、验证和交接输入。
+<!-- zh: AI 按这个顺序执行。用户不需要记脚本名，AI 根据自然语言选择内置入口。 -->
 
-## Agent 选项
+1. Read `references/MODE_ROUTER.md` and choose Direct, Light, Standard, Epic, or Strict.
+2. If the target project lacks persistent workflow instructions, run `adopt.mjs --target <project-root>` and maintain only the `AGENTS.md` marker block.
+3. Create or hydrate the smallest safe document package.
+4. For Epic or Feature subjects, produce a concise `REVIEW.md` so the user can review summary, risk, option, and acceptance decisions without reading every detailed file first.
+5. Fill product, UI, technical contract, acceptance, implementation plan, context pack, and verification documents as needed.
+6. When concrete requirement IDs exist, update `docs/product/requirement-ledger.md` and `docs/product/traceability.md`.
+7. Ask the user to review the document package.
+8. Only after explicit user approval, write approval once with `approve.mjs` or `continue.mjs --user-approved`.
+9. Run the built-in gate.
+10. After the gate passes, implement inside the approved scope using `08-context-pack.md` and `references/EXECUTION_DISCIPLINE.md`.
+11. Complete self-review, verification, product traceability updates, and verification report updates for the current Feature only.
+12. Before reporting completion, run `finish-feature.mjs` and use `COMPLETION_PROOF.json` as the delivery proof.
 
-Hydrate 和生成类脚本支持：
+## Main Entrypoints
 
-- `--agent codex`：调用 Codex CLI。
-- `--agent claude`：调用 Claude Code CLI。
-- `--agent none`：只生成文档骨架，不调用 AI，主要用于测试。
+<!-- zh: 对用户隐藏脚本复杂度。AI 主要使用这几个入口，其他脚本是内部工具。 -->
 
-默认值是 `codex`。可以用 `WORKFLOW_HYDRATE_AGENT=claude` 改成 Claude Code。
+Use natural language from the user first. When scripts are needed, run Skill-owned scripts with `--target <project-root>`.
 
-## 参考文档
+- `adopt.mjs`: persist workflow constraints into target `AGENTS.md`.
+- `process.mjs`: route a requirement source, create or hydrate documents, and generate pre-approval review artifacts.
+- `continue.mjs`: write explicit user approval once, refresh context, and run the relevant gate.
+- `finish-feature.mjs`: the only valid Feature completion exit.
 
-- `references/WORKFLOW.md`：核心模型和文档包。
-- `references/POSITIONING.md`：适合人群、优势、与 Superpowers 的区别。
-- `references/MODE_ROUTER.md`：模式选择。
-- `references/GATES.md`：硬门禁规则。
-- `references/AUTOMATION.md`：自动化脚本边界。
-- `references/MAESTRO_INTEGRATION.md`：Maestro 多项目编排集成方式。
-- `references/EXECUTION_PROTOCOL.md`：门禁通过后的实现流程。
-- `references/EXECUTION_DISCIPLINE.md`：Scope Lock、TDD / debugging、性能纪律、方案/闭环提醒、自审和证据规则。
-- `references/PRODUCT_TRACEABILITY.md`：Requirement Ledger、Traceability Matrix 和 snapshots。
-- `references/STACK_POLICY.md`：允许使用的 Stack Preset。
-- `references/EPIC_WORKFLOW.md`：产品迭代拆分流程。
-- `references/LEGACY_ADOPTION.md`：老项目接入流程。
-- `references/USER_GUIDE.md` 和 `references/USAGE.md`：面向使用者的完整说明。
+Use `references/USER_GUIDE.md` for user-facing explanation and `references/USAGE.md` for maintainer commands.
+
+## Maestro Integration
+
+<!-- zh: Maestro 负责多项目调度；本 Skill 只负责单项目文档、门禁、验证和交接证据。 -->
+
+When Maestro owns the larger mission, this Skill still manages only one target project at a time.
+Expose machine-readable interfaces:
+
+- `doctor.mjs --target <project-root> --json`
+- `status.mjs --target <project-root> --json`
+- `handoff-pack.mjs docs/features/<feature-id> --target <project-root> --json`
+- `finish-feature.mjs docs/features/<feature-id> --target <project-root> --json`
+- `completion-check.mjs docs/features/<feature-id> --target <project-root> --json` for diagnostics only; it does not replace `finish-feature.mjs`.
+
+Do not treat this Skill as a multi-project scheduler. Maestro owns mission state, dependencies, dispatch, and cross-project integration evidence.
+
+## Agent Options
+
+Hydration and generation scripts support:
+
+- `--agent codex`
+- `--agent claude`
+- `--agent none`
+
+The default is `codex`. `WORKFLOW_HYDRATE_AGENT=claude` can switch the default.
+
+## References
+
+- `references/LANGUAGE_POLICY.md`: language split between user-facing docs, internal rules, and machine protocol.
+- `references/WORKFLOW.md`: core model and document packages.
+- `references/POSITIONING.md`: audience, advantages, and Superpowers boundary.
+- `references/MODE_ROUTER.md`: mode selection.
+- `references/GATES.md`: hard gate rules.
+- `references/AUTOMATION.md`: automation script boundaries.
+- `references/MAESTRO_INTEGRATION.md`: Maestro integration.
+- `references/EXECUTION_PROTOCOL.md`: implementation flow after gates.
+- `references/EXECUTION_DISCIPLINE.md`: Scope Lock, TDD/debugging, performance, closure, self-review, and evidence rules.
+- `references/PRODUCT_TRACEABILITY.md`: Requirement Ledger, Traceability Matrix, and snapshots.
+- `references/STACK_POLICY.md`: Stack Presets.
+- `references/EPIC_WORKFLOW.md`: Epic breakdown flow.
+- `references/LEGACY_ADOPTION.md`: legacy project adoption.
+- `references/USER_GUIDE.md` and `references/USAGE.md`: user and maintainer guides.

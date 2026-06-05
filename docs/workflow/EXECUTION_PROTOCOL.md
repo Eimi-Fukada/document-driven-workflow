@@ -17,6 +17,8 @@
 9. 如果实现方案、文件范围或验收标准与文档冲突，先停下来报告，不要降级实现。
 10. 如果 `04-acceptance-criteria.md` 中启用了 Coverage Matrix，先确认覆盖项数量、每个 `COV-*` 对应的模块、REQ 和 AC；覆盖项多于 5 个时按 3-5 个一批执行，但不能改变最终验收范围。
 11. 确认 Stall Guard 只用于长任务和无输出场景：短任务不需要额外汇报；预计超过 30 分钟或 15 分钟没有文件变更、命令输出、验证证据时，暂停并报告卡点。
+12. 如果是已批准 Feature 内的小缺陷修复，使用 `EXECUTION_DISCIPLINE.md` 的 Defect Fix Fast Path；不要重新 hydrate 或重走完整文档链路。
+13. 验证先用 targeted checks，最后用 `finish-feature.mjs` 收口；避免实现阶段和完成阶段重复跑昂贵全量验证。
 
 ## Execution Modes
 
@@ -36,6 +38,7 @@ Standard：
 - 执行 `EXECUTION_DISCIPLINE.md` 中的 Scope Lock 和 Self Review。
 - 应用 `EXECUTION_DISCIPLINE.md` 中的可维护性规则。
 - 测试后更新 `07-verification-report.md`，并立即运行 `finish-feature.mjs`。
+- 对已批准 Feature 内的小缺陷修复，允许只补相关验收和验证证据，但仍必须运行 `finish-feature.mjs`。
 
 Epic：
 
@@ -66,6 +69,8 @@ Strict：
 - 相关时执行部署或回滚检查
 
 验证报告必须包含执行命令、结果、未验证项和剩余风险。
+
+实现阶段优先选择能覆盖当前改动的 targeted checks；昂贵全量验证应尽量集中到最终完成出口。若提前执行了全量 typecheck、lint、build 或 e2e，必须记录为验证证据，不要在没有代码变化或风险变化时重复执行同类全量命令。
 
 没有新的验证证据时，不要声称完成。
 长时间运行不是完成证据。Stall Guard 触发时，应先报告当前证据和卡点，再继续或中止；它不作为 `finish-feature.mjs` 的完成门禁。

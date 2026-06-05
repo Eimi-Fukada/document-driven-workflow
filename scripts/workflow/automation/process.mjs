@@ -188,6 +188,10 @@ function runNode(scriptRelativePath, scriptArgs) {
 
 const source = readSourceSummary(sourcePath);
 const selectedMode = modeArg === "auto" ? classifyMode(source) : modeArg;
+const id = idArg || slugify(sourcePath);
+const targetSubject =
+  selectedMode === "epic" ? path.join("docs", "epics", id) : path.join("docs", "features", id);
+
 const routingReviewPath = writeRoutingReview({ mode: selectedMode, source });
 
 ensureProductArtifacts(workflow);
@@ -198,10 +202,6 @@ if (selectedMode === "direct") {
   console.log("No Epic or Feature package was created.");
   process.exit(0);
 }
-
-const id = idArg || slugify(sourcePath);
-const targetSubject =
-  selectedMode === "epic" ? path.join("docs", "epics", id) : path.join("docs", "features", id);
 
 if (existsSync(workflow.resolveTarget(targetSubject))) {
   console.error(`Workflow subject already exists: ${targetSubject}`);

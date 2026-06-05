@@ -54,10 +54,13 @@ Forbidden changes:
 - TDD required: yes / no
 - TDD reason:
 - Bug fix: yes / no
+- Defect fix fast path: yes / no
+- Fast path reason:
 - Reproduction path:
 - Root cause evidence required: yes / no
 
 权限、会员、额度、定价、权益、任务状态、上传下载、API 校验、数据转换和可复现 bug 修复，默认需要 TDD。
+已批准 Feature 内的小缺陷修复可以使用 fast path：不重新 hydrate，不重新拆 Feature，只补 Scope 内的验收、根因、修复和验证证据，最后仍运行 `finish-feature.mjs`。
 
 ## Option Decision
 
@@ -142,6 +145,9 @@ Strict mode 可能需要额外需求审查、代码质量审查或多 agent 计�
 
 ## Test Plan
 
+- Verification strategy: targeted first / full final / high-risk full
+- Expensive verification to avoid duplicating:
+- Evidence reuse allowed: no by default / documented only
 - Typecheck:
 - Lint:
 - Unit:

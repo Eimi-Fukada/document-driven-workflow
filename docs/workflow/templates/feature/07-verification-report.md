@@ -58,11 +58,19 @@ Allowed values:
 ## Debugging Evidence
 
 - Debugging required: yes / no
+- Defect fix fast path used: yes / no / not-applicable
 - Symptom:
 - Reproduction path:
 - Root cause:
 - Fix location:
 - Regression verification:
+
+## Verification Strategy Notes
+
+- Targeted checks run before final finish:
+- Expensive full checks already run:
+- Duplicate full verification avoided: yes / no / not-applicable
+- Reason if full verification was repeated:
 
 ## Changed Files
 

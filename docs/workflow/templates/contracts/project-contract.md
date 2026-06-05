@@ -5,32 +5,32 @@
 
 ## Basic Info
 
-- Project ID: TODO
-- Project Root: TODO
+- Project ID: PROJECT_ID_HERE
+- Project Root: PROJECT_ROOT_HERE
 - Owner Agent: codex
-- Workflow Target: TODO
+- Workflow Target: WORKFLOW_TARGET_HERE
 - Stack Preset: next-fullstack
-- Runtime: TODO
-- Deployment Target: TODO
+- Runtime: RUNTIME_HERE
+- Deployment Target: DEPLOYMENT_TARGET_HERE
 
 ## Responsibility
 
 - This project owns:
-  - TODO
+  - PROJECT_RESPONSIBILITY_HERE
 - This project does not own:
-  - TODO
+  - OUT_OF_SCOPE_RESPONSIBILITY_HERE
 
 ## Public Interfaces
 
 | Interface ID | Type | Path / Endpoint / Package | Producer | Consumer | Stability |
 | --- | --- | --- | --- | --- | --- |
-| IFACE-TODO-001 | API / UI / Package / Event | TODO | TODO | TODO | draft |
+| IFACE-CONTRACT-001 | API / UI / Package / Event | PATH_OR_ENDPOINT_HERE | PRODUCER_HERE | CONSUMER_HERE | draft |
 
 ## Data Ownership
 
 | Data / Entity | Owner | Read By | Write By | Notes |
 | --- | --- | --- | --- | --- |
-| TODO | TODO | TODO | TODO | TODO |
+| DATA_ENTITY_HERE | OWNER_HERE | READERS_HERE | WRITERS_HERE | NOTES_HERE |
 
 ## Required Workflow Checks
 

@@ -5,8 +5,8 @@
 
 ## Basic Info
 
-- Contract ID: ICONTRACT-TODO-001
-- Related Epic: TODO
+- Contract ID: ICONTRACT-HERE-001
+- Related Epic: EPIC_ID_HERE
 - Coordinator: Maestro
 - Worker Agents: Codex / Claude Code
 - Status: draft
@@ -15,31 +15,31 @@
 
 | Project ID | Root / Repo | Role | Required Feature IDs |
 | --- | --- | --- | --- |
-| TODO | TODO | Producer / Consumer / Shared | TODO |
+| PROJECT_ID_HERE | ROOT_OR_REPO_HERE | Producer / Consumer / Shared | REQUIRED_FEATURE_IDS_HERE |
 
 ## Interface Map
 
 | Interface ID | Producer Project | Consumer Project | Contract | Version / Stability |
 | --- | --- | --- | --- | --- |
-| IFACE-TODO-001 | TODO | TODO | TODO | draft |
+| IFACE-CONTRACT-001 | PRODUCER_PROJECT_HERE | CONSUMER_PROJECT_HERE | CONTRACT_SUMMARY_HERE | draft |
 
 ## Dependency Order
 
 | Step | Project | Feature ID | Depends On | Exit Criteria |
 | --- | --- | --- | --- | --- |
-| 1 | TODO | TODO | none | Feature finish-feature PASS with COMPLETION_PROOF.json |
+| 1 | PROJECT_ID_HERE | FEATURE_ID_HERE | none | Feature finish-feature PASS with COMPLETION_PROOF.json |
 
 ## Cross-project Acceptance
 
 | Acceptance ID | Scenario | Required Projects | Evidence |
 | --- | --- | --- | --- |
-| IAC-TODO-001 | TODO | TODO | TODO |
+| IAC-CONTRACT-001 | SCENARIO_HERE | REQUIRED_PROJECTS_HERE | EVIDENCE_HERE |
 
 ## Integration Risks
 
 | Risk ID | Description | Owner | Mitigation |
 | --- | --- | --- | --- |
-| IRISK-TODO-001 | TODO | TODO | TODO |
+| IRISK-CONTRACT-001 | RISK_DESCRIPTION_HERE | OWNER_HERE | MITIGATION_HERE |
 
 ## Maestro Execution Notes
 

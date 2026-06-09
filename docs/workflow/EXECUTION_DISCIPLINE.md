@@ -96,6 +96,16 @@ Light Feature 使用 `01-light-feature.md`，不强制使用完整 Feature 文�
 
 如果代码现状与已批准文档冲突，先停下来报告冲突，再继续编辑。
 
+## UI Source Discipline
+
+当 Feature 使用 Figma 作为 UI 来源时，`02-ui-spec.md` 必须作为 UI 实现边界来源。实现 agent 只能读取和实现文档指定的 target frame / node id。
+
+- 隐藏图层不得自动进入实现范围。
+- 非目标 Frame、off-canvas frame、参考稿、旧稿和用途不明的 layer 不得自动进入实现范围。
+- MCP 读取到的结构信息只是 UI 上下文，不等于扩大实现授权。
+- 如果 Figma MCP、截图和 UI Spec 互相冲突，先暂停并让用户确认。
+- 没有 Figma 时，可以使用截图、文字 UI Spec 或目标项目已有页面作为 UI 来源；不要因为没有 Figma 阻断非 UI Feature。
+
 ## Implementation Deviation Stop Rule
 
 当实现路径与文档不一致时，必须停下来报告，不得自行用更快、更简单或更小改动的方案替代。

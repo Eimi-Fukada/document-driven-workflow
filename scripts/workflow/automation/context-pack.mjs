@@ -40,6 +40,7 @@ if (existsSync(outputPath) && !force) {
 }
 
 const prd = readText(path.join(featurePath, "01-prd.md"));
+const uiSpec = readText(path.join(featurePath, "02-ui-spec.md"));
 const acceptance = readText(path.join(featurePath, "04-acceptance-criteria.md"));
 const technical = readText(path.join(featurePath, "03-technical-contract.md"));
 const plan = readText(path.join(featurePath, "06-implementation-plan.md"));
@@ -98,6 +99,15 @@ const optionTradeoff = sectionLine(/Selection reason:\s*(.*)$/im, plan);
 const closureRisk = sectionLine(/Closure risk:\s*(.*)$/im, plan, "no");
 const userWarning = sectionLine(/User warning:\s*(.*)$/im, plan);
 const requiredDocumentUpdate = sectionLine(/Required document update:\s*(.*)$/im, plan);
+const uiSourceType = sectionLine(/Source type:\s*(.*)$/im, uiSpec, "none");
+const figmaUrl = sectionLine(/Figma URL:\s*(.*)$/im, uiSpec);
+const targetFrame = sectionLine(/Target Frame:\s*(.*)$/im, uiSpec);
+const nodeId = sectionLine(/Node ID:\s*(.*)$/im, uiSpec);
+const implementSelectedFrameOnly = sectionLine(/Implement selected target frame only:\s*(.*)$/im, uiSpec);
+const hiddenLayers = sectionLine(/Hidden layers:\s*(.*)$/im, uiSpec);
+const offCanvasFrames = sectionLine(/Off-canvas frames:\s*(.*)$/im, uiSpec);
+const unknownLayerPurpose = sectionLine(/Unknown layer purpose:\s*(.*)$/im, uiSpec);
+const requiredStates = sectionLine(/Required states:\s*([\s\S]*?)(?:\n##|$)/i, uiSpec);
 
 const content = `# Context Pack
 
@@ -146,6 +156,20 @@ ${forbiddenScope}
 ## Code Entry Points
 
 ${sectionLine(/Code Entry Points:\s*\n+([\s\S]*?)(?:\n##|$)/i, technical)}
+
+## UI Handoff
+
+- UI source type: ${uiSourceType}
+- Figma URL: ${figmaUrl}
+- Target frame: ${targetFrame}
+- Node ID: ${nodeId}
+- Implement selected frame only: ${implementSelectedFrameOnly}
+- Hidden layers: ${hiddenLayers}
+- Off-canvas frames: ${offCanvasFrames}
+- Unknown layer purpose: ${unknownLayerPurpose}
+- Required states: ${requiredStates}
+
+If UI source type is figma, implement only the documented target frame / node id. Hidden layers, non-target frames, reference drafts, deprecated frames, and layers with unknown purpose do not expand implementation scope. Ask the user before implementing unclear Figma content.
 
 ## Execution Discipline
 

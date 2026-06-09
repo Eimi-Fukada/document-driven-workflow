@@ -43,6 +43,20 @@
 
 -
 
+## UI Handoff
+
+- UI source type:
+- Figma URL:
+- Target frame:
+- Node ID:
+- Implement selected frame only:
+- Hidden layers:
+- Off-canvas frames:
+- Unknown layer purpose:
+- Required states:
+
+如果 UI source type 是 `figma`，实现 agent 只能读取和实现指定 target frame / node id。隐藏图层、非目标 Frame、参考稿、旧稿和用途不明的 layer 不得自动进入实现范围；如有疑问必须先询问用户。
+
 ## Execution Discipline
 
 - TDD required: yes / no

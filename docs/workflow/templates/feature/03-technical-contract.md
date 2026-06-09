@@ -13,8 +13,7 @@
 Stack Preset：
 
 - `next-fullstack`
-- `flutter-fastapi`
-- `flutter-express`
+- `flutter-app`
 - `legacy-existing`
 - custom stack，例如 `java-springboot`、`go-service`、`python-service`
 

@@ -26,27 +26,16 @@
 - 使用 TypeScript。
 - 默认需要 Playwright 覆盖关键路径。
 
-### flutter-fastapi
+### flutter-app
 
-用于 Flutter 移动端加独立后端。
+用于 Flutter 移动端或多端客户端项目。
 
 硬规则：
 
 - Flutter 使用 stable 通道。
-- 后端使用 FastAPI。
-- API 契约以 OpenAPI / Pydantic 模型为准。
-- 默认需要 Flutter 测试、后端 pytest 和关键路径集成测试。
-
-### flutter-express
-
-用于已有 Node.js / Express 后端资产的项目。
-
-硬规则：
-
-- 这是例外预设，不是新项目默认方案。
-- 必须填写 Exception Reason。
-- 后端必须使用 TypeScript。
-- API 入参和返回建议使用 Zod 或等价 schema 校验。
+- 客户端采用 Feature-first MVVM 骨架。
+- 默认使用 Riverpod、go_router、dio、flutter_test 和 integration_test。
+- 不绑定后端框架；后端技术栈、API 契约、数据库、部署和验证命令必须在技术契约、实现计划和 Context Pack 中按项目现状写清。
 
 ### legacy-existing
 
@@ -65,8 +54,8 @@
 
 规则：
 
-- `stack_preset` 可以使用小写字母、数字和 hyphen，例如 `java-springboot`、`go-service`、`python-fastapi`。
-- 不触发 Next.js、Flutter 或 Express 的专属规则。
+- `stack_preset` 可以使用小写字母、数字和 hyphen，例如 `java-springboot`、`go-service`、`python-service`。
+- 不触发 Next.js 或 Flutter 的专属规则。
 - 必须在 `03-technical-contract.md` 写清真实技术栈、框架、数据库、部署方式和测试命令。
 - 必须在 `06-implementation-plan.md` 和 `08-context-pack.md` 写清该技术栈的实现规则、性能边界和验证方式。
 - 工作流核心不维护 custom stack 的默认验证命令；每个 Feature 必须根据目标项目现状声明自己的验证命令，例如 Gradle、Maven、Go、pytest 或其他项目已有命令。

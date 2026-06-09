@@ -127,7 +127,7 @@ function RunEpicGate($epicPath) {
 }
 
 function WriteReadyFeature($dir, $id, $stack = "next-fullstack", $pagesRouter = "no", $presetReferenceOverride = $null, $legacyBaselineOverride = $null, $compatibilityContractOverride = $null) {
-    $builtInStacks = @("next-fullstack", "flutter-fastapi", "flutter-express")
+    $builtInStacks = @("next-fullstack", "flutter-app")
     $presetReference = if ($builtInStacks -contains $stack) { "docs/workflow/presets/$stack.md" } else { "not-applicable" }
     if ($null -ne $presetReferenceOverride) {
         $presetReference = $presetReferenceOverride

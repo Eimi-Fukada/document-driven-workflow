@@ -127,7 +127,7 @@ Standard 和 Strict Feature 的实现交接上下文来自：
 
 实现 agent 必须遵守 Scope Lock；当触发条件成立时使用 TDD、systematic debugging、性能纪律和方案/闭环提醒；完成前执行 self review；声称完成前记录新的验证证据。
 
-同时要遵守可维护性规则：当结构或逻辑出现 2 or more times 时考虑抽取；触碰的单文件尽量保持在 1000 lines 以下。具体框架规则以当前 Feature 的 Stack Preset 为准，例如 Next.js 的 App Router、Tailwind CSS 和 Playwright 要求写在 `presets/next-fullstack.md`。
+同时要遵守可维护性规则：当结构或逻辑出现 2 or more times 时考虑抽取；触碰的单文件尽量保持在 1000 lines 以下。具体框架规则以当前 Feature 的 Stack Preset 为准，例如 Next.js 的 App Router、Tailwind CSS 和 Playwright 要求写在 `presets/next-fullstack.md`，Flutter 客户端架构和 UX 要求写在 `presets/flutter-app.md`。
 
 用户批准进入开发不等于允许自由落地。实现 agent 一次只能执行一个 Feature，并且必须在开工前重新锁定 `08-context-pack.md`、`04-acceptance-criteria.md` 和 `06-implementation-plan.md`。
 
@@ -165,8 +165,7 @@ node scripts/workflow/automation/finish-feature.mjs docs/features/<feature-id> -
 新项目优先选择 `STACK_POLICY.md` 里的内置 Stack Preset。没有内置 preset 的技术栈可以使用自定义 `stack_preset`，工作流不应因为 Java、Go、Python、Rust 或其他语言没有内置规则而阻断文档驱动流程。
 
 - `next-fullstack` 只使用 Next.js App Router。
-- `flutter-fastapi` 是 Flutter 独立后端默认预设。
-- `flutter-express` 仅在有明确理由时使用。
+- `flutter-app` 用于 Flutter 移动端或多端客户端，不绑定后端框架。
 - `legacy-existing` 必须先建立 baseline 和 compatibility contract。
 
 ## 变更流程

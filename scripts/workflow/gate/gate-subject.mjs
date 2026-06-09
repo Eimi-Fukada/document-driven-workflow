@@ -22,7 +22,7 @@ if (!existsSync(subjectPath)) {
 
 const manifest = readManifest(subjectPath);
 const failures = [];
-const builtInStackPresets = new Set(["next-fullstack", "flutter-fastapi", "flutter-express"]);
+const builtInStackPresets = new Set(["next-fullstack", "flutter-app"]);
 
 function requireFile(file) {
   const filePath = path.join(subjectPath, file);
@@ -143,10 +143,6 @@ function checkStack(stackPreset, technical, { light = false } = {}) {
     if (/Next\.js Pages Router:\s*yes/i.test(technical) || /pages router:\s*yes/i.test(technical)) {
       failures.push("next-fullstack must not use Next.js Pages Router.");
     }
-  }
-
-  if (stackPreset === "flutter-express" && /Exception Reason:\s*(none|unset)?\s*$/m.test(technical)) {
-    failures.push("flutter-express requires a non-empty Exception Reason.");
   }
 
   if (stackPreset === "legacy-existing") {

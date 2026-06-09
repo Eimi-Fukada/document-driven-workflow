@@ -100,13 +100,13 @@ const closureRisk = sectionLine(/Closure risk:\s*(.*)$/im, plan, "no");
 const userWarning = sectionLine(/User warning:\s*(.*)$/im, plan);
 const requiredDocumentUpdate = sectionLine(/Required document update:\s*(.*)$/im, plan);
 const uiSourceType = sectionLine(/Source type:\s*(.*)$/im, uiSpec, "none");
-const figmaUrl = sectionLine(/Figma URL:\s*(.*)$/im, uiSpec);
-const targetFrame = sectionLine(/Target Frame:\s*(.*)$/im, uiSpec);
-const nodeId = sectionLine(/Node ID:\s*(.*)$/im, uiSpec);
-const implementSelectedFrameOnly = sectionLine(/Implement selected target frame only:\s*(.*)$/im, uiSpec);
+const uiSourceUrlOrPath = sectionLine(/Source URL or path:\s*(.*)$/im, uiSpec);
+const targetUiSurface = sectionLine(/Target screen \/ frame \/ artboard:\s*(.*)$/im, uiSpec);
+const sourceUiId = sectionLine(/Source node \/ page \/ artboard ID:\s*(.*)$/im, uiSpec);
+const implementSelectedTargetOnly = sectionLine(/Implement selected target only:\s*(.*)$/im, uiSpec);
 const hiddenLayers = sectionLine(/Hidden layers:\s*(.*)$/im, uiSpec);
-const offCanvasFrames = sectionLine(/Off-canvas frames:\s*(.*)$/im, uiSpec);
-const unknownLayerPurpose = sectionLine(/Unknown layer purpose:\s*(.*)$/im, uiSpec);
+const offCanvasContent = sectionLine(/Off-canvas content:\s*(.*)$/im, uiSpec);
+const unknownContentPurpose = sectionLine(/Unknown content purpose:\s*(.*)$/im, uiSpec);
 const requiredStates = sectionLine(/Required states:\s*([\s\S]*?)(?:\n##|$)/i, uiSpec);
 
 const content = `# Context Pack
@@ -160,16 +160,16 @@ ${sectionLine(/Code Entry Points:\s*\n+([\s\S]*?)(?:\n##|$)/i, technical)}
 ## UI Handoff
 
 - UI source type: ${uiSourceType}
-- Figma URL: ${figmaUrl}
-- Target frame: ${targetFrame}
-- Node ID: ${nodeId}
-- Implement selected frame only: ${implementSelectedFrameOnly}
+- Source URL or path: ${uiSourceUrlOrPath}
+- Target screen / frame / artboard: ${targetUiSurface}
+- Source node / page / artboard ID: ${sourceUiId}
+- Implement selected target only: ${implementSelectedTargetOnly}
 - Hidden layers: ${hiddenLayers}
-- Off-canvas frames: ${offCanvasFrames}
-- Unknown layer purpose: ${unknownLayerPurpose}
+- Off-canvas content: ${offCanvasContent}
+- Unknown content purpose: ${unknownContentPurpose}
 - Required states: ${requiredStates}
 
-If UI source type is figma, implement only the documented target frame / node id. Hidden layers, non-target frames, reference drafts, deprecated frames, and layers with unknown purpose do not expand implementation scope. Ask the user before implementing unclear Figma content.
+If a Feature uses a design file, screenshot, image, Pencil, Figma, or existing page as UI source, implement only the documented target. Hidden content, non-target content, reference drafts, deprecated screens, and unclear content do not expand implementation scope. Ask the user before implementing unclear UI content.
 
 ## Execution Discipline
 

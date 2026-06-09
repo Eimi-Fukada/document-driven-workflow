@@ -98,13 +98,13 @@ Light Feature 使用 `01-light-feature.md`，不强制使用完整 Feature 文�
 
 ## UI Source Discipline
 
-当 Feature 使用 Figma 作为 UI 来源时，`02-ui-spec.md` 必须作为 UI 实现边界来源。实现 agent 只能读取和实现文档指定的 target frame / node id。
+当 Feature 使用设计稿、截图、图片、Pencil、Figma 或已有页面作为 UI 来源时，`02-ui-spec.md` 必须作为 UI 实现边界来源。实现 agent 只能读取和实现文档指定的 target screen / frame / artboard / page。
 
-- 隐藏图层不得自动进入实现范围。
-- 非目标 Frame、off-canvas frame、参考稿、旧稿和用途不明的 layer 不得自动进入实现范围。
-- MCP 读取到的结构信息只是 UI 上下文，不等于扩大实现授权。
-- 如果 Figma MCP、截图和 UI Spec 互相冲突，先暂停并让用户确认。
-- 没有 Figma 时，可以使用截图、文字 UI Spec 或目标项目已有页面作为 UI 来源；不要因为没有 Figma 阻断非 UI Feature。
+- 隐藏内容不得自动进入实现范围。
+- 非目标内容、off-canvas 内容、参考稿、旧稿和用途不明的内容不得自动进入实现范围。
+- MCP、截图、图片或已有页面读取到的信息只是 UI 上下文，不等于扩大实现授权。
+- 如果设计工具、截图、已有页面和 UI Spec 互相冲突，先暂停并让用户确认。
+- 没有设计工具时，可以使用截图、文字 UI Spec 或目标项目已有页面作为 UI 来源；不要因为没有 Figma 或 Pencil 阻断非 UI Feature。
 
 ## Implementation Deviation Stop Rule
 

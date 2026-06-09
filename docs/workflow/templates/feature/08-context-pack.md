@@ -46,16 +46,16 @@
 ## UI Handoff
 
 - UI source type:
-- Figma URL:
-- Target frame:
-- Node ID:
-- Implement selected frame only:
+- Source URL or path:
+- Target screen / frame / artboard:
+- Source node / page / artboard ID:
+- Implement selected target only:
 - Hidden layers:
-- Off-canvas frames:
-- Unknown layer purpose:
+- Off-canvas content:
+- Unknown content purpose:
 - Required states:
 
-如果 UI source type 是 `figma`，实现 agent 只能读取和实现指定 target frame / node id。隐藏图层、非目标 Frame、参考稿、旧稿和用途不明的 layer 不得自动进入实现范围；如有疑问必须先询问用户。
+如果 Feature 使用设计稿、截图、图片、Pencil、Figma 或已有页面作为 UI 来源，实现 agent 只能读取和实现指定目标。隐藏内容、非目标内容、参考稿、旧稿和用途不明的内容不得自动进入实现范围；如有疑问必须先询问用户。
 
 ## Execution Discipline
 
